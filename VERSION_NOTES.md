@@ -2,7 +2,7 @@
 * Dependencies split for installation (i.e. pip install marlin[models,plugins])
 
 # 0.3.3
-* woops
+* MarlinAutoModel fix 2 & ddp-amp-apex trainer backend
 
 # 0.3.2
 * MarlinAutoModel bug fix when using from_pretrained()
