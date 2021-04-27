@@ -4,8 +4,8 @@ import unittest
 from unittest import mock
 import torch
 import pytest
-from marlin.core import module_interface, trainer_backend
-from marlin.utils.distributed import DistributedTrainingArguments
+from pymarlin.core import module_interface, trainer_backend
+from pymarlin.utils.distributed import DistributedTrainingArguments
 #https://docs.python.org/3/library/unittest.mock.hmock_tml
 
 class TestSingleProcess(unittest.TestCase):

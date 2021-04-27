@@ -12,7 +12,7 @@ extras = {
 }
 
 setup(
-    name="marlin",
+    name="pymarlin",
     version="0.3.4",
     author="ELR Team",
     author_email="elrcore@microsoft.com",

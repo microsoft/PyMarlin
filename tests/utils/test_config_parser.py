@@ -4,7 +4,7 @@ Test for config parser module.
 from dataclasses import dataclass, field
 from typing import List, Optional
 from unittest import mock, TestCase
-from marlin.utils.config_parser.custom_arg_parser import CustomArgParser
+from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
 
 
 @dataclass

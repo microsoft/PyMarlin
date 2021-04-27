@@ -2,8 +2,8 @@
 import os
 import unittest
 from unittest import mock
-from marlin.core.trainer import Trainer, TrainerArguments
-from marlin.utils.checkpointer.checkpoint_utils import DefaultCheckpointerArguments
+from pymarlin.core.trainer import Trainer, TrainerArguments
+from pymarlin.utils.checkpointer.checkpoint_utils import DefaultCheckpointerArguments
 
 
 ## Wrapper class to allow Mock to be pickable for checkpoint test

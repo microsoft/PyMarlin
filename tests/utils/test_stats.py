@@ -6,8 +6,8 @@ import pytest
 import shutil
 import unittest
 from unittest import mock
-from marlin.utils import stats
-from marlin.utils.writer import build_writer, WriterInitArguments
+from pymarlin.utils import stats
+from pymarlin.utils.writer import build_writer, WriterInitArguments
 import collections
 import functools
 

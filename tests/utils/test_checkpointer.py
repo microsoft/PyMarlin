@@ -3,9 +3,9 @@ import os
 import unittest
 from unittest import mock
 import torch
-from marlin.utils.checkpointer.checkpoint_utils import DefaultCheckpointerArguments
-from marlin.utils.checkpointer.checkpoint_utils import DefaultCheckpointer
-from marlin.utils.checkpointer.checkpoint_utils import Checkpoint
+from pymarlin.utils.checkpointer.checkpoint_utils import DefaultCheckpointerArguments
+from pymarlin.utils.checkpointer.checkpoint_utils import DefaultCheckpointer
+from pymarlin.utils.checkpointer.checkpoint_utils import Checkpoint
 
 ## Wrapper class to allow Mock to be pickable for checkpoint test
 class PickableMock(mock.MagicMock):

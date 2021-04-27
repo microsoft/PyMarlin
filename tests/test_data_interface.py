@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import unittest
 import pandas as pd
 from torch.utils.data import Dataset
-from marlin.core.data_interface import DataInterface, DataProcessor
+from pymarlin.core.data_interface import DataInterface, DataProcessor
 
 @dataclass
 class MyArgs:

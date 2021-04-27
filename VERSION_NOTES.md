@@ -1,3 +1,9 @@
+# 0.3.4
+* Dependencies split for installation (i.e. pip install marlin[models,plugins])
+
+# 0.3.3
+* woops
+
 # 0.3.2
 * MarlinAutoModel bug fix when using from_pretrained()
 
