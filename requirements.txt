@@ -1,0 +1,11 @@
+# -f needs to be in a separate line
+transformers
+pylint
+pyyaml
+pandas
+tqdm
+tensorboard
+azureml-sdk
+matplotlib
+sklearn
+scipy

@@ -1,0 +1,84 @@
+# Using abreviated letter coding for group names. This will be used to parse these arguments when passed from command line.
+# Example usage in command-line: --tmod.max_lr 4E-5
+
+# data arguments
+data:
+    train_dir: null # provide path to train dir
+    val_dir: null # provide path to dev dir
+    file_format: "tsv"
+    header: True
+    text_a_col: null
+    text_b_col: null
+    label_col: null
+    labels_list: null
+    max_seq_len: 128
+    no_labels: False
+    tokenizer_path: null
+    hf_tokenizer: "bert-base-uncased"
+    cpu_threads: -1
+
+# model arguments
+model:
+    model_config_path: null # provide path to model config dir
+    model_config_file: "config.json"
+    model_path: null # provide path to model weights dir
+    model_file: "pytorch_model.bin"
+    hf_model: "bert-base-uncased"
+    encoder_key: "bert"
+
+# module_interface arguments
+module:
+    max_lr : 0.00002
+    warmup_prop: 0.1
+    no_labels: False
+
+# distill module arguments
+distill:
+    enable: False
+    # config_output_dir: null
+    student_model_config_path: null
+    student_model_config_file: null
+    student_model_path: null
+    student_model_file: null
+    student_layers: [0,6,11]
+    loss_types: ["logits"]
+    loss_weights: [1]
+    temperature: 1
+
+# trainer arguments
+trainer:
+    backend: "sp" # sp, sp-amp, ddp, ddp-amp
+    train_batch_size: 32 # Training global batch size.
+    val_batch_size: 16 # Validation global batch size.
+    epochs: 1 # Total epochs to run.
+    gpu_batch_size_limit : 8 # Max limit for GPU batch size during training.
+    clip_grads : True # Enable or disable clipping of gradients.
+    use_gpu: True # Enable or disable use of GPU.
+    max_grad_norm: 1.0 # Maximum value for gradient norm.
+    disable_tqdm: True
+    log_level: "DEBUG"
+
+# Checkpointer arguments
+ckpt:
+    checkpoint: True # Flag indicating whether to checkpoint model.
+    delete_existing_checkpoints: False
+    period: 1 # Period of epochs at which to checkpoint model.
+    save_dir: 'marlin_states' # Path to directory where checkpoints are to be stored.
+    model_state_save_dir: 'model_ckpts'
+    file_prefix: 'marlin' # Prefix of the checkpoint filename.
+    file_ext: 'bin' # File extension for the checkpoint.
+
+# Basic-Statistics arguments
+stats:
+    log_steps: 5
+    update_system_stats: False
+    log_model_steps: 1000
+    exclude_list: 'bias|LayerNorm|layer\\.[3-9]|layer\\.1(?!1)|layer\\.2(?!3)'
+
+# Writers arguments
+wrts:
+    model_log_level : 'INFO'
+    tb_log_dir : 'logs'
+    tb_logpath_parent_env : null
+    tb_log_multi : False
+    tb_log_hist_steps : 20000

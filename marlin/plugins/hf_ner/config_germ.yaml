@@ -1,0 +1,84 @@
+# Using abreviated letter coding for group names. This will be used to parse these arguments when passed from command line.
+# Example usage in command-line: --tmod.max_lr 4E-5
+
+# data_processor args
+data:
+    train_dir : null
+    val_dir : null
+    labels_list: [B-LOC, B-LOCderiv, B-LOCpart, B-ORG, B-ORGderiv, B-ORGpart, B-OTH, B-OTHderiv,
+        B-OTHpart, B-PER, B-PERderiv, B-PERpart, I-LOC, I-LOCderiv, I-LOCpart, I-ORG, I-ORGderiv,
+        I-ORGpart, I-OTH, I-OTHderiv, I-OTHpart, I-PER, I-PERderiv, I-PERpart, O]
+    max_seq_len: 128
+    pad_label_id: -100
+    has_labels: True
+    tokenizer: "bert-base-multilingual-cased"
+    file_format: "tsv"
+    label_all_tokens: False
+
+# model arguments
+model:
+    model_name: "bert"
+    encoder_key: "bert"
+    hf_model: "bert-base-multilingual-cased"
+    model_file: "pytorch_model.bin"
+    model_config_file: "config.json"
+    model_path: null
+    model_config_path: null
+
+# module_interface arguments
+module:
+    operation: "train"
+    tr_backend: "singleprocess"
+    output_dir: null
+    max_lr : 0.00003 # Maximum learning rate.
+    warmup_prop: 0.1
+    has_labels: True
+
+# distill module arguments
+distill:
+    enable: False
+    student_model_config_path: null
+    student_model_config_file: null
+    student_model_path: null
+    student_model_file: null
+    student_layers: [0,6,11]
+    loss_types: ["logits"]
+    loss_weights: [1]
+    temperature: 1
+
+# trainer arguments
+trainer:
+    train_batch_size: 32 # Training global batch size.
+    val_batch_size: 16 # Validation global batch size.
+    epochs: 25 # Total epochs to run.
+    gpu_batch_size_limit : 8 # Max limit for GPU batch size during training.
+    clip_grads : True # Enable or disable clipping of gradients.
+    use_gpu: True # Enable or disable use of GPU.
+    max_grad_norm: 1.0 # Maximum value for gradient norm.
+    writers: ['stdout', 'aml', 'tensorboard'] # List of all the writers to use.
+    disable_tqdm: True
+    log_level: "DEBUG"
+
+# Checkpointer arguments
+ckpt:
+    checkpoint: False # Flag indicating whether to checkpoint model.
+    delete_existing_checkpoints: False
+    period: 1 # Period of epochs at which to checkpoint model.
+    save_dir: 'ckpts' # Path to directory where checkpoints are to be stored.
+    file_prefix: 'bert' # Prefix of the checkpoint filename.
+    file_ext: 'tar' # File extension for the checkpoint.
+
+# Basic-Statistics arguments
+stats:
+    log_steps: 50
+    update_system_stats: False
+    log_model_steps: 1000
+    exclude_list: 'bias|LayerNorm|layer\\.[3-9]|layer\\.1(?!1)|layer\\.2(?!3)'
+
+# Writers arguments
+wrts:
+    model_log_level : 'INFO'
+    tb_log_dir : 'logs'
+    tb_logpath_parent_env : null
+    tb_log_multi : False
+    tb_log_hist_steps : 20000

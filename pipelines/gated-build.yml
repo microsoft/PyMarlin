@@ -1,0 +1,50 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- checkout: self  # self represents the repo where the initial Pipelines YAML file was found
+  lfs: true
+  
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.7'
+
+# - script: |
+#     pip install pylint
+#     pylint --rcfile .pylintrc marlin 
+#   workingDirectory: sources/dev/SubstrateInferences/marlin
+#   displayName: 'Run pylint'
+
+- script: |
+    pip install torch==1.7.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
+    pip install -r requirements.txt
+#    pip install . #installing to local prevents code coverage
+  workingDirectory: sources/dev/SubstrateInferences/Marlin
+  displayName: 'Install marlin Library'
+
+- script: |
+    pip install -r tests/requirements.txt
+    pip install pytest
+    pip install pytest-cov
+    set PYTHONPATH=. 
+    pytest tests/ --cov=marlin --cov-report=html --cov-report=xml --junitxml=junit/test-results.xml
+  workingDirectory: sources/dev/SubstrateInferences/Marlin
+  displayName: 'run tests with pytest'
+
+- task: PublishTestResults@2
+  condition: succeededOrFailed()
+  inputs:
+    testResultsFiles: 'sources/dev/SubstrateInferences/Marlin/junit/test-results.xml'
+    testRunTitle: 'Publish test results'
+
+- task: PublishCodeCoverageResults@1
+  inputs:
+    codeCoverageTool: 'Cobertura'
+    summaryFileLocation: 'sources/dev/SubstrateInferences/Marlin/**/coverage.xml'
+    pathToSources: 'sources/dev/SubstrateInferences/Marlin/marlin'
+    reportDirectory: 'sources/dev/SubstrateInferences/Marlin/**/htmlcov'
