@@ -1,19 +1,11 @@
-# 0.3.4
-* Dependencies split for installation (i.e. pip install marlin[models,plugins])
-
-# 0.3.3
-* MarlinAutoModel fix 2 & ddp-amp-apex trainer backend
-
 # 0.3.2
-* MarlinAutoModel bug fix when using from_pretrained()
+* Dependencies split for installation (i.e. pip install marlin[dev])
 
 # 0.3.1
 * rouge-score added as a required dependency to run any plugins currently
 
 # 0.3.0
-* Plugins
 * Native Apex
-* Turing Automodel
 
 # 0.2.0
 * DDPTrainer has been fixed and achieved parity on GLUE Benchmark
