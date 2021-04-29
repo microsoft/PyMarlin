@@ -1,0 +1,16 @@
+# Test YAML file for unit testing.
+
+test_data_path: 'c:\tmp'
+test_empty_data_path: null
+
+# test arguments
+test:
+    test_float: -1.0
+    test_int: -1
+    test_list_float: [-1.0, -1.0, -1.0]
+    test_list_int: [-1, -1, -1]
+    test_list_str: [ 'this', 'is', 'a', 'test', 'list']
+    test_str: null
+    test_true: False
+    test_false: True
+    
