@@ -1,33 +1,94 @@
-# Project
+# Set up instructions
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+## Environment setup
+    conda create -n marlin python=3.8
+    conda activate marlin
+    conda install pytorch cpuonly -c pytorch
 
-As the maintainer of this project, please make a few updates:
+# Installation
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+## Install from pip package
+This pip package is internal to microsoft employees currently
 
-## Contributing
+pip install keyring artifacts-keyring #https://github.com/microsoft/artifacts-keyring
+pip install marlin --index-url https://o365exchange.pkgs.visualstudio.com/959adb23-f323-4d52-8203-ff34e5cbeefa/_packaging/marlinpi/pypi/simple --force-reinstall
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+## Install from source
+    git clone https://o365exchange.visualstudio.com/DefaultCollection/O365%20Core/_git/ELR
+    git checkout -b u/elr/refactor
+    cd ELR\sources\dev\SubstrateInferences\marlin
+    pip install -r requirements.txt
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+### Option 1: pip install 
+https://medium.com/@arocketman/creating-a-pip-package-on-a-private-repository-using-setuptools-fff608471e39
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-## Trademarks
+    pip install .
+    cd .. 
+    python -c 'import marlin; print(marlin.__path__)'
+    python
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+    Hello World
+
+### Option 2: PYTHONPATH
+    Do this when making changes to the library. Suitable for core folks who work on improving the library.
+    set PYTHONPATH=<sourcecode path>
+
+## Developing marlin
+1. Run pylint
+    https://docs.pylint.org/en/1.8/user_guide/run.html
+
+    Get exit code in windows: https://www.shellhacks.com/windows-get-exit-code-errorlevel-cmd-powershell/
+
+        > pylint --rcfile .pylintrc marlin
+
+        > $LastExitCode #make sure it's 0
+
+
+    Enable linting on VScode : https://code.visualstudio.com/docs/python/linting
+    Tip: conda environment must be selected and . `.pylint` rc file should be at the root of workspace
+
+    
+    Linux based exit handler
+    https://github.com/jongracecox/pylint-exit
+
+2. Run test cases
+    
+        python -m pytest test
+
+## Publish and install pip package
+
+Document reference:
+
+Official documentation:https://docs.microsoft.com/en-us/azure/devops/artifacts/quickstarts/python-packages?view=azure-devops
+Our feed where packages will be stored: https://o365exchange.visualstudio.com/O365%20Core/_packaging?_a=connect&feed=marlinpi
+
+https://github.com/microsoft/artifacts-keyring
+
+### Publish
+
+pip install keyring artifacts-keyring
+pip install twine
+
+
+
+add .pypirc to home directory and write this in it.
+    [distutils]
+    Index-servers =
+    marlinpi
+
+    [marlinpi]
+    Repository = https://o365exchange.pkgs.visualstudio.com/959adb23-f323-4d52-8203-ff34e5cbeefa/_packaging/marlinpi/pypi/upload
+
+Go to marlin directory
+    cd C:\Users\krkusuk\repos\ELR\sources\dev\SubstrateInferences\marlin\
+
+Run these commands to upload to the feed 
+    
+    python setup.py sdist bdist_wheel
+    twine upload -r marlinpi dist/* # --skip-existing
+
+### install
+    conda create -n test2 python=3.8
+    pip install keyring artifacts-keyring #https://github.com/microsoft/artifacts-keyring
+    pip install marlin --index-url https://o365exchange.pkgs.visualstudio.com/959adb23-f323-4d52-8203-ff34e5cbeefa/_packaging/marlinpi/pypi/simple --force-reinstall
