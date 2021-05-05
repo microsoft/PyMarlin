@@ -1,3 +1,6 @@
+# 0.4.0
+* Adding plugins
+
 # 0.3.2
 * Dependencies split for installation (i.e. pip install marlin[dev])
 

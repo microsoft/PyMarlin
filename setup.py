@@ -7,11 +7,12 @@ with open("README.md", "r") as fh:
 required = ['tqdm','tensorboard','azureml-core','pyyaml']
 extras = {
     'dev': ['pytest','pylint'],
+    'plugins': ['transformers','pandas','matplotlib','sklearn','scipy','rouge-score']
 }
 
 setup(
     name="pymarlin",
-    version="0.3.2",
+    version="0.4.0",
     author="ELR Team",
     author_email="elrcore@microsoft.com",
     description="Lightweight Deeplearning Library",
