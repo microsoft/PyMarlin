@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 # torch installed seperately
-required = ['tqdm','tensorboard','azureml-core','pyyaml']
+required = ['tqdm','tensorboard','azureml-core','pyyaml','pandas']
 extras = {
     'dev': ['pytest','pylint'],
 }
