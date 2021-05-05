@@ -1,14 +1,14 @@
 from typing import List,Dict
 import torch
-from marlin.core import trainer_backend, module_interface, trainer
+from pymarlin.core import trainer_backend, module_interface, trainer
 from torch.utils.data import DataLoader
 
 # too long import
-from marlin.utils.stats import global_stats
-from marlin.utils.config_parser.custom_arg_parser import CustomArgParser
-from marlin.utils.distributed import rank_zero_only
-from marlin.utils.logger import getlogger
-from marlin.plugins import PluginModuleInterface
+from pymarlin.utils.stats import global_stats
+from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
+from pymarlin.utils.distributed import rank_zero_only
+from pymarlin.utils.logger import getlogger
+from pymarlin.plugins import PluginModuleInterface
 from transformers import AutoModelForSeq2SeqLM
 from torch.optim.lr_scheduler import OneCycleLR
 import dataclasses

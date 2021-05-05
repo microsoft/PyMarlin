@@ -1,8 +1,8 @@
 from abc import abstractmethod
 from typing import Optional, Dict
-from marlin.core import module_interface, data_interface
-from marlin.core import trainer as trn
-from marlin.utils.config_parser.custom_arg_parser import CustomArgParser
+from pymarlin.core import module_interface, data_interface
+from pymarlin.core import trainer as trn
+from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
 
 class Plugin:
     """Base class for all plugins.

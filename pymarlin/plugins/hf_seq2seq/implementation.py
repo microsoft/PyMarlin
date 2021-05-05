@@ -1,14 +1,14 @@
 import os
 import multiprocessing
 
-from marlin.utils.config_parser.custom_arg_parser import CustomArgParser
-from marlin.utils.logger.logging_utils import getlogger
+from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
+from pymarlin.utils.logger.logging_utils import getlogger
 logger = getlogger(__name__, 'DEBUG')
 
-from marlin.core import data_interface, module_interface
-from marlin.core import trainer as trn
+from pymarlin.core import data_interface, module_interface
+from pymarlin.core import trainer as trn
 
-from marlin.plugins.base import Plugin
+from pymarlin.plugins.base import Plugin
 from .data_classes import HfSeq2SeqData, DataInterfaceArguments
 from .module_classes import HfSeq2SeqModule, ModuleInterfaceArguments, ModelArguments, GenerateArguments
 

@@ -14,17 +14,17 @@ from torch.optim import Adam
 from torch.optim.lr_scheduler import OneCycleLR
 
 from transformers import InputExample, AutoTokenizer, AutoConfig, AutoModelForTokenClassification
-from marlin.utils.config_parser.custom_arg_parser import CustomArgParser
+from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
 
 from .data_classes import DataArguments, NERProcessor, NERBaseDataset, NERDataInterface
 from .module_classes import NERModule, ModuleInterfaceArguments, ModelArguments
 
-from marlin.core.data_interface import DataProcessor, DataInterface
-from marlin.core.module_interface import ModuleInterface
-from marlin.plugins.base import Plugin
-from marlin.plugins.hfdistill_utils import build_distill_module, DistillationArguments
-from marlin.utils.stats import global_stats
-from marlin.utils.logger.logging_utils import getlogger
+from pymarlin.core.data_interface import DataProcessor, DataInterface
+from pymarlin.core.module_interface import ModuleInterface
+from pymarlin.plugins.base import Plugin
+from pymarlin.plugins.hfdistill_utils import build_distill_module, DistillationArguments
+from pymarlin.utils.stats import global_stats
+from pymarlin.utils.logger.logging_utils import getlogger
 logger = getlogger(__name__, 'DEBUG')
 
 class NERPlugin(Plugin):

@@ -7,14 +7,14 @@ from torch.utils.data import DataLoader
 from torch.optim import Adam
 from torch.optim.lr_scheduler import OneCycleLR
 
-from marlin.core import module_interface, data_interface
+from pymarlin.core import module_interface, data_interface
 
 from transformers import  AutoConfig
 
-from marlin.utils.stats import global_stats
-from marlin.utils.logger.logging_utils import getlogger
+from pymarlin.utils.stats import global_stats
+from pymarlin.utils.logger.logging_utils import getlogger
 from .sequence_labelling_metrics import get_ner_seq_metric
-from marlin.utils.distributed import rank_zero_only
+from pymarlin.utils.distributed import rank_zero_only
 logger = getlogger(__name__, 'DEBUG')
 
 @dataclasses.dataclass

@@ -6,8 +6,8 @@ import torch
 
 from torch.utils.data import Dataset
 from transformers import InputExample, InputFeatures
-from marlin.utils.logger.logging_utils import getlogger
-from marlin.core import data_interface
+from pymarlin.utils.logger.logging_utils import getlogger
+from pymarlin.core import data_interface
 logger = getlogger(__name__, 'DEBUG')
 
 

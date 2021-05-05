@@ -9,10 +9,10 @@ from torch.utils.data import Dataset
 
 from transformers import InputFeatures
 
-from marlin.utils.logger.logging_utils import getlogger
+from pymarlin.utils.logger.logging_utils import getlogger
 logger = getlogger(__name__, 'DEBUG')
 
-from marlin.core import data_interface
+from pymarlin.core import data_interface
 
 @dataclasses.dataclass
 class DataArguments:

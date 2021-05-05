@@ -1,8 +1,8 @@
-from marlin.core.module_interface import ModuleInterface
-from marlin.models import MarlinAutoConfig
+from pymarlin.core.module_interface import ModuleInterface
+from pymarlin.models import MarlinAutoConfig
 
-from marlin.utils.distributed import rank_zero_only
-from marlin.utils.logger.logging_utils import getlogger
+from pymarlin.utils.distributed import rank_zero_only
+from pymarlin.utils.logger.logging_utils import getlogger
 logger = getlogger(__name__, 'DEBUG')
 
 import os

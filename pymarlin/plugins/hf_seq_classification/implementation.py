@@ -1,12 +1,12 @@
-from marlin.utils.config_parser.custom_arg_parser import CustomArgParser
-from marlin.utils.logger.logging_utils import getlogger
+from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
+from pymarlin.utils.logger.logging_utils import getlogger
 logger = getlogger(__name__, 'INFO')
 
-from marlin.core import data_interface, module_interface
-from marlin.core import trainer as trn
-from marlin.models import MarlinAutoModelForSequenceClassification
-from marlin.plugins.base import Plugin
-from marlin.plugins.hfdistill_utils import build_distill_module, DistillationArguments
+from pymarlin.core import data_interface, module_interface
+from pymarlin.core import trainer as trn
+from pymarlin.models import MarlinAutoModelForSequenceClassification
+from pymarlin.plugins.base import Plugin
+from pymarlin.plugins.hfdistill_utils import build_distill_module, DistillationArguments
 
 from .data_classes import HfSeqClassificationDataInterface, HfSeqClassificationProcessor, DataArguments
 from .module_classes import HfSeqClassificationModule, ModuleInterfaceArguments, ModelArguments

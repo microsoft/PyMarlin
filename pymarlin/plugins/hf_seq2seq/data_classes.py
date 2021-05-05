@@ -1,7 +1,7 @@
 import pandas as pd
 import torch
 import marlin
-from marlin.core import data_interface
+from pymarlin.core import data_interface
 import matplotlib
 matplotlib.use('Agg') # disable this in local machine to see plots
 import matplotlib.pyplot as plt
