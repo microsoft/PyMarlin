@@ -1,8 +1,7 @@
 import os
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoConfig
 
 from marlin.core import module_interface, data_interface
-from marlin.models import MarlinAutoConfig
 
 
 class PluginModuleInterface(module_interface.ModuleInterface):
