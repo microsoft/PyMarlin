@@ -23,6 +23,10 @@ class DistributedPreprocessArguments:
     local_size: int = 1
     node_rank: Optional[int] = None
 
+class SequentialDistributedSampler(torch.utils.data.distributed.DistributedSampler):
+    def __init__(self, dataset, num_replicas=None, rank=None, seed=0, drop_last=False, **kwargs):
+        super().__init__(dataset, shuffle=False, num_replicas=num_replicas, rank=rank, seed=seed, drop_last=drop_last)
+
 
 def ranks_already_set(args) -> bool:
     """Return True is both local and global ranks have been set."""
