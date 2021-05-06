@@ -1,4 +1,4 @@
 '''Class to test import of marlin library'''
 def test_import():
-    import marlin
+    import pymarlin
     assert True
