@@ -12,13 +12,12 @@ from transformers import (
 )
 
 import pymarlin as ml
-# from pymarlin.core import module_interface, trainer, trainer_backend
 from pymarlin.utils.logger.logging_utils import getlogger
 from pymarlin.utils.stats.basic_stats import StatInitArguments
 from pymarlin.utils.writer.base import WriterInitArguments
 from pymarlin.utils.checkpointer.checkpoint_utils import DefaultCheckpointerArguments
 
-from .data import (
+from data import (
     TweetSentData,
     DataInterfaceArguments,
     Stage1,
@@ -221,15 +220,13 @@ if __name__ == "__main__":
     trainer_args['checkpointer_args'] = checkpointer_args
     trainer_args = ml.TrainerArguments(**trainer_args)
 
-    trainer_backend = ml.SingleProcess()
-
-    if config['meta']['backend'] == "ddp":
-        trainer_backend = ml.DDPTrainerBackend(trainer_backend)
-
     trainer = ml.Trainer(
         module=module_interface,
-        trainer_backend=trainer_backend,
         args=trainer_args,
     )
 
     trainer.train()
+
+    outputs = trainer.validate()
+    if trainer.args.distributed_training_args.local_rank == 0:
+        print(outputs)
