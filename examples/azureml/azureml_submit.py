@@ -11,9 +11,8 @@ parser.add_argument("--target_name", default="sriovdedicated1")
 parser.add_argument("--node_count", "-n", type=int, default=1)
 parser.add_argument("--process_count", "-p", type=int, default=1)
 parser.add_argument("--experiment_name", type=str, default="marlin-tests")
-parser.add_argument("--distributed_config", "-d", type=str, choices=["mpi", "pytorch"], default="pytorch")
-parser.add_argument("--backend", "-b", choices=["sp", "ddp"], default="sp")
-parser.add_argument("--script", "-s", type=str, choices=["train.py", "ddp_train.py"], default="train.py")
+parser.add_argument("--distributed_config", "-d", type=str, choices=["mpi", "pytorch"], default="mpi")
+parser.add_argument("--backend", "-b", choices=["sp", "ddp-amp"], default="sp")
 args = parser.parse_args()
 
 ws = Workspace.from_config("examples/azureml/config.json")
@@ -39,7 +38,7 @@ env.python.user_managed_dependencies = True
 env.python.interpreter_path = "/opt/miniconda/bin/python"
 env.register(ws)
 
-cmd = f"pip install -U -e . && cd examples/classification/pymarlin_scripts && python {args.script} --meta.backend {args.backend}".split()
+cmd = f"pip install -U -e . && cd examples/classification/pymarlin_scripts && python train.py --trainer.backend {args.backend}".split()
 
 src = ScriptRunConfig(
     source_directory='.',
