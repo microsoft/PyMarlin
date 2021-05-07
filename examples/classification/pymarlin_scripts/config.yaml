@@ -56,3 +56,6 @@ data:
     label_field: 'Sentiment'
     splitpct: 10
     log_level: 'INFO'
+
+meta:
+    backend: 'sp'

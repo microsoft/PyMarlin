@@ -1,18 +1,30 @@
 import sys
 from dataclasses import dataclass
-import torch
-from pymarlin.core import module_interface, trainer, trainer_backend
-from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
-from pymarlin.utils.logger.logging_utils import getlogger
-from pymarlin.utils.stats.basic_stats import BasicStats, StatInitArguments
-from pymarlin.utils.writer.base import WriterInitArguments
-from pymarlin.utils.checkpointer.checkpoint_utils import DefaultCheckpointerArguments
-from data import TweetSentData, DataInterfaceArguments, Stage1, Stage2
+
 import matplotlib.pyplot as plt
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
 from torch.optim import Adam
 from torch.optim.lr_scheduler import OneCycleLR
 from torch.utils.data import DataLoader
+from transformers import (
+    AutoTokenizer,
+    AutoModelForSequenceClassification,
+)
+
+import pymarlin as ml
+# from pymarlin.core import module_interface, trainer, trainer_backend
+from pymarlin.utils.logger.logging_utils import getlogger
+from pymarlin.utils.stats.basic_stats import StatInitArguments
+from pymarlin.utils.writer.base import WriterInitArguments
+from pymarlin.utils.checkpointer.checkpoint_utils import DefaultCheckpointerArguments
+
+from .data import (
+    TweetSentData,
+    DataInterfaceArguments,
+    Stage1,
+    Stage2,
+)
+
 
 @dataclass
 class ModuleInterfaceArguments:
@@ -20,7 +32,7 @@ class ModuleInterfaceArguments:
     log_level: str = 'INFO'
 
 
-class TweetSentModule(module_interface.ModuleInterface):
+class TweetSentModule(ml.ModuleInterface):
     """Tweet sentiment analysis train module
     """
 
@@ -171,7 +183,7 @@ class TweetSentModule(module_interface.ModuleInterface):
 
 if __name__ == "__main__":
 
-    parser = CustomArgParser(log_level='DEBUG')
+    parser = ml.CustomArgParser(log_level='DEBUG')
     config = parser.parse()
 
     logger = getlogger(__name__)
@@ -207,28 +219,17 @@ if __name__ == "__main__":
     trainer_args['stats_args'] = stat_args
     trainer_args['writer_args'] = writer_args
     trainer_args['checkpointer_args'] = checkpointer_args
-    trainer_args = trainer.TrainerArguments(**trainer_args)
+    trainer_args = ml.TrainerArguments(**trainer_args)
 
-    trainer_backend = trainer_backend.SingleProcess()
-    trainer = trainer.Trainer(
-        module = module_interface,
-        trainer_backend = trainer_backend,
-        args = trainer_args
+    trainer_backend = ml.SingleProcess()
+
+    if config['meta']['backend'] == "ddp":
+        trainer_backend = ml.DDPTrainerBackend(trainer_backend)
+
+    trainer = ml.Trainer(
+        module=module_interface,
+        trainer_backend=trainer_backend,
+        args=trainer_args,
     )
 
-    # Log the Arguments
-    # for key in config.keys():
-    #     BasicStats.get_stats().log_args(config[key])
-
     trainer.train()
-
-    # #evaluate again on bigger dataset
-    # config["trainer"]['max_val_steps_per_epoch'] = 3
-    # trainer = trainer.Trainer(
-    #     module = module_interface,
-    #     trainer_backend = trainer_backend, 
-    #     args = trainer.TrainerArguments(**config["trainer"])
-    # )
-    # losses, logits, labels = trainer.validate()
-    # print('loss = {}, accuracy = {}'.format(module_interface.val_losses, module_interface.val_accs))
-    plt.show()
