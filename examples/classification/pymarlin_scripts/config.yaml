@@ -14,6 +14,7 @@ trainer:
     max_grad_norm: 1.0 # Maximum value for gradient norm.
     writers: ['stdout', 'aml', 'tensorboard'] # List of all the writers to use.
     reset_optimizers_schedulers: True
+    backend: ddp-amp
 
 # Checkpointer arguments
 chkp:
@@ -56,6 +57,3 @@ data:
     label_field: 'Sentiment'
     splitpct: 10
     log_level: 'INFO'
-
-meta:
-    backend: 'sp'
