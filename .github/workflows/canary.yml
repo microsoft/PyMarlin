@@ -1,0 +1,24 @@
+name: canary
+
+on:
+  schedule:
+  - cron: '5 8 * * 0'  # runs once a week at 8.05 on day 0 (Monday)
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: check out repo
+      uses: actions/checkout@v2
+    - name: setup python
+      uses: actions/setup-python@v2
+      with: 
+        python-version: "3.8"
+    - name: requirements
+      run: pip install azureml-sdk>=1.20.0
+    - name: azure login
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+    - name: release canary
+      run: python examples/azureml/azureml_submit.py --trainer.backend ddp-amp
