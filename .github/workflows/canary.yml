@@ -1,6 +1,7 @@
 name: canary
 
 on:
+  workflow_dispatch:
   schedule:
   - cron: '5 8 * * 0'  # runs once a week at 8.05 on day 0 (Monday)
 
