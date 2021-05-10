@@ -19,11 +19,16 @@ module.exports = {
       items: [
         {
           type: 'doc',
-          docId: 'intro',
+          docId: 'getting-started',
           position: 'left',
-          label: 'Tutorial',
+          label: 'Docs',
         },
-        {to: '/blog', label: 'Blog', position: 'left'},
+        {
+            type: 'doc',
+            docId: 'scenarios',
+            position: 'left',
+            label: 'Scenarios',
+        },
         {
           href: 'https://github.com/microsoft/PyMarlin',
           label: 'GitHub',

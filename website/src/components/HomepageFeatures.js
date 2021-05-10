@@ -8,8 +8,7 @@ const FeatureList = [
     Svg: require('../../static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        PyMarlin was designed to make PyTorch training as easy as possible while still getting the benefits of GPU and distributed node acceleration.
       </>
     ),
   },
@@ -18,18 +17,17 @@ const FeatureList = [
     Svg: require('../../static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        Focus on your scenario code and data preprocessing pipeline, we'll take care of the training loop and optimizations for you.
       </>
     ),
   },
   {
-    title: 'Powered by React',
+    title: 'Scale out to hundreds of GPUs with AzureML',
     Svg: require('../../static/img/undraw_docusaurus_react.svg').default,
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Run the same code in all environments and just use a simple configuration change to scale from a single CPU on your dev machines
+        to hundreds of GPU's in AzureML or other cloud services.
       </>
     ),
   },
