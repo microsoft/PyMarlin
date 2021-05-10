@@ -54,13 +54,6 @@
 
 Document reference:
 
-Official documentation:https://docs.microsoft.com/en-us/azure/devops/artifacts/quickstarts/python-packages?view=azure-devops
-Our feed where packages will be stored: https://o365exchange.visualstudio.com/O365%20Core/_packaging?_a=connect&feed=marlinpi
-
-https://github.com/microsoft/artifacts-keyring
-
-### Publish
-
 https://packaging.python.org/tutorials/packaging-projects/
 
 
@@ -68,6 +61,9 @@ https://packaging.python.org/tutorials/packaging-projects/
     python -m build
 
 This command should output a lot of text and once completed should generate two files in the dist directory
+
+    pymarlin-<version>-py3-none-any.whl
+    pymarlin-<version>.tar.gz
 
     python -m pip install --user --upgrade twine
     python -m twine upload --repository testpypi dist/* --skip-existing
