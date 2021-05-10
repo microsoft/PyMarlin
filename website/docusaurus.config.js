@@ -25,9 +25,9 @@ module.exports = {
         },
         {
             type: 'doc',
-            docId: 'scenarios',
+            docId: 'reference/core/module_interface',
             position: 'left',
-            label: 'Scenarios',
+            label: 'SDK',
         },
         {
           href: 'https://github.com/microsoft/PyMarlin',
