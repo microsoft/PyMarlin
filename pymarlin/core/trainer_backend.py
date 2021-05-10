@@ -14,11 +14,13 @@ from torch import nn
 from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.sampler import RandomSampler, SequentialSampler
-from transformers.trainer_pt_utils import SequentialDistributedSampler
 
 from pymarlin.core import module_interface
 from pymarlin.utils import stats
-from pymarlin.utils.distributed import DistributedTrainingArguments
+from pymarlin.utils.distributed import (
+    DistributedTrainingArguments,
+    SequentialDistributedSampler,
+)
 from torch.cuda.amp import autocast, GradScaler
 
 try:
@@ -668,7 +670,6 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
 
     @property
     def val_sampler(self):
-        # https://github.com/huggingface/transformers/blob/bf713cdec7c27416f514f231ba6728cfc8135120/src/transformers/trainer_backend_pt_utils.py#L174
         return SequentialDistributedSampler
 
 
