@@ -1,37 +1,31 @@
 # Set up instructions
 
 ## Environment setup
-    conda create -n marlin python=3.8
-    conda activate marlin
+    conda create -n pymarlin python=3.8
+    conda activate pymarlin
     conda install pytorch cpuonly -c pytorch
 
 # Installation
 
 ## Install from pip package
-This pip package is internal to microsoft employees currently
 
 pip install keyring artifacts-keyring #https://github.com/microsoft/artifacts-keyring
 pip install marlin --index-url https://o365exchange.pkgs.visualstudio.com/959adb23-f323-4d52-8203-ff34e5cbeefa/_packaging/marlinpi/pypi/simple --force-reinstall
 
 ## Install from source
-    git clone https://o365exchange.visualstudio.com/DefaultCollection/O365%20Core/_git/ELR
-    git checkout -b u/elr/refactor
-    cd ELR\sources\dev\SubstrateInferences\marlin
-    pip install -r requirements.txt
+    git clone https://github.com/microsoft/PyMarlin.git
+    cd PyMarlin
 
 ### Option 1: pip install 
-https://medium.com/@arocketman/creating-a-pip-package-on-a-private-repository-using-setuptools-fff608471e39
-
 
     pip install .
     cd .. 
-    python -c 'import marlin; print(marlin.__path__)'
-    python
+    python -c 'import pymarlin as ml; ml.hello(); print(ml.__path__)'
+    python 
 
     Hello World
 
 ### Option 2: PYTHONPATH
-    Do this when making changes to the library. Suitable for core folks who work on improving the library.
     set PYTHONPATH=<sourcecode path>
 
 ## Developing marlin

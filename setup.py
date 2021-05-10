@@ -11,12 +11,13 @@ extras = {
 
 setup(
     name="pymarlin",
-    version="0.3.2",
+    version="0.1.1",
     author="ELR Team",
     author_email="elrcore@microsoft.com",
     description="Lightweight Deeplearning Library",
     long_description=long_description,
-    url="https://aka.ms/marlin/docs",
+    long_description_content_type = "text/markdown",
+    url="https://microsoft.github.io/PyMarlin/",
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -24,7 +25,8 @@ setup(
         "Operating System :: OS Independent",
     ],
     install_requires=required,
-    extras_require=extras
+    extras_require=extras,
+    python_requires=">=3.6",
 )
 
 # https://packaging.python.org/discussions/install-requires-vs-requirements/
