@@ -17,5 +17,9 @@ module.exports = {
     'Feedback & Credits': ['credits']
   },
   // pydoc-markdown auto-generated markdowns from docstrings
-  referenceSideBar: require.resolve("./docs/reference/sidebar.json")
+  referenceSideBar: {
+    "SDK Reference": [
+      require("./docs/reference/sidebar.json")
+    ],
+  }
 };
