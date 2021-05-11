@@ -45,6 +45,16 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: '12.x'
+      - name: setup python
+        uses: actions/setup-python@v2
+        with: 
+          python-version: "3.8"
+      - name: pydoc-markdown install
+        run: pip install pydoc-markdown<4.0
+      - name: pydoc-markdown run
+        run: |
+          cd website
+          pydoc-markdown
       - name: Add key to allow access to repository
         env:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
