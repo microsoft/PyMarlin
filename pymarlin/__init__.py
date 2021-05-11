@@ -1,4 +1,5 @@
-"""marlin core library"""
+"""A lightweight library for Deep Learning model training"""
+
 from pymarlin.core.trainer import (
     TrainerArguments,
     Trainer,
@@ -24,8 +25,3 @@ from pymarlin.utils.checkpointer.checkpoint_utils import (
 )
 from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
 from pymarlin.utils.stats.basic_stats import BasicStats
-
-
-def hello():
-    '''Function docstring.'''
-    print('Hello World')
