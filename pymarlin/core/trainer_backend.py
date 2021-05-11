@@ -17,7 +17,10 @@ from torch.utils.data.sampler import RandomSampler, SequentialSampler
 
 from pymarlin.core import module_interface
 from pymarlin.utils import stats
-from pymarlin.utils.distributed import DistributedTrainingArguments
+from pymarlin.utils.distributed import (
+    DistributedTrainingArguments,
+    SequentialDistributedSampler,
+)
 from torch.cuda.amp import autocast, GradScaler
 
 try:
@@ -667,8 +670,7 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
 
     @property
     def val_sampler(self):
-        # pass shuffle=False
-        return DistributedSampler
+        return SequentialDistributedSampler
 
 
 def DDPTrainerBackendFactory(trainer_backend_cls):
