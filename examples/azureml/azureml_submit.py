@@ -11,8 +11,9 @@ parser.add_argument("--target_name", default="sriovdedicated1")
 parser.add_argument("--node_count", "-n", type=int, default=1)
 parser.add_argument("--process_count", "-p", type=int, default=1)
 parser.add_argument("--experiment_name", type=str, default="marlin-tests")
-parser.add_argument("--distributed_config", "-d", type=str, choices=["mpi", "pytorch"], default="mpi")
+parser.add_argument("--distributed_config", "-d", type=str, choices=["mpi", "pytorch"], default="pytorch")
 parser.add_argument("--backend", "-b", choices=["sp", "ddp-amp"], default="sp")
+parser.add_argument("--wait", "-w", action="store_true", help="Throw error is Azure ML job fails.")
 args = parser.parse_args()
 
 ws = Workspace.from_config("examples/azureml/config.json")
@@ -48,7 +49,11 @@ src = ScriptRunConfig(
     environment=env,
 )
 
-print("submitting experiment...")
+print("Submitting experiment...")
 run = Experiment(ws, args.experiment_name).submit(src)
 
 print(f"{run.get_portal_url()}")
+
+if args.wait:
+    print("Waiting for run completion...")
+    run.wait_for_completion(show_output=True, raise_on_error=True)
