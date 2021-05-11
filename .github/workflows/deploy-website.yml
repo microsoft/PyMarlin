@@ -21,7 +21,9 @@ jobs:
         with: 
           python-version: "3.8"
       - name: pydoc-markdown install
-        run: pip install pydoc-markdown<4.0
+        run: |
+          python -m pip install --upgrade pip
+          pip install pydoc-markdown<4.0
       - name: pydoc-markdown run
         run: |
           cd website
@@ -50,7 +52,9 @@ jobs:
         with: 
           python-version: "3.8"
       - name: pydoc-markdown install
-        run: pip install pydoc-markdown<4.0
+        run: |
+          python -m pip install --upgrade pip
+          pip install pydoc-markdown<4.0
       - name: pydoc-markdown run
         run: |
           cd website
