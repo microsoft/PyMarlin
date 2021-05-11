@@ -13,11 +13,10 @@ import torch
 
 
 class Stage(enum.Enum):
-    """Stage"""
+    """Stages: train, val, test"""
     train = 1
     val = 2
     test = 3
-
 
 class CallbackInterface(ABC):
     """A callback class used to add scenario specific outputs/logging/debugging during training.
