@@ -16,7 +16,7 @@ Scenarios.
 class Stage(enum.Enum)
 ```
 
-Stage
+Stages: train, val, test
 
 ## CallbackInterface Objects
 

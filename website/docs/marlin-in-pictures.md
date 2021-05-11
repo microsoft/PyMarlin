@@ -1,4 +1,4 @@
-# pymarlin in pictures
+# PyMarlin in Pictures
 
 pymarlin is designed to improve agility, scalability, code manageability, all while
 providing flexibility and control across DL environments. Due to this, pymarlin is divided
