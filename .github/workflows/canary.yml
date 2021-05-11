@@ -22,4 +22,4 @@ jobs:
       with:
         creds: ${{secrets.AZURE_CREDENTIALS}}
     - name: release canary
-      run: python examples/azureml/azureml_submit.py --trainer.backend ddp-amp
+      run: python examples/azureml/azureml_submit.py --backend ddp-amp --process_count 2
