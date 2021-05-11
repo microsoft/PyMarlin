@@ -1,9 +1,11 @@
 # Set up instructions
 
 ## Environment setup
+
     conda create -n pymarlin python=3.8
     conda activate pymarlin
     conda install pytorch cpuonly -c pytorch
+
 
 # Installation
 
@@ -30,7 +32,9 @@
 ### Option 2: PYTHONPATH
     set PYTHONPATH=<sourcecode path>
 
+
 ## Developing marlin
+1. Install dev deps: pip install .[dev]
 1. Run pylint
     https://docs.pylint.org/en/1.8/user_guide/run.html
 
