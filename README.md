@@ -1,5 +1,7 @@
 # Set up instructions
 
+![Canary Badge](https://github.com/microsoft/pymarlin/actions/workflows/canary.yml/badge.svg)
+
 ## Environment setup
 
     conda create -n pymarlin python=3.8
