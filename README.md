@@ -1,18 +1,37 @@
 # Set up instructions
 
 ## Environment setup
-conda create -n marlin python=3.8
-conda activate marlin
-conda install pytorch cpuonly -c pytorch
+
+    conda create -n pymarlin python=3.8
+    conda activate pymarlin
+    conda install pytorch cpuonly -c pytorch
+
 
 # Installation
 
 ## Install from pip package
-pip install pymarlin
+
+    pip install pymarlin
+
+### Test
+    python -c 'import pymarlin as ml; help(ml)'
+    Hello World
 
 ## Install from source
-git clone https://github.com/microsoft/PyMarlin.git
-pip install -e .
+    git clone https://github.com/microsoft/PyMarlin.git
+    cd PyMarlin
+
+### Option 1: pip install 
+
+    pip install .
+    cd .. 
+    python 
+
+    Hello World
+
+### Option 2: PYTHONPATH
+    set PYTHONPATH=<sourcecode path>
+
 
 ## Developing marlin
 1. Install dev deps: pip install .[dev]
@@ -27,49 +46,31 @@ pip install -e .
 
 
     Enable linting on VScode : https://code.visualstudio.com/docs/python/linting
+
     Tip: conda environment must be selected and . `.pylint` rc file should be at the root of workspace
 
-    
-    Linux based exit handler
-    https://github.com/jongracecox/pylint-exit
-
 2. Run test cases
-    
-        python -m pytest test
+        
+        pip install pytest
+        python -m pytest tests
 
 ## Publish and install pip package
 
 Document reference:
 
-Official documentation:https://docs.microsoft.com/en-us/azure/devops/artifacts/quickstarts/python-packages?view=azure-devops
-Our feed where packages will be stored: https://o365exchange.visualstudio.com/O365%20Core/_packaging?_a=connect&feed=marlinpi
-
-https://github.com/microsoft/artifacts-keyring
-
-### Publish
-
-pip install keyring artifacts-keyring
-pip install twine
+https://packaging.python.org/tutorials/packaging-projects/
 
 
+    python -m pip install --upgrade build
+    python -m build
 
-add .pypirc to home directory and write this in it.
-    [distutils]
-    Index-servers =
-    marlinpi
+This command should output a lot of text and once completed should generate two files in the dist directory
 
-    [marlinpi]
-    Repository = https://o365exchange.pkgs.visualstudio.com/959adb23-f323-4d52-8203-ff34e5cbeefa/_packaging/marlinpi/pypi/upload
+    pymarlin-<version>-py3-none-any.whl
+    pymarlin-<version>.tar.gz
 
-Go to marlin directory
-    cd C:\Users\krkusuk\repos\ELR\sources\dev\SubstrateInferences\marlin\
-
-Run these commands to upload to the feed 
-    
-    python setup.py sdist bdist_wheel
-    twine upload -r marlinpi dist/* # --skip-existing
+    python -m pip install --user --upgrade twine
+    python -m twine upload --repository testpypi dist/* --skip-existing
 
 ### install
-    conda create -n test2 python=3.8
-    pip install keyring artifacts-keyring #https://github.com/microsoft/artifacts-keyring
-    pip install marlin --index-url https://o365exchange.pkgs.visualstudio.com/959adb23-f323-4d52-8203-ff34e5cbeefa/_packaging/marlinpi/pypi/simple --force-reinstall
+    python -m pip install --index-url https://test.pypi.org/simple/ --no-deps pymarlin
