@@ -1,7 +1,7 @@
 # Glue Tasks
 
 You can use the `pymarlin` library to easily benchmark your models for the GLUE tasks.
-The following walkthrough references the source code located [here](https://o365exchange.visualstudio.com/O365%20Core/_git/ELR?path=%2Fsources%2Fdev%2FSubstrateInferences%2Fpymarlin_Scenarios%2Fglue&version=GBu%2Felr%2Fdocumentation&_a=contents).
+The following walkthrough references the source code located [here](https://github.com/microsoft/PyMarlin/tree/main/examples/glue).
 
 This walkthrough will be focused on the GLUE RTE task, run on CPU, although the source code is setup to run 8 tasks (CoLA, SST-2, MRPC, STS-B, QQP, MNLI, QNLI, RTE) and can also be run on a VM or Azure ML with distributed training.
 
