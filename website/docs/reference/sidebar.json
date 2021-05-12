@@ -2,13 +2,6 @@
   "items": [
     {
       "items": [
-        "reference/__init__/__init__"
-      ],
-      "label": "__init__",
-      "type": "category"
-    },
-    {
-      "items": [
         "reference/core/data_interface",
         "reference/core/module_interface",
         "reference/core/trainer",
@@ -70,8 +63,7 @@
       ],
       "label": "utils",
       "type": "category"
-    },
-    "reference/main"
+    }
   ],
   "label": "Reference",
   "type": "category"
