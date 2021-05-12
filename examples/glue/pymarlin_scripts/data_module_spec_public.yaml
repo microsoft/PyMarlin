@@ -1,0 +1,46 @@
+$schema: http://azureml/sdk-2-0/CommandComponent.json
+name: microsoft.substrate.horizontalsciences.pymarlin.glue_preprocess
+version: 0.0.1
+is_deterministic: False
+display_name: MarlinGLUE_Preprocess
+type: CommandComponent
+description: Marlin GLUE
+tags: {category: Marlin, contact: elrsubstrate@microsoft.com}
+
+inputs:
+  config_path:
+    type: String
+    description: required config for marlin job
+    default: ./config.yaml
+  set_type:
+    type: String
+    description: split of data [train,dev,test]
+    default: train
+  tokenizer:
+    type: String
+    description: tokenizer used to tokenize and encode/featurize
+    default: bert-base-uncased
+  input_dir:
+    type: AnyDirectory
+    description: directory with input data
+    optional: False
+
+outputs:
+  output_dir:
+    type: AnyDirectory
+    description: output_dir
+
+command: >-
+    python data.py
+      --config_path {inputs.config_path}
+      --dproc.set_type {inputs.set_type}
+      --dproc.tokenizer {inputs.tokenizer}
+      --dmod.input_dir {inputs.input_dir}
+      --dmod.output_dir {outputs.output_dir}
+
+environment:
+  docker:
+    image: mcr.microsoft.com/azureml/openmpi3.1.2-cuda10.1-cudnn7-ubuntu18.04
+  conda:
+    conda_dependencies_file: conda_env.yaml
+  os: Linux

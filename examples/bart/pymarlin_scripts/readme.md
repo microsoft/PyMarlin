@@ -1,8 +1,8 @@
-# BART Summarization
+# Bart Summarization
 
-This is an example explaining entire pipe line for a summarization task using pymarlin library.
+This is an example explaining entire pipe line for a summarization task using marlin library.
 
-[Source code location](https://github.com/microsoft/PyMarlin/tree/main/examples/bart).
+[Source code location](https://o365exchange.visualstudio.com/O365%20Core/_git/ELR?path=%2Fsources%2Fdev%2FSubstrateInferences%2Fmarlin_Scenarios%2Fbart&version=GBu%2Felr%2Frefactor&_a=contents).
 
 Dataset used: CNN Daily mail
 Model : [BART] (https://arxiv.org/abs/1910.13461)
@@ -56,8 +56,8 @@ In powershell: (Run this for every cell you create)
 restart shell
 
     nvidia-smi
-    conda create -n pymarlin python=3.8 -y
-    conda activate pymarlin
+    conda create -n marlin python=3.8 -y
+    conda activate marlin
     conda install pytorch cudatoolkit=10.2 -c pytorch -y # make sure cuda version is same as nvidia-smi
 
 ### Downlaod data
@@ -65,7 +65,7 @@ restart shell
     tar -xzvf cnn_dm_v2.tgz
 
     Analyze:
-        pymarlin_Scenarios\bart> python data.py  D:/data/cnn_cln
+        marlin_Scenarios\bart> python data.py  D:/data/cnn_cln
         Train
                                                     source                                             target
         0  Editor's note: In our Behind the Scenes series...  Mentally ill inmates in Miami are housed on th...
@@ -101,13 +101,13 @@ restart shell
         75%      868.000000     69.000000
         max     1917.000000   1440.000000
 ### Transferring code
-    scp -P $port -r C:\Users\krkusuk\repos\ELR\sources\dev\SubstrateInferences\pymarlin $user@${machine}:/home/$user 
-    scp -P $port -r C:\Users\krkusuk\repos\ELR\sources\dev\SubstrateInferences\pymarlin_Scenarios\bart $user@${machine}:/home/$user 
+    scp -P $port -r C:\Users\krkusuk\repos\ELR\sources\dev\SubstrateInferences\marlin $user@${machine}:/home/$user 
+    scp -P $port -r C:\Users\krkusuk\repos\ELR\sources\dev\SubstrateInferences\marlin_Scenarios\bart $user@${machine}:/home/$user 
 
-### Install pymarlin and requirements
+### Install marlin and requirements
     > ssh $user@$machine -p $port
-    $ pip install  ./pymarlin --force-reinstall
-    $ pip install -r pymarlin/requirements.txt
+    $ pip install  ./marlin --force-reinstall
+    $ pip install -r marlin/requirements.txt
     $ cd bart
 ### Run code 
     $ python data.py ../cnn_cln # run only once
