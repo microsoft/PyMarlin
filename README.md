@@ -1,94 +1,40 @@
-# Set up instructions
+# PyMarlin, a lightweight PyTorch library for agile deep learning!
+[![Unit Tests](https://github.com/microsoft/PyMarlin/actions/workflows/test.yml/badge.svg)](https://github.com/microsoft/PyMarlin/actions/workflows/test.yml)
+[![Docs](https://github.com/microsoft/PyMarlin/actions/workflows/deploy-website.yml/badge.svg)](https://github.com/microsoft/PyMarlin/actions/workflows/deploy-website.yml)
+[![AzureML Canary](https://github.com/microsoft/PyMarlin/actions/workflows/canary.yml/badge.svg)](https://github.com/microsoft/PyMarlin/actions/workflows/canary.yml)
+[![Test PyPi](https://github.com/microsoft/PyMarlin/actions/workflows/python-publish.yml/badge.svg)](https://github.com/microsoft/PyMarlin/actions/workflows/python-publish.yml)
+![](website/docs/Marlin.png)
+
 
 ## Environment setup
-    conda create -n marlin python=3.8
-    conda activate marlin
-    conda install pytorch cpuonly -c pytorch
 
-# Installation
-
-## Install from pip package
-This pip package is internal to microsoft employees currently
-
-pip install keyring artifacts-keyring #https://github.com/microsoft/artifacts-keyring
-pip install marlin --index-url https://o365exchange.pkgs.visualstudio.com/959adb23-f323-4d52-8203-ff34e5cbeefa/_packaging/marlinpi/pypi/simple --force-reinstall
-
-## Install from source
-    git clone https://o365exchange.visualstudio.com/DefaultCollection/O365%20Core/_git/ELR
-    git checkout -b u/elr/refactor
-    cd ELR\sources\dev\SubstrateInferences\marlin
-    pip install -r requirements.txt
-
-### Option 1: pip install 
-https://medium.com/@arocketman/creating-a-pip-package-on-a-private-repository-using-setuptools-fff608471e39
+PyMarlin was developed with the goal of simplifying the E2E Deep Learning experimentation lifecycle both in public and M365 compliant environments. The library enables an agile way to quickly prototype a new AI scenario on dev box and seamlessly scale it to public and compliant AML.  
 
 
-    pip install .
-    cd .. 
-    python -c 'import marlin; print(marlin.__path__)'
-    python
+## Key features
 
-    Hello World
+- Provides public and enterprise **data pre-processing** recipes, which provides out of the box vanilla and parallel processing. It requires no additional code to run for AML vs non-AML scenarios easily.
+- Provides **scalable model training** with support for Single Process, VM, multi-GPU, multi-node, distributed Data Parallel, mixed-precision (AMP, Apex) training. ORT and DeepSpeed based training are going to be available soon!
+- Provides out of the box **Plugins** that can be used for all typical NLP tasks like Sequence Classification, Named Entity Recognition and Seq2Seq text generation.
+- Provides **model abstraction** to allow for easy finetuning scenario integration with various Huggingface and Turing models.
+- Provides **reusable modules** for model checkpointing, stats collection, Tensorboard and compliant AML logging which can be customized based on your scenario.
+- Provides **custom arguments parser** that allows for saving all the default values for arguments related to a scenario in an YAML config file, merging user provided arguments at runtime.
+- All core modules are thoroughly **unit tested** and conform to Pylint requirements for **seamless Polymer deployment**.
 
-### Option 2: PYTHONPATH
-    Do this when making changes to the library. Suitable for core folks who work on improving the library.
-    set PYTHONPATH=<sourcecode path>
+## Installation
 
-## Developing marlin
-1. Run pylint
-    https://docs.pylint.org/en/1.8/user_guide/run.html
+    pip install pymarlin
 
-    Get exit code in windows: https://www.shellhacks.com/windows-get-exit-code-errorlevel-cmd-powershell/
+## Start exploring!
 
-        > pylint --rcfile .pylintrc marlin
+### Train your first model with pymarlin
 
-        > $LastExitCode #make sure it's 0
+Check out [CIFAR image classification](examples/cifar.md) from the EXAMPLES section.
 
+### GLUE task benchmarking
 
-    Enable linting on VScode : https://code.visualstudio.com/docs/python/linting
-    Tip: conda environment must be selected and . `.pylint` rc file should be at the root of workspace
+Explore how to use pymarlin to [benchmark your models on GLUE tasks](examples/glue-tasks.md).
 
-    
-    Linux based exit handler
-    https://github.com/jongracecox/pylint-exit
+## We want your feedback!
 
-2. Run test cases
-    
-        python -m pytest test
-
-## Publish and install pip package
-
-Document reference:
-
-Official documentation:https://docs.microsoft.com/en-us/azure/devops/artifacts/quickstarts/python-packages?view=azure-devops
-Our feed where packages will be stored: https://o365exchange.visualstudio.com/O365%20Core/_packaging?_a=connect&feed=marlinpi
-
-https://github.com/microsoft/artifacts-keyring
-
-### Publish
-
-pip install keyring artifacts-keyring
-pip install twine
-
-
-
-add .pypirc to home directory and write this in it.
-    [distutils]
-    Index-servers =
-    marlinpi
-
-    [marlinpi]
-    Repository = https://o365exchange.pkgs.visualstudio.com/959adb23-f323-4d52-8203-ff34e5cbeefa/_packaging/marlinpi/pypi/upload
-
-Go to marlin directory
-    cd C:\Users\krkusuk\repos\ELR\sources\dev\SubstrateInferences\marlin\
-
-Run these commands to upload to the feed 
-    
-    python setup.py sdist bdist_wheel
-    twine upload -r marlinpi dist/* # --skip-existing
-
-### install
-    conda create -n test2 python=3.8
-    pip install keyring artifacts-keyring #https://github.com/microsoft/artifacts-keyring
-    pip install marlin --index-url https://o365exchange.pkgs.visualstudio.com/959adb23-f323-4d52-8203-ff34e5cbeefa/_packaging/marlinpi/pypi/simple --force-reinstall
+Reach out to us with your [feedback and suggestions](credits.md).
