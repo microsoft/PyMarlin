@@ -15,6 +15,9 @@ PyMarlin was developed with the goal of simplifying the E2E Deep Learning experi
 - Provides **custom arguments parser** that allows for saving all the default values for arguments related to a scenario in an YAML config file, merging user provided arguments at runtime.
 
 ## Installation
+
+    pip install pymarlin
+    
 Read the [installation doc](website/docs/installation.md) for more information.
 
 ## Start exploring!
