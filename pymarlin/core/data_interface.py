@@ -185,8 +185,8 @@ class DataInterface(ABC):
         if not self.distrib_args.node_rank:
             self.distrib_args.node_rank = self.distrib_args.global_rank // \
                 self.distrib_args.local_size
-        
-        n_inputs = self.distrib_args.node_rank * n_step 
+
+        n_inputs = self.distrib_args.node_rank * n_step
         while n_inputs < len(param):
             node_params.extend(param[n_inputs:n_inputs + n_step])
             n_inputs += n_step*self.distrib_args.node_count
