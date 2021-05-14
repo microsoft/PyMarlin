@@ -116,7 +116,7 @@ class Trainer(AbstractTrainer):
         """
         self.module = module
         self.args = args
-        assert not (self.args.amp_backend_native and self.args.amp_backend_apex), f"Can only choose one AMP backend (native or apex), not both"
+        assert not (self.args.amp_backend_native and self.args.amp_backend_apex), "Can only choose one AMP backend (native or apex), not both"
         self.trainer_backend = self._init_backend(trainer_backend)
         self.logger = getlogger(__name__, self.args.log_level)
         self._fetch_ranks()
@@ -149,7 +149,7 @@ class Trainer(AbstractTrainer):
             self.stats.update("epoch", epoch, frequent=True)
             self.module.on_begin_train_epoch(self.global_steps_finished, epoch)
             self.module.train()  # nn.module.Train
-            all_outputs = self.train_epoch(epoch)
+            all_outputs = self.train_epoch()
 
             self.logger.info("Validating")
             self.validate()
@@ -167,7 +167,7 @@ class Trainer(AbstractTrainer):
         self.stats.log_long_stats(self.global_steps_finished)
         self.logger.info("Finished training .. ")
 
-    def train_epoch(self, epoch):
+    def train_epoch(self):
         all_outputs = []
         dataloader = self.module.get_train_dataloader(
             batch_size=self.train_step_batch_size, sampler=self.train_sampler
@@ -183,7 +183,7 @@ class Trainer(AbstractTrainer):
         self.module.eval()
         all_outputs = None
         dataloaders = (
-            dataloaders if type(dataloaders) == dict else {"default": dataloaders}
+            dataloaders if isinstance(dataloaders, dict) else {"default": dataloaders}
         )
         for key, dataloader in dataloaders.items():
             all_outputs = self.trainer_backend.validate_dl(dataloader)
@@ -342,10 +342,7 @@ class Trainer(AbstractTrainer):
 
     @property
     def pergpu_global_batch_size(self):
-        pergpu_global_batch_size = self.args.train_batch_size // self.args.distributed_training_args.world_size
-        return (
-                self.args.train_batch_size // self.args.distributed_training_args.world_size
-        )
+        return self.args.train_batch_size // self.args.distributed_training_args.world_size
 
     @property
     def gradient_accumulation(self):

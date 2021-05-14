@@ -28,6 +28,7 @@ def getlogger(name, log_level='INFO'):
     return logger
 
 if __name__ == '__main__':
+    # pylint: disable=pointless-string-statement
     """
     Running this command: "python logging_utils.py" will print following to console:
     SystemLog: logging level for logger1 is INFO

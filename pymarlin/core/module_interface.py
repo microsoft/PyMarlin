@@ -14,9 +14,9 @@ import torch
 
 class Stage(enum.Enum):
     """Stages: train, val, test"""
-    train = 1
-    val = 2
-    test = 3
+    TRAIN = 1
+    VAL = 2
+    TEST = 3
 
 class CallbackInterface(ABC):
     """A callback class used to add scenario specific outputs/logging/debugging during training.
@@ -176,13 +176,13 @@ class ModuleInterface(torch.nn.Module, CallbackInterface):
         Raises:
             AttributeError: if stage is different than train, val, test
         """
-        if stage == Stage.train:
+        if stage == Stage.TRAIN:
             return self.train_step(
                 batch = batch, device = device, global_step = global_step)
-        elif stage == Stage.val:
+        elif stage == Stage.VAL:
             return self.val_step(
                 batch = batch, device = device, global_step = global_step)
-        elif stage == Stage.test:
+        elif stage == Stage.TEST:
             return self.test_step(
                 batch = batch, device = device, global_step = global_step)
         else:
