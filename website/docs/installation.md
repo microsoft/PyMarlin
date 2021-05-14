@@ -16,7 +16,7 @@ In this guide, we will share instructions on how to set up pymarlin in the follo
 ### Install PyMarlin
 You can install from our internal pip or alternatively install from source.
 
-#### Install from pip
+#### Install from pip (once available in PyPi)
 
     pip install pymarlin
 

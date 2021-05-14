@@ -54,7 +54,7 @@ class TestSingleProcess(unittest.TestCase):
 
         # test forward
         self.mock_module.forward.assert_called_once_with(
-            stage = module_interface.Stage.train,
+            stage = module_interface.Stage.TRAIN,
             batch = self.mock_dataloader[0],
             device = 'cpu',
             global_step =1 )
@@ -74,7 +74,7 @@ class TestSingleProcess(unittest.TestCase):
 
         # test forward
         self.mock_module.forward.assert_called_once_with(
-            stage = module_interface.Stage.val,
+            stage = module_interface.Stage.VAL,
             batch = self.mock_dataloader[0],
             device = 'cpu',
             global_step = 0 )

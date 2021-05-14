@@ -15,7 +15,7 @@ class Aml(Writer):
             from azureml.core.run import Run
             self.run = Run.get_context()
             self.logger.info(self.run.get_status())
-        except Exception:
+        except Exception: # pylint: disable=broad-except
             self.run = None
             self.logger.warning('AML writer failed to initialize.')
         self.logger.info(f'run = {self.run}')

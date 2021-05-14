@@ -1,1 +1,1 @@
-'''Empty init file'''
+'''config parser'''

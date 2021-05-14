@@ -8,7 +8,7 @@ import yaml
 from pymarlin.utils.logger.logging_utils import getlogger
 
 class CustomArgParser:
-    """
+    r"""
     This class is part of utils and is provided to load arguments from the provided YAML config file.
     Further, the default values of arguments from config file can be overridden via command line.
     The class instance takes in the parser object and optional log_level.
@@ -99,7 +99,7 @@ class CustomArgParser:
                 else:
                     arglist = cmd_arg.split('.')
                     yaml_arg_value = self._config[arglist[0].strip('-')][arglist[1]]
-            except Exception as ex:
+            except Exception as ex: # pylint: disable=broad-except
                 self.logger.warning(f"cmd_line arg {cmd_arg} not found in YAML file. Ignoring ex:{ex}")
                 continue
             self._add_known_arguments_to_parser(cmd_arg, yaml_arg_value)
@@ -113,25 +113,25 @@ class CustomArgParser:
         elif isinstance(value, list):
             if isinstance(value[0], (int, str, float)):
                 self.parser.add_argument(arg, \
-                    type=lambda uf: self._eval_str_list(uf, type=type(value[0])))
+                    type=lambda uf: self._eval_str_list(uf, eval_type=type(value[0])))
             else:
                 self.logger.warning(f"unsupported type(yaml_arg_value): {type(value)}")
         else:
             self.parser.add_argument(arg, type=type(value), default=value)
 
-    def _eval_str_list(self, x, type=float):
+    def _eval_str_list(self, x, eval_type=float):
         if x is None:
             return None
         if isinstance(x, str):
             if '-' in x:
                 x = x.split('-')
             else:
-                x = eval(x)
+                x = eval(x) # pylint: disable=eval-used
         try:
-            return list(map(type, x))
+            return list(map(eval_type, x))
         except TypeError:
-            return [type(x)]
-    
+            return [eval_type(x)]
+
     def _str2bool(self, v):
         if isinstance(v, bool):
             return v
