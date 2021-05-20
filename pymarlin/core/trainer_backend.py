@@ -1,19 +1,17 @@
 """
 module for all trainer_backend classes.
 """
-import os
 from tqdm.auto import tqdm
 from abc import ABC, abstractmethod, abstractproperty
-import collections
 import dataclasses
-from typing import Iterable, List, Optional, Union
+from typing import Iterable, Optional, Union
 import warnings
 
 import torch
-from torch import nn
 from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.sampler import RandomSampler, SequentialSampler
+from torch.cuda.amp import autocast, GradScaler
 
 from pymarlin.core import module_interface
 from pymarlin.utils import stats
@@ -21,13 +19,13 @@ from pymarlin.utils.distributed import (
     DistributedTrainingArguments,
     SequentialDistributedSampler,
 )
-from torch.cuda.amp import autocast, GradScaler
+
 
 try:
     from apex import amp
 except ImportError:
     amp = None
-
+from functools import wraps
 
 def build_trainer_backend(trainer_backend_name, *args, **kwargs):
     """Factory for trainer_backends
@@ -50,13 +48,16 @@ def build_trainer_backend(trainer_backend_name, *args, **kwargs):
 
 @dataclasses.dataclass
 class TrainerBackendArguments:
+    """
+    Trainer Backend Arguments dataclass.
+    """
     model: module_interface.ModuleInterface
     device: Union[torch.device, str, int]
     max_train_steps_per_epoch: Optional[int]
     max_val_steps_per_epoch: Optional[int]
     distributed_training_args: DistributedTrainingArguments
     optimizers: Iterable[torch.optim.Optimizer]
-    schedulers: Optional[Iterable[torch.optim.lr_scheduler._LRScheduler]] = None
+    schedulers: Optional[Iterable[torch.optim.lr_scheduler._LRScheduler]] = None # pylint: disable=protected-access
     gradient_accumulation: int = 1
     clip_grads: bool = True
     max_grad_norm: float = 1.0
@@ -68,6 +69,9 @@ class TrainerBackendArguments:
 
 
 class TrainerBackend(ABC):
+    """
+    Trainer Backend abstract class.
+    """
     def __init__(self):
         pass
 
@@ -154,6 +158,7 @@ class OutputCollector():
             self.all_outputs.append([])
         self.all_outputs[index].append(output)
 
+    # pylint: disable=not-callable
     @staticmethod
     def _safe_cat(a: torch.Tensor, b: torch.Tensor):
         """Safely apply torch.cat.
@@ -165,10 +170,10 @@ class OutputCollector():
         b = torch.tensor([b]) if b.dim() == 0 else b
         return torch.cat([a, b], dim=0)
 
-
 class SingleProcess(TrainerBackend):
-    """Single Process TrainerBackend"""
+    """Single Process Trainer Backend"""
 
+    # pylint: disable=super-init-not-called
     def __init__(self):
         """
         Single process trainer_backend
@@ -202,7 +207,7 @@ class SingleProcess(TrainerBackend):
         # can pass certain stuff as argument instead of passing the entire train module.
         # But will this hinder inheritence as different trainer_backends will need different stuff from train module
         with tqdm(dataloader, unit="batch", disable=self.args.disable_tqdm) as tbatch:
-            for i, batch in enumerate(tbatch):
+            for _, batch in enumerate(tbatch):
                 if (
                         self.args.max_train_steps_per_epoch
                         and self.global_step_this_epoch
@@ -211,22 +216,7 @@ class SingleProcess(TrainerBackend):
                     break
 
                 tbatch.set_description(f"Global Batch: {self.global_step_completed + 1} ")
-                # forward
-                outputs = self.model.forward(
-                    stage=module_interface.Stage.train,
-                    batch=batch,
-                    device=self.args.device,
-                    global_step=self.global_step_completed + 1,
-                )
-                # assume iterable if first return type is not a list
-                outputs = [outputs] if type(outputs) == torch.Tensor else outputs
-
-                # Reduce loss by ga factor since gradients are summed. Will result in large gradients otherwise
-                loss = outputs[0] / self.args.gradient_accumulation
-
-                # backward. This will keep on accumulating gradients
-                loss.backward()
-                callback.on_end_backward(self.global_step_completed, loss)
+                outputs = self.forward_backward(callback, batch)
 
                 # collect
                 epoch_collector.collect(outputs)
@@ -244,6 +234,23 @@ class SingleProcess(TrainerBackend):
                     self.process_global_step(global_step_collector, callback)
 
         return epoch_collector.all_outputs
+
+    def forward_backward(self, callback, batch):
+        # forward
+        outputs = self.model.forward(
+            stage=module_interface.Stage.TRAIN,
+            batch=batch,
+            device=self.args.device,
+            global_step=self.global_step_completed + 1,
+        )
+        # assume iterable if first return type is not a list
+        outputs = [outputs] if isinstance(outputs, torch.Tensor) else outputs
+        # Reduce loss by ga factor since gradients are summed. Will result in large gradients otherwise
+        loss = outputs[0] / self.args.gradient_accumulation
+        # backward. This will keep on accumulating gradients
+        loss.backward()
+        callback.on_end_backward(self.global_step_completed, loss)
+        return outputs
 
     def process_global_step(self, global_step_collector, callback):
         """Clip gradients and call optimizer + scheduler
@@ -284,7 +291,7 @@ class SingleProcess(TrainerBackend):
             with torch.no_grad():
                 outputs = self.model.forward(
                     batch=batch,
-                    stage=module_interface.Stage.val,
+                    stage=module_interface.Stage.VAL,
                     device=self.args.device,
                     global_step=self.global_step_completed,
                 )
@@ -335,7 +342,9 @@ class SingleProcess(TrainerBackend):
 
 
 # TODO: Merge SingleProcess and SingleProcessAmp after convergence test
+# jsleep: was this convergence test run and should this be merged?
 class SingleProcessAmp(SingleProcess):
+    """ SingleProcess + Native PyTorch AMP Trainer Backend"""
     def __init__(self, enable_amp=True, **superclass_kwargs):
         super().__init__(**superclass_kwargs)
         self.enable_amp = enable_amp
@@ -353,7 +362,7 @@ class SingleProcessAmp(SingleProcess):
         # can pass certain stuff as argument instead of passing the entire train module.
         # But will this hinder inheritence as different trainer_backends will need different stuff from train module
         with tqdm(dataloader, unit="batch", disable=self.args.disable_tqdm) as tbatch:
-            for i, batch in enumerate(tbatch):
+            for _, batch in enumerate(tbatch):
                 if (
                         self.args.max_train_steps_per_epoch
                         and self.global_step_this_epoch
@@ -362,19 +371,7 @@ class SingleProcessAmp(SingleProcess):
                     break
 
                 tbatch.set_description(f"Global Batch: {self.global_step_completed + 1} ")
-                # forward
-                outputs = self._forward(batch, module_interface.Stage.train, self.global_step_completed + 1)
-
-                # assume iterable if first return type is not a list
-                outputs = [outputs] if type(outputs) == torch.Tensor else outputs
-
-                # Reduce loss by ga factor since gradients are summed. Will result in large gradients otherwise
-                loss = outputs[0] / self.args.gradient_accumulation
-
-                # backward. This will keep on accumulating gradients
-                self._backward(loss)
-
-                callback.on_end_backward(self.global_step_completed, loss)
+                outputs = self.forward_backward(callback, batch)
 
                 # collect
                 epoch_collector.collect(outputs)
@@ -391,6 +388,18 @@ class SingleProcessAmp(SingleProcess):
                     # write global step mean loss to stats
                     self.process_global_step(global_step_collector, callback)
         return epoch_collector.all_outputs
+
+    def forward_backward(self, callback, batch):
+        # forward
+        outputs = self._forward(batch, module_interface.Stage.TRAIN, self.global_step_completed + 1)
+        # assume iterable if first return type is not a list
+        outputs = [outputs] if isinstance(outputs, torch.Tensor) else outputs
+        # Reduce loss by ga factor since gradients are summed. Will result in large gradients otherwise
+        loss = outputs[0] / self.args.gradient_accumulation
+        # backward. This will keep on accumulating gradients
+        self._backward(loss)
+        callback.on_end_backward(self.global_step_completed, loss)
+        return outputs
 
     def _forward(self, batch, stage, global_step):
         with autocast(enabled=self.enable_amp):
@@ -416,7 +425,7 @@ class SingleProcessAmp(SingleProcess):
             ):
                 break
             with torch.no_grad():
-                outputs = self._forward(batch, module_interface.Stage.val, self.global_step_completed)
+                outputs = self._forward(batch, module_interface.Stage.VAL, self.global_step_completed)
 
             collector.collect(outputs)
         return collector.all_outputs
@@ -442,6 +451,8 @@ class SingleProcessAmp(SingleProcess):
 
 
 class SingleProcessApexAmp(SingleProcessAmp):
+    """ SingleProcess + Apex AMP Trainer Backend """
+
     def __init__(self, enable_amp=True, **superclass_kwargs):
         super().__init__(**superclass_kwargs)
         self.enable_amp = enable_amp
@@ -451,7 +462,7 @@ class SingleProcessApexAmp(SingleProcessAmp):
         super().init(args)
 
         if self.enable_amp:
-            assert amp is not None, f"apex amp cannot be found, please check if apex installed properly"
+            assert amp is not None, "apex amp cannot be found, please check if apex installed properly"
             self.amp_handle = amp
             self.model, self.args.optimizers = self.amp_handle.initialize(self.model, list(self.args.optimizers), opt_level=self.args.amp_level_apex, loss_scale="dynamic")
 
@@ -501,6 +512,7 @@ class SingleProcessApexAmp(SingleProcessAmp):
 class AbstractTrainerBackendDecorator(TrainerBackend):
     """Abstract class implementing the decorator design pattern."""
 
+    # pylint: disable=super-init-not-called
     def __init__(self, trainer_backend):
         self.trainer_backend = trainer_backend
 
@@ -544,11 +556,12 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
         processes - e.g. by using same random seed in each process at
         point of model initialization.
     """
-
+    # pylint: disable=super-init-not-called
     def __init__(self, trainer_backend, gather_frequency: Optional[int] = None):
         self.trainer_backend = trainer_backend
         self.gather_frequency = gather_frequency
         self.trainer_backend.distributed = True
+        self.trainer_backend._forward_backward = self._decorate_backward(self.trainer_backend._forward_backward)
 
     def init(self, args: TrainerBackendArguments):
         # unpack trainer_backend arguments
@@ -616,6 +629,23 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
                 warnings.warn(msg)
 
         return coalesced_outputs
+    
+    def _decorate_forward_backward(self, fwbw):
+        '''
+        Decorates single process backward to eanble or disable all reduce
+        disables all reduce if optimizer is not syncing.
+        Significat speed improvement.
+        '''
+        @wraps(fwbw)
+        def new_fw_bw(*args, **kw):
+            # self.batches_completed is not incremented yet. This is kind of hacky but works
+            if self.trainer_backend.batches_completed+1 % self.args.gradient_accumulation == 0:
+                result = fwbw(*args, **kw)
+            else:
+                with self.trainer_backend.model.no_sync():
+                    result = fwbw(*args, **kw)
+            return result
+        return new_fw_bw
 
     def gather_tensors_on_cpu(self, x: torch.tensor):
         """Gather tensors and move to cpu at configurable frequency.
@@ -672,9 +702,8 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
     def val_sampler(self):
         return SequentialDistributedSampler
 
-
-def DDPTrainerBackendFactory(trainer_backend_cls):
-    def create(gather_frequency: Optional[int] = None, *args, **kwargs):
+def DDPTrainerBackendFactory(trainer_backend_cls): # pylint: disable=invalid-name
+    def create(*args, gather_frequency: Optional[int] = None, **kwargs):
         # pull out args to DDPTrainerBackend if needed here.
         return DDPTrainerBackend(trainer_backend_cls(*args, **kwargs), gather_frequency=gather_frequency)
 
