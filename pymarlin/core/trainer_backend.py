@@ -216,7 +216,7 @@ class SingleProcess(TrainerBackend):
                     break
 
                 tbatch.set_description(f"Global Batch: {self.global_step_completed + 1} ")
-                outputs = self.forward_backward(callback, batch)
+                outputs = self._forward_backward(callback, batch)
 
                 # collect
                 epoch_collector.collect(outputs)
@@ -235,7 +235,7 @@ class SingleProcess(TrainerBackend):
 
         return epoch_collector.all_outputs
 
-    def forward_backward(self, callback, batch):
+    def _forward_backward(self, callback, batch):
         # forward
         outputs = self.model.forward(
             stage=module_interface.Stage.TRAIN,
@@ -371,7 +371,7 @@ class SingleProcessAmp(SingleProcess):
                     break
 
                 tbatch.set_description(f"Global Batch: {self.global_step_completed + 1} ")
-                outputs = self.forward_backward(callback, batch)
+                outputs = self._forward_backward(callback, batch)
 
                 # collect
                 epoch_collector.collect(outputs)
@@ -389,7 +389,7 @@ class SingleProcessAmp(SingleProcess):
                     self.process_global_step(global_step_collector, callback)
         return epoch_collector.all_outputs
 
-    def forward_backward(self, callback, batch):
+    def _forward_backward(self, callback, batch):
         # forward
         outputs = self._forward(batch, module_interface.Stage.TRAIN, self.global_step_completed + 1)
         # assume iterable if first return type is not a list
@@ -629,7 +629,7 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
                 warnings.warn(msg)
 
         return coalesced_outputs
-    
+
     def _decorate_forward_backward(self, fwbw):
         '''
         Decorates single process backward to eanble or disable all reduce
