@@ -143,7 +143,7 @@ class Trainer(AbstractTrainer):
     def train(self):
         """ Train and validate the model"""
         for epoch in trange(
-                self.last_epoch + 1, self.args.epochs, disable=self.args.disable_tqdm
+                self.last_epoch + 1, self.args.epochs, desc = "Epochs", disable=self.args.disable_tqdm
         ):
             self.logger.info(f"Training epoch {epoch}")
             self.stats.update("epoch", epoch, frequent=True)
@@ -382,7 +382,7 @@ class Trainer(AbstractTrainer):
 
     @property
     def val_step_batch_size(self):
-        return min(self.args.gpu_batch_size_limit, self.args.val_batch_size)
+        return self.args.val_batch_size # this is generally larger than limit for training.
 
     @property
     def global_steps_finished(self):

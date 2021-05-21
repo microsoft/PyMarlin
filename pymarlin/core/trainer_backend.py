@@ -215,7 +215,7 @@ class SingleProcess(TrainerBackend):
                 ):
                     break
 
-                tbatch.set_description(f"Global Batch: {self.global_step_completed + 1} ")
+                tbatch.set_description(f"Training {self.args.distributed_training_args.global_rank}")
                 outputs = self._forward_backward(callback, batch)
 
                 # collect
@@ -282,7 +282,7 @@ class SingleProcess(TrainerBackend):
 
     def validate_dl(self, dataloader):
         collector = OutputCollector()
-        for i, batch in enumerate(tqdm(dataloader, disable=self.args.disable_tqdm)):
+        for i, batch in enumerate(tqdm(dataloader, desc = f"Validation {self.args.distributed_training_args.global_rank}", disable=self.args.disable_tqdm)):
             if (
                     self.args.max_val_steps_per_epoch
                     and i >= self.args.max_val_steps_per_epoch
@@ -370,7 +370,7 @@ class SingleProcessAmp(SingleProcess):
                 ):
                     break
 
-                tbatch.set_description(f"Global Batch: {self.global_step_completed + 1} ")
+                tbatch.set_description(f"Training {self.args.distributed_training_args.global_rank}")
                 outputs = self._forward_backward(callback, batch)
 
                 # collect
@@ -379,8 +379,8 @@ class SingleProcessAmp(SingleProcess):
 
                 unscaled_loss = outputs[0].item()  # even though gradients are scaled, loss will be unscaled
                 tbatch.set_postfix(
-                    loss=unscaled_loss
-                )  # move progress bar to logger later
+                        loss=unscaled_loss,
+                        global_batch = self.global_step_completed + 1)
 
                 self.batches_completed += 1
 
@@ -418,7 +418,7 @@ class SingleProcessAmp(SingleProcess):
 
     def validate_dl(self, dataloader):
         collector = OutputCollector()
-        for i, batch in enumerate(tqdm(dataloader, disable=self.args.disable_tqdm)):
+        for i, batch in enumerate(tqdm(dataloader, desc = f"Validation {self.args.distributed_training_args.global_rank}", disable=self.args.disable_tqdm)):
             if (
                     self.args.max_val_steps_per_epoch
                     and i >= self.args.max_val_steps_per_epoch
@@ -561,7 +561,7 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
         self.trainer_backend = trainer_backend
         self.gather_frequency = gather_frequency
         self.trainer_backend.distributed = True
-        self.trainer_backend._forward_backward = self._decorate_backward(self.trainer_backend._forward_backward)
+        self.trainer_backend._forward_backward = self._decorate_forward_backward(self.trainer_backend._forward_backward)
 
     def init(self, args: TrainerBackendArguments):
         # unpack trainer_backend arguments
