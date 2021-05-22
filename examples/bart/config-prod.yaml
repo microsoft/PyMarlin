@@ -7,7 +7,7 @@ tmgr:
     max_train_steps_per_epoch : null # Maximum train steps per epoch.
     max_val_steps_per_epoch : null # Maximum validation steps per epoch.
     train_batch_size: 32 # Training global batch size.
-    val_batch_size: 16 # Validation batch size per GPU. 
+    val_batch_size: 32 # Validation batch size per GPU. 
     epochs: 3 # Total epochs to run.
     gpu_batch_size_limit : 4 # Max limit for GPU batch size during training.
     disable_tqdm : False
@@ -19,7 +19,7 @@ tm:
     max_length_encoder : 1024
     max_length_decoder : 128
 stat:
-    log_steps : 20
+    log_steps : 50
 chkp:
     checkpoint : True
     delete_existing_checkpoints: False

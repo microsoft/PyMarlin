@@ -117,10 +117,11 @@ class SummarizationBartModule(module_interface.ModuleInterface):
         )
         labels = batch.labels
         labels[labels[:, :] == -100] = self.model.config.pad_token_id
-
-
-        return summaries, labels
-
+        # pad summaries till same length for gathering
+        # Idle solution will be calculate ROUGE in a distributed manner if possible. Will save gather cost
+        padded_summaries = torch.ones_like(labels) * self.model.config.pad_token_id
+        padded_summaries[:,:summaries.shape[-1]] = summaries
+        return padded_summaries, labels
 
     def calculate_rouge(
         self,
