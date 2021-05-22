@@ -143,7 +143,7 @@ class Trainer(AbstractTrainer):
     def train(self):
         """ Train and validate the model"""
         for epoch in trange(
-                self.last_epoch + 1, self.args.epochs, desc = "Epochs", disable=self.args.disable_tqdm
+                self.last_epoch + 1, self.args.epochs, desc="Epochs", disable=self.args.disable_tqdm
         ):
             self.logger.info(f"Training epoch {epoch}")
             self.stats.update("epoch", epoch, frequent=True)

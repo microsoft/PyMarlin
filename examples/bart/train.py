@@ -180,6 +180,7 @@ class SummarizationBartModule(module_interface.ModuleInterface):
             return aggregator._scores  # here we return defaultdict(list)
 
     def on_end_val_epoch(self, global_step, *collated_output, key="default"):
+        print('Evaluating gathered results.')
         summaries, labels = collated_output
         #decode
         preds = self.tokenizer.batch_decode(
@@ -188,10 +189,8 @@ class SummarizationBartModule(module_interface.ModuleInterface):
         refs = self.tokenizer.batch_decode(
             labels, skip_special_tokens=True, clean_up_tokenization_spaces=False
         )
-        preds = [p for batch in preds  for p in batch ]
-        refs =  [p for batch in refs for p in batch ]
-        # print(refs[:5])
-        # print(preds[:5])
+        # print(refs[:2])
+        # print(preds[:2])
         ROUGE_KEYS = ["rouge1", "rouge2", "rougeL", "rougeLsum"]
         scores: dict =  self.calculate_rouge(preds, refs, rouge_keys = ROUGE_KEYS)
         global_stats.update_multi('metrics/rouge', scores)

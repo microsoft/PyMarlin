@@ -282,7 +282,7 @@ class SingleProcess(TrainerBackend):
 
     def validate_dl(self, dataloader):
         collector = OutputCollector()
-        for i, batch in enumerate(tqdm(dataloader, desc = f"Validation {self.args.distributed_training_args.global_rank}", disable=self.args.disable_tqdm)):
+        for i, batch in enumerate(tqdm(dataloader, desc=f"Validation {self.args.distributed_training_args.global_rank}", disable=self.args.disable_tqdm)):
             if (
                     self.args.max_val_steps_per_epoch
                     and i >= self.args.max_val_steps_per_epoch
@@ -418,7 +418,7 @@ class SingleProcessAmp(SingleProcess):
 
     def validate_dl(self, dataloader):
         collector = OutputCollector()
-        for i, batch in enumerate(tqdm(dataloader, desc = f"Validation {self.args.distributed_training_args.global_rank}", disable=self.args.disable_tqdm)):
+        for i, batch in enumerate(tqdm(dataloader, desc=f"Validation {self.args.distributed_training_args.global_rank}", disable=self.args.disable_tqdm)):
             if (
                     self.args.max_val_steps_per_epoch
                     and i >= self.args.max_val_steps_per_epoch
@@ -632,18 +632,18 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
 
     def _decorate_forward_backward(self, fwbw):
         '''
-        Decorates single process backward to eanble or disable all reduce
+        Decorates single process backward to enable or disable all reduce
         disables all reduce if optimizer is not syncing.
-        Significat speed improvement.
+        Significant speed improvement.
         '''
         @wraps(fwbw)
-        def new_fw_bw(*args, **kw):
-            # self.batches_completed is not incremented yet. This is kind of hacky but works
+        def new_fw_bw(*args, **kwargs):
+            # self.batches_completed is not incremented yet.
             if self.trainer_backend.batches_completed+1 % self.args.gradient_accumulation == 0:
-                result = fwbw(*args, **kw)
+                result = fwbw(*args, **kwargs)
             else:
                 with self.trainer_backend.model.no_sync():
-                    result = fwbw(*args, **kw)
+                    result = fwbw(*args, **kwargs)
             return result
         return new_fw_bw
 
