@@ -631,11 +631,9 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
         return coalesced_outputs
 
     def _decorate_forward_backward(self, fwbw):
-        '''
-        Decorates single process backward to enable or disable all reduce
-        disables all reduce if optimizer is not syncing.
-        Significant speed improvement.
-        '''
+        # Decorates single process backward to enable or disable all reduce
+        # disables all reduce if optimizer is not syncing.
+        # Significant speed improvement.
         @wraps(fwbw)
         def new_fw_bw(*args, **kwargs):
             # self.batches_completed is not incremented yet.
