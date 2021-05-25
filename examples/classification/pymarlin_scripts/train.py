@@ -193,11 +193,11 @@ if __name__ == "__main__":
     data_interface = TweetSentData(data_args)
 
     # Create DataProcessors
-    stage1 = Stage1(data_args)
+    # stage1 = Stage1(data_args) # assume this is done
     stage2 = Stage2(data_args)
 
     # Run DataProcessors specifying inputs and ouputs
-    data_interface.process_data(stage1)
+    # data_interface.process_data(stage1)
     ret = data_interface.process_data(stage2)
 
     # Set Datasets and label mappings in DataInterface

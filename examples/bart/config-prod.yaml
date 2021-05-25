@@ -1,0 +1,36 @@
+data_path: 'D:/data/cnn_cln'
+trainer_backend_class: 'SingleProcessAmp'
+dist: True
+cuda: 0 # to use a different GPU other than default
+
+tmgr:
+    max_train_steps_per_epoch : null # Maximum train steps per epoch.
+    max_val_steps_per_epoch : null # Maximum validation steps per epoch.
+    train_batch_size: 32 # Training global batch size.
+    val_batch_size: 32 # Validation batch size per GPU. 
+    epochs: 3 # Total epochs to run.
+    gpu_batch_size_limit : 4 # Max limit for GPU batch size during training.
+    disable_tqdm : False
+    writers: ["stdout", "aml", "tensorboard"]
+
+wrt:
+    tb_log_dir : 'logs'
+tm:
+    max_length_encoder : 1024
+    max_length_decoder : 128
+stat:
+    log_steps : 50
+chkp:
+    checkpoint : True
+    delete_existing_checkpoints: False
+    save_dir: 'outputs' #aml output path. does not require mounting
+    load_dir: null
+    load_filename: null
+
+# add more from BartForConditionalGeneration.generate?
+generate:
+    max_length: 128
+    do_sample : False
+    num_beams : 5
+# support everything in a yaml. ignore (print warning) everything that's not present.
+# Do not add the requirement to define anything in the parser other than yamls
