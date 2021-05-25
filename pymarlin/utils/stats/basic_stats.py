@@ -172,7 +172,7 @@ class BasicStats:
                 self.update('system/GPU0/memory_used_pct', \
                             torch.cuda.memory_allocated(device=self.args.device) / \
                             torch.cuda.get_device_properties(self.args.device).total_memory *100, frequent=True)
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-except
             self.logger.warning(f'error in update_system_stats : {e}')
 
     def log_long_stats(self, step):

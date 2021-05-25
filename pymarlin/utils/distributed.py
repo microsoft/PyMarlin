@@ -1,3 +1,4 @@
+"""distributed utils"""
 import os
 from dataclasses import dataclass
 from typing import Optional
@@ -25,8 +26,7 @@ class DistributedPreprocessArguments:
 
 class SequentialDistributedSampler(torch.utils.data.distributed.DistributedSampler):
     def __init__(self, dataset, num_replicas=None, rank=None, seed=0, drop_last=False, **kwargs):
-        super().__init__(dataset, shuffle=False, num_replicas=num_replicas, rank=rank, seed=seed, drop_last=drop_last)
-
+        super().__init__(dataset, shuffle=False, num_replicas=num_replicas, rank=rank, seed=seed, drop_last=drop_last, **kwargs)
 
 def ranks_already_set(args) -> bool:
     """Return True is both local and global ranks have been set."""
@@ -62,10 +62,10 @@ def fetch_ranks_from_azureml():
     """Look up distributed arguments from Azure ML environment variables.
 
     Assumes OpenMPI image.
-    
+
     Note:
         Sets up NCCL environment variables used by Azure ML:
-        
+
         - NCCL_SOCKET_IFNAME
         - NCCL_IB_DISABLE
     """
@@ -119,11 +119,11 @@ def rank_zero_only(fn):
         if rank_zero_only.rank == 0:
             res = fn(*args, **kwargs)
             if torch.distributed.is_initialized():
-                torch.distributed.barrier() 
+                torch.distributed.barrier()
             return res
         else:
             if torch.distributed.is_initialized():
-                torch.distributed.barrier() 
+                torch.distributed.barrier()
 
     return wrapped_fn
 rank_zero_only.rank = 0 # by default

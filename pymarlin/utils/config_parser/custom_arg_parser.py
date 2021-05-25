@@ -4,17 +4,20 @@ Custom Arguments Parser
 import argparse
 import os
 from typing import Dict
+import json
 import yaml
 from pymarlin.utils.logger.logging_utils import getlogger
 
 class CustomArgParser:
-    """
+    r"""
     This class is part of utils and is provided to load arguments from the provided YAML config file.
-    Further, the default values of arguments from config file can be overridden via command line.
-    The class instance takes in the parser object and optional log_level.
-    This class needed to be instantiated in the main method inside the ELR_Scenario code.
+    Further, the default values of arguments from config file can be overridden via commandline or via
+    the special argument --params provided for easy AML experimentation. The class instance takes in the
+    parser object and optional log_level. This class needs to be instantiated in the main method inside
+    the Marlin_Scenario code.
 
-    ''Example for instantiation'':
+    Example for instantiation::
+
         parser = CustomArgParser()
         config = parser.parse()
 
@@ -22,13 +25,15 @@ class CustomArgParser:
     namespace and the specific argument as shown in example below. If no namespace is present, then just
     pass the argument name. All command line arguments are optional and need to be prefixed with '--'.
     All commandline arguments not present in YAML config file will be ignored with a warning message.
-    Example commandline override:
+    Example commandline override::
+
     python train.py --tmgr.epochs 4 --chkp.save_dir "tmp\checkpoints"
 
     NOTE:
     Supported types for CustomArgParser are int, float, str, lists. null is inferred implicitly as str.
     If you intend to use other types, then please set a dummy default value in YAML file and pass the
-    intended value from commandline. Suggested defaults:
+    intended value from commandline. Suggested defaults::
+
         str: null
         int: -1
         float: -1.0
@@ -36,10 +41,23 @@ class CustomArgParser:
         list[int]: [-1, -1, -1]
         list[float] : [-1.0, -1.0, -1.0]
 
+    To make it easy to use with AML pipelines, the parser treats --params as a special argument. The parser
+    treats this as a str format of JSON serialized dictionary and parses this single argument to override
+    the default values from YAML config file of all the arguments present in the dictionary. For example when
+    user provides this str for --param::
+
+        '{"--test.test_str":"this is a new test string 2","--test.test_false":"false"}'
+        NOTE use of single quote and double quotes and use the same format to avoid parsing errors.
+
+    The parser parses this and overrides the default values provided for test_str and test_false under test
+    section in the YAML config file.
+
+
     """
     def __init__(self, yaml_file_arg_key='config_path', default_yamlfile="config.yaml", log_level='INFO'):
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('--' + yaml_file_arg_key, type=str, default=default_yamlfile, help='Path to YAML config')
+        self.parser.add_argument('--params', type=str, default='{}', help='JSON string of string and numeric parameters')
         self._config = None
         self.logger = getlogger(__name__, log_level)
 
@@ -68,12 +86,14 @@ class CustomArgParser:
         args, unknown_args = self.parser.parse_known_args()
         self.logger.debug(f"parsed args are : {args}, unknown args are: {unknown_args}")
         cmdline_args = vars(args)
+        params_dict = None
         for cmd_arg in cmdline_args.keys():
-            if '.' in cmd_arg:
-                arglist = cmd_arg.split('.')
-                self._config[arglist[0]][arglist[1]] = cmdline_args[cmd_arg]
-            else:
-                self._config[cmd_arg] = cmdline_args[cmd_arg]
+            if cmd_arg == 'params':
+                params_dict = json.loads(cmdline_args[cmd_arg])
+                continue
+            self._parse_arg_and_update_config(cmd_arg, cmdline_args)
+        self.logger.debug(f"params_dict is: {params_dict}")
+        self._update_from_params_dict(params_dict)
         return self._config
 
     def _parse_config(self, config_path):
@@ -91,6 +111,19 @@ class CustomArgParser:
             self.logger.error(f"Cannot find provided YAML file. Hit this exception: {ex}")
             raise
 
+    def _update_from_params_dict(self, params_dict):
+        if params_dict is None:
+            return
+        for cmd_arg in params_dict.keys():
+            self._parse_arg_and_update_config(cmd_arg, params_dict)
+
+    def _parse_arg_and_update_config(self, arg, arg_dict):
+        if '.' in arg:
+            arglist = arg.split('.')
+            self._config[arglist[0].strip('-')][arglist[1].strip('-')] = arg_dict[arg]
+        else:
+            self._config[arg] = arg_dict[arg]
+
     def _add_arguments(self, cmdline_args):
         for cmd_arg in cmdline_args:
             try:
@@ -99,13 +132,12 @@ class CustomArgParser:
                 else:
                     arglist = cmd_arg.split('.')
                     yaml_arg_value = self._config[arglist[0].strip('-')][arglist[1]]
-            except Exception as ex:
+            except Exception as ex: # pylint: disable=broad-except
                 self.logger.warning(f"cmd_line arg {cmd_arg} not found in YAML file. Ignoring ex:{ex}")
                 continue
             self._add_known_arguments_to_parser(cmd_arg, yaml_arg_value)
 
     def _add_known_arguments_to_parser(self, arg, value):
-        # TODO: Add support for dictionary parsing
         if value is None:
             self.parser.add_argument(arg, type=str, default=None)
         elif isinstance(value, bool):
@@ -113,25 +145,25 @@ class CustomArgParser:
         elif isinstance(value, list):
             if isinstance(value[0], (int, str, float)):
                 self.parser.add_argument(arg, \
-                    type=lambda uf: self._eval_str_list(uf, type=type(value[0])))
+                    type=lambda uf: self._eval_str_list(uf, eval_type=type(value[0])))
             else:
                 self.logger.warning(f"unsupported type(yaml_arg_value): {type(value)}")
         else:
             self.parser.add_argument(arg, type=type(value), default=value)
 
-    def _eval_str_list(self, x, type=float):
+    def _eval_str_list(self, x, eval_type=float):
         if x is None:
             return None
         if isinstance(x, str):
             if '-' in x:
                 x = x.split('-')
             else:
-                x = eval(x)
+                x = eval(x) # pylint: disable=eval-used
         try:
-            return list(map(type, x))
+            return list(map(eval_type, x))
         except TypeError:
-            return [type(x)]
-    
+            return [eval_type(x)]
+
     def _str2bool(self, v):
         if isinstance(v, bool):
             return v

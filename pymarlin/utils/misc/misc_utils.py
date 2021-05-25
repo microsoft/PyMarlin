@@ -58,7 +58,7 @@ def debug(method):
         debugged (method): debugged function.
 
     """
-    @wraps(method) 
+    @wraps(method)
     def debugged(*args, **kw):
         logger = getlogger(__name__)
         logger.debug('Inside method: %s', method.__name__)

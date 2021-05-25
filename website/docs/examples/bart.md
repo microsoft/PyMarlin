@@ -1,8 +1,8 @@
-# Bart Summarization
+# BART Summarization
 
 This is an example explaining entire pipe line for a summarization task using pymarlin library.
 
-[Source code location](https://o365exchange.visualstudio.com/O365%20Core/_git/ELR?path=%2Fsources%2Fdev%2FSubstrateInferences%2Fpymarlin_Scenarios%2Fbart&version=GBu%2Felr%2Frefactor&_a=contents).
+[Source code location](https://github.com/microsoft/PyMarlin/tree/main/examples/bart).
 
 Dataset used: CNN Daily mail
 Model : [BART] (https://arxiv.org/abs/1910.13461)

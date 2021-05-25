@@ -126,7 +126,7 @@ class Tensorboard(Writer):
         """
         self.logger.info('Logging Arguments for this experiment to Tensorboard.')
         smd = SummaryMetadata(plugin_data=SummaryMetadata.PluginData(plugin_name='elr_tb_args'))
-        writer = self.writer._get_file_writer()
+        writer = self.writer._get_file_writer() # pylint: disable=protected-access
         for key, value in args.items():
             self.logger.debug(f'key = {key}, value = {value}')
             tensor = TensorProto(dtype='DT_STRING',

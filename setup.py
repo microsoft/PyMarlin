@@ -12,7 +12,7 @@ extras = {
 
 setup(
     name="pymarlin",
-    version="0.1.1",
+    version="0.2.0",
     author="ELR Team",
     author_email="elrcore@microsoft.com",
     description="Lightweight Deeplearning Library",
@@ -29,5 +29,4 @@ setup(
     extras_require=extras,
     python_requires=">=3.6",
 )
-
 # https://packaging.python.org/discussions/install-requires-vs-requirements/

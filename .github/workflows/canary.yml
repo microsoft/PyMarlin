@@ -1,4 +1,4 @@
-name: canary
+name: azureml canary
 
 on:
   workflow_dispatch:
