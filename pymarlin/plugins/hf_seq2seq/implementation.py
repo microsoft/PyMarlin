@@ -3,18 +3,25 @@ import multiprocessing
 
 from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
 from pymarlin.utils.logger.logging_utils import getlogger
-logger = getlogger(__name__, 'DEBUG')
+
+logger = getlogger(__name__, "DEBUG")
 
 from pymarlin.core import data_interface, module_interface
 from pymarlin.core import trainer as trn
 
 from pymarlin.plugins.base import Plugin
 from .data_classes import HfSeq2SeqData, DataInterfaceArguments
-from .module_classes import HfSeq2SeqModule, ModuleInterfaceArguments, ModelArguments, GenerateArguments
+from .module_classes import (
+    HfSeq2SeqModule,
+    ModuleInterfaceArguments,
+    ModelArguments,
+    GenerateArguments,
+)
+
 
 class HfSeq2SeqPlugin(Plugin):
     """Plugin for Text Sequence to Sequence Generation using Huggingface models.
-    
+
     plugin.setup() bootstraps the entire pipeline and returns a fully setup trainer.
     Example::
             >>> trainer = plugin.setup()
@@ -27,6 +34,7 @@ class HfSeq2SeqPlugin(Plugin):
             >>> plugin.setup_module()
             >>> trainer = plugin.setup_trainer()
     """
+
     def __init__(self, config=None):
         """Accepts optional config dictionary.
         CustomArgParser parses YAML config located at cmdline --config_path. If --config_path
@@ -40,11 +48,13 @@ class HfSeq2SeqPlugin(Plugin):
         """
         super().__init__()
         if config is None:
-            config = CustomArgParser(log_level='DEBUG').parse()
-        self.data_args = DataInterfaceArguments(**config['data'])
-        self.module_args = ModuleInterfaceArguments(**config['module'],
-         model_args=ModelArguments(**config['model']),
-         generate_args=GenerateArguments(**config['generate']))
+            config = CustomArgParser(log_level="DEBUG").parse()
+        self.data_args = DataInterfaceArguments(**config["data"])
+        self.module_args = ModuleInterfaceArguments(
+            **config["module"],
+            model_args=ModelArguments(**config["model"]),
+            generate_args=GenerateArguments(**config["generate"])
+        )
         # self.distill_args = DistillationArguments(**config['distill'])
 
     def setup_datainterface(self):
@@ -73,7 +83,10 @@ class HfSeq2SeqPlugin(Plugin):
                             hf_model
         """
         # datainterface should contain the processed datasets
-        assert (len(self.datainterface.get_train_dataset()) != 0 or len(self.datainterface.get_val_dataset()) != 0)
+        assert (
+            len(self.datainterface.get_train_dataset()) != 0
+            or len(self.datainterface.get_val_dataset()) != 0
+        )
         self.moduleinterface = HfSeq2SeqModule(self.datainterface, self.module_args)
 
     def setup(self):

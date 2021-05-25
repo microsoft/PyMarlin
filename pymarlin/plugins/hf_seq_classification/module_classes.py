@@ -10,11 +10,13 @@ from pymarlin.models import MarlinAutoConfig
 from pymarlin.utils.distributed import rank_zero_only
 from pymarlin.utils.stats import global_stats
 from pymarlin.utils.logger.logging_utils import getlogger
-logger = getlogger(__name__, 'DEBUG')
+
+logger = getlogger(__name__, "DEBUG")
 
 from pymarlin.core import module_interface, data_interface
 
 from .metric_utils import get_metric_func
+
 
 @dataclasses.dataclass
 class ModelArguments:
@@ -25,13 +27,15 @@ class ModelArguments:
     model_path: str = None
     model_file: str = "pytorch_model.bin"
 
+
 @dataclasses.dataclass
 class ModuleInterfaceArguments:
     metric: str = "acc"
-    max_lr: float = 0.00004 # Maximum learning rate.
-    warmup_prop: float = 0.1 # % of steps
+    max_lr: float = 0.00004  # Maximum learning rate.
+    warmup_prop: float = 0.1  # % of steps
     has_labels: bool = True
     model_args: ModelArguments = None
+
 
 class HfSeqClassificationModule(module_interface.ModuleInterface):
     """Task specific ModuleInterface used with a trainer.
@@ -40,6 +44,7 @@ class HfSeqClassificationModule(module_interface.ModuleInterface):
     Args:
         ModuleInterface ([type]): [description]
     """
+
     def __init__(self, args):
         """Initialize training module.
 
@@ -57,13 +62,19 @@ class HfSeqClassificationModule(module_interface.ModuleInterface):
         Returns:
             data (data_interface.DataInterface): DataInterface object with at least one of train or val data.
         """
-        assert (len(self._data.get_train_dataset()) != 0 or len(self._data.get_val_dataset()) != 0)
+        assert (
+            len(self._data.get_train_dataset()) != 0
+            or len(self._data.get_val_dataset()) != 0
+        )
         return self._data
 
     @data.setter
     def data(self, datainterface):
         assert isinstance(datainterface, data_interface.DataInterface)
-        assert (len(datainterface.get_train_dataset()) != 0 or len(datainterface.get_val_dataset()) != 0)
+        assert (
+            len(datainterface.get_train_dataset()) != 0
+            or len(datainterface.get_val_dataset()) != 0
+        )
         self._data = datainterface
 
     @property
@@ -81,10 +92,15 @@ class HfSeqClassificationModule(module_interface.ModuleInterface):
     def _setup_config(self):
         if self.args.model_args.model_config_path is not None:
             model_config = MarlinAutoConfig.from_pretrained(
-                os.path.join(self.args.model_args.model_config_path, self.args.model_args.model_config_file)
+                os.path.join(
+                    self.args.model_args.model_config_path,
+                    self.args.model_args.model_config_file,
+                )
             )
         else:
-            model_config = MarlinAutoConfig.from_pretrained(self.args.model_args.hf_model)
+            model_config = MarlinAutoConfig.from_pretrained(
+                self.args.model_args.hf_model
+            )
         model_config.num_labels = len(self.data.get_labels())
         return model_config
 
@@ -110,12 +126,16 @@ class HfSeqClassificationModule(module_interface.ModuleInterface):
         if self.args.model_args.model_path is not None:
             logger.info(f"Model filename: {self.args.model_args.model_file}")
             self.model = automodel_class.from_pretrained(
-                os.path.join(self.args.model_args.model_path, self.args.model_args.model_file),
-                config=self.model_config
-                )
+                os.path.join(
+                    self.args.model_args.model_path, self.args.model_args.model_file
+                ),
+                config=self.model_config,
+            )
         else:
-            self.model = automodel_class.from_pretrained(self.args.model_args.hf_model, config=self.model_config)
-        
+            self.model = automodel_class.from_pretrained(
+                self.args.model_args.hf_model, config=self.model_config
+            )
+
     def get_train_dataloader(self, sampler: torch.utils.data.Sampler, batch_size: int):
         train_ds = self.data.get_train_dataset()
         logger.info(f"Training samples = {len(train_ds)}")
@@ -125,7 +145,7 @@ class HfSeqClassificationModule(module_interface.ModuleInterface):
             sampler=sampler(train_ds),
         )
         return dl
-        
+
     def get_val_dataloaders(self, sampler: torch.utils.data.Sampler, batch_size: int):
         val_ds = self.data.get_val_dataset()
         logger.info(f"Validation samples = {len(val_ds)}")
@@ -136,7 +156,9 @@ class HfSeqClassificationModule(module_interface.ModuleInterface):
         )
         return dl
 
-    def get_optimizers_schedulers(self, estimated_global_steps_per_epoch: int, epochs: int):
+    def get_optimizers_schedulers(
+        self, estimated_global_steps_per_epoch: int, epochs: int
+    ):
         self.optimizer = Adam(self.model.parameters(), self.args.max_lr)
         self.scheduler = OneCycleLR(
             self.optimizer,
@@ -145,11 +167,11 @@ class HfSeqClassificationModule(module_interface.ModuleInterface):
             epochs=epochs,
             anneal_strategy="linear",
             pct_start=self.args.warmup_prop,
-            div_factor=1e7,# initial lr ~0
-            final_div_factor=1e10 # final lr ~0
+            div_factor=1e7,  # initial lr ~0
+            final_div_factor=1e10,  # final lr ~0
         )
         return [self.optimizer], [self.scheduler]
-        
+
     def _inputs_to_device(self, batch, device):
         inputs = {}
         for k, v in batch.items():
@@ -162,15 +184,15 @@ class HfSeqClassificationModule(module_interface.ModuleInterface):
         outputs = self.model.forward(**inputs)
         loss = outputs.loss
         return loss
-        
+
     def val_step(self, global_step, batch, device):
         inputs = self._inputs_to_device(batch, device)
         outputs = self.model.forward(**inputs)
         if outputs.loss is not None:
-            return outputs.loss, outputs.logits, inputs['labels']
+            return outputs.loss, outputs.logits, inputs["labels"]
         else:
             return outputs.logits
-    
+
     def on_end_train_step(self, global_step, train_loss):
         global_stats.update("lr", self.optimizer.param_groups[0]["lr"], frequent=True)
 
@@ -185,7 +207,7 @@ class HfSeqClassificationModule(module_interface.ModuleInterface):
         if self.args.has_labels and len(values) > 0:
             losses, logits, labels = values
             mean_loss = losses.mean().item()
-            global_stats.update(key+'/val_loss', mean_loss, frequent=False)
+            global_stats.update(key + "/val_loss", mean_loss, frequent=False)
             labels = labels.numpy()
             if len(self.data.get_labels()) == 1:
                 preds = logits.squeeze().numpy()
@@ -197,6 +219,8 @@ class HfSeqClassificationModule(module_interface.ModuleInterface):
 
             metrics = self.metric_func(labels, preds)
             for k in metrics:
-                global_stats.update(key+'/val_'+k, metrics[k])
+                global_stats.update(key + "/val_" + k, metrics[k])
         else:
-            logger.info("Either validation data was not provided OR no labels were provided to compute metrics.")
+            logger.info(
+                "Either validation data was not provided OR no labels were provided to compute metrics."
+            )

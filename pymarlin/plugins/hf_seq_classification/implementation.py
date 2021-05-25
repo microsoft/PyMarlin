@@ -1,6 +1,7 @@
 from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
 from pymarlin.utils.logger.logging_utils import getlogger
-logger = getlogger(__name__, 'INFO')
+
+logger = getlogger(__name__, "INFO")
 
 from pymarlin.core import data_interface, module_interface
 from pymarlin.core import trainer as trn
@@ -8,8 +9,16 @@ from pymarlin.models import MarlinAutoModelForSequenceClassification
 from pymarlin.plugins.base import Plugin
 from pymarlin.plugins.hfdistill_utils import build_distill_module, DistillationArguments
 
-from .data_classes import HfSeqClassificationDataInterface, HfSeqClassificationProcessor, DataArguments
-from .module_classes import HfSeqClassificationModule, ModuleInterfaceArguments, ModelArguments
+from .data_classes import (
+    HfSeqClassificationDataInterface,
+    HfSeqClassificationProcessor,
+    DataArguments,
+)
+from .module_classes import (
+    HfSeqClassificationModule,
+    ModuleInterfaceArguments,
+    ModelArguments,
+)
 
 import os
 from typing import Optional, Dict
@@ -19,7 +28,7 @@ from transformers import AutoTokenizer
 
 class HfSeqClassificationPlugin(Plugin):
     """Plugin for Text Sequence Classification using Huggingface models.
-    
+
     plugin.setup() bootstraps the entire pipeline and returns a fully setup trainer.
     Example::
             >>> trainer = plugin.setup()
@@ -32,6 +41,7 @@ class HfSeqClassificationPlugin(Plugin):
             >>> plugin.setup_module()
             >>> trainer = plugin.setup_trainer()
     """
+
     def __init__(self, config: Optional[Dict] = None):
         """CustomArgParser parses YAML config located at cmdline --config_path. If --config_path
         is not provided, assumes YAML file is named config.yaml and present in working directory.
@@ -55,11 +65,12 @@ class HfSeqClassificationPlugin(Plugin):
         """
         super().__init__(config=None)
         if config is None:
-            config = CustomArgParser(log_level='DEBUG').parse()
-        self.data_args = DataArguments(**config['data'])
-        self.module_args = ModuleInterfaceArguments(**config['module'],
-                                model_args=ModelArguments(**config['model']))
-        self.distill_args = DistillationArguments(**config['distill'])
+            config = CustomArgParser(log_level="DEBUG").parse()
+        self.data_args = DataArguments(**config["data"])
+        self.module_args = ModuleInterfaceArguments(
+            **config["module"], model_args=ModelArguments(**config["model"])
+        )
+        self.distill_args = DistillationArguments(**config["distill"])
 
         self.datainterface = HfSeqClassificationDataInterface(self.data_args)
         self.dataprocessor = HfSeqClassificationProcessor(self.data_args)
@@ -96,13 +107,33 @@ class HfSeqClassificationPlugin(Plugin):
             self.data_args.cpu_threads = multiprocessing.cpu_count()
         train_features, val_features = [], []
         if self.data_args.train_dir is not None:
-            logger.info(f"Processing training data found at {self.data_args.train_dir}...")
-            train_files = [os.path.join(self.data_args.train_dir, filename) for filename in os.listdir(self.data_args.train_dir)]
-            train_features = self.datainterface.multi_process_data(self.dataprocessor, train_files, tokenizer, process_count=self.data_args.cpu_threads)
+            logger.info(
+                f"Processing training data found at {self.data_args.train_dir}..."
+            )
+            train_files = [
+                os.path.join(self.data_args.train_dir, filename)
+                for filename in os.listdir(self.data_args.train_dir)
+            ]
+            train_features = self.datainterface.multi_process_data(
+                self.dataprocessor,
+                train_files,
+                tokenizer,
+                process_count=self.data_args.cpu_threads,
+            )
         if self.data_args.val_dir is not None:
-            logger.info(f"Processing validation data found at {self.data_args.val_dir}...")
-            val_files = [os.path.join(self.data_args.val_dir, filename) for filename in os.listdir(self.data_args.val_dir)]
-            val_features = self.datainterface.multi_process_data(self.dataprocessor, val_files, tokenizer, process_count=self.data_args.cpu_threads)
+            logger.info(
+                f"Processing validation data found at {self.data_args.val_dir}..."
+            )
+            val_files = [
+                os.path.join(self.data_args.val_dir, filename)
+                for filename in os.listdir(self.data_args.val_dir)
+            ]
+            val_features = self.datainterface.multi_process_data(
+                self.dataprocessor,
+                val_files,
+                tokenizer,
+                process_count=self.data_args.cpu_threads,
+            )
         self.datainterface.setup_datasets(train_features, val_features)
 
     def setup_module(self):
@@ -125,9 +156,14 @@ class HfSeqClassificationPlugin(Plugin):
         Both student and teacher architectures must be Huggingface transformers.
         """
         # datainterface should contain the processed datasets
-        assert (len(self.datainterface.get_train_dataset()) != 0 or len(self.datainterface.get_val_dataset()) != 0)
+        assert (
+            len(self.datainterface.get_train_dataset()) != 0
+            or len(self.datainterface.get_val_dataset()) != 0
+        )
         self.moduleinterface.data = self.datainterface
-        self.moduleinterface.setup_model(MarlinAutoModelForSequenceClassification) # initializes model weights
+        self.moduleinterface.setup_model(
+            MarlinAutoModelForSequenceClassification
+        )  # initializes model weights
 
     def setup(self):
         """Executes all the setup methods required to create a trn.Trainer object.

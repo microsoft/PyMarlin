@@ -1,4 +1,4 @@
-from typing import List,Dict
+from typing import List, Dict
 import torch
 from pymarlin.core import trainer_backend, module_interface, trainer
 from torch.utils.data import DataLoader
@@ -30,6 +30,7 @@ if NLTK_AVAILABLE:
     with FileLock(".lock") as lock:
         nltk.download("punkt", quiet=True)
 
+
 @dataclasses.dataclass
 class ModelArguments:
     encoder_key: str = "bert"
@@ -42,29 +43,28 @@ class ModelArguments:
     model_file: str = "pytorch_model.bin"
     get_latest_ckpt: bool = True
 
+
 @dataclasses.dataclass
 class GenerateArguments:
-    do_sample : bool = False
-    num_beams : int = 1
-    length_penalty : float = 1.0
-    early_stopping : bool = False
+    do_sample: bool = False
+    num_beams: int = 1
+    length_penalty: float = 1.0
+    early_stopping: bool = False
+
 
 @dataclasses.dataclass
 class ModuleInterfaceArguments:
-    max_lr: float = 2e-5 # Maximum learning rate.
-    output_mode: str = 's2s'
+    max_lr: float = 2e-5  # Maximum learning rate.
+    output_mode: str = "s2s"
     max_length_encoder: int = 128
     max_length_decoder: int = 128
     model_args: ModelArguments = ModelArguments()
     generate_args: GenerateArguments = GenerateArguments()
     metric: str = "rouge"
 
+
 class HfSeq2SeqModule(PluginModuleInterface):
-    def __init__(
-        self,
-        data: HfSeq2SeqData,
-        args: ModuleInterfaceArguments
-    ):
+    def __init__(self, data: HfSeq2SeqData, args: ModuleInterfaceArguments):
         super().__init__()
         self.args = args
         self.data = data
@@ -138,12 +138,13 @@ class HfSeq2SeqModule(PluginModuleInterface):
         self.logger.debug("inside val_step")
         batch = batch.to(device)
         # result = self.model.forward(**batch)
-        
+
         self.logger.debug("pre-generate")
         outputs = self.model.generate(
-            input_ids=batch.input_ids, attention_mask=batch.attention_mask,
+            input_ids=batch.input_ids,
+            attention_mask=batch.attention_mask,
             max_length=self.args.max_length_decoder,
-            **dataclasses.asdict(self.args.generate_args)
+            **dataclasses.asdict(self.args.generate_args),
         )
         self.logger.debug("post-generate")
         labels = batch.labels
@@ -156,15 +157,17 @@ class HfSeq2SeqModule(PluginModuleInterface):
         self.logger.debug("returning...")
 
         return outputs, labels
-    
+
     def _pad(self, outputs, device, max_len=None):
         padded_outputs = []
         if max_len is None:
             max_len = self.args.max_length_decoder
         for output in outputs:
             # print('unpadded size', output.size())
-            padding = torch.tensor((max_len-len(output)) * [self.tokenizer.pad_token_id]).to(device)
-            padded = torch.cat([output,padding])
+            padding = torch.tensor(
+                (max_len - len(output)) * [self.tokenizer.pad_token_id]
+            ).to(device)
+            padded = torch.cat([output, padding])
             # print('padded.size()',padded.size())
             padded_outputs.append(padded)
         return torch.stack(padded_outputs)
@@ -190,7 +193,7 @@ class HfSeq2SeqModule(PluginModuleInterface):
                 preds.append(pred)
                 refs.append(ref)
             except Exception as e:
-                self.logger.debug('hit decoding exception')
+                self.logger.debug("hit decoding exception")
                 self.logger.debug(e)
 
         self.logger.debug("post-decode")
@@ -202,11 +205,10 @@ class HfSeq2SeqModule(PluginModuleInterface):
             self.logger.debug(f"refs[0]: {refs[0]}")
         metrics = self.metric_func(preds, refs)
         for k in metrics:
-            global_stats.update(key+'/val_'+k, metrics[k])
-        
-        
+            global_stats.update(key + "/val_" + k, metrics[k])
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     config = CustomArgParser(yaml_file_arg_key="config_path").parse()
 
     print(config)
@@ -225,15 +227,15 @@ if __name__ == '__main__':
         **config["tmgr"],
         stats_args=trainer.stats.StatInitArguments(**config["stat"]),
         writer_args=trainer.WriterInitArguments(**config["wrt"]),
-        checkpointer_args=trainer.DefaultCheckpointerArguments(**config["chkp"])
+        checkpointer_args=trainer.DefaultCheckpointerArguments(**config["chkp"]),
     )
 
     if config["dist"]:
         tr = trainer_backend.DDPTrainerBackend(tr)
     else:
         tmArgs.distributed_training_args = trainer.DistributedTrainingArguments(
-            local_rank = config["cuda"]
-            )
+            local_rank=config["cuda"]
+        )
 
     trainer = trainer.Trainer(trainer_backend=tr, module=tm, args=tmArgs)
     trainer.validate()

@@ -1,8 +1,10 @@
+""" Base class for all plugins. """
 from abc import abstractmethod
 from typing import Optional, Dict
 from pymarlin.core import module_interface, data_interface
 from pymarlin.core import trainer as trn
 from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
+
 
 class Plugin:
     """Base class for all plugins.
@@ -21,6 +23,7 @@ class Plugin:
         >>> trainer.train()
         >>> trainer.validate()
     """
+
     def __init__(self, config: Optional[Dict] = None):
         """CustomArgParser parses YAML config located at cmdline --config_path. If --config_path
         is not provided, assumes YAML file is named config.yaml and present in working directory.
@@ -31,9 +34,9 @@ class Plugin:
             config = CustomArgParser().parse()
         self.trainer_args = trn.TrainerArguments(
             **config["trainer"],
-            stats_args=trn.stats.StatInitArguments(**config['stats']),
-            writer_args=trn.WriterInitArguments(**config['wrts']),
-            checkpointer_args=trn.DefaultCheckpointerArguments(**config['ckpt'])
+            stats_args=trn.stats.StatInitArguments(**config["stats"]),
+            writer_args=trn.WriterInitArguments(**config["wrts"]),
+            checkpointer_args=trn.DefaultCheckpointerArguments(**config["ckpt"])
         )
 
     @property
