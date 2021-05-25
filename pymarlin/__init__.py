@@ -16,7 +16,7 @@ from pymarlin.core.trainer_backend import (
     SingleProcess,
     SingleProcessAmp,
     SingleProcessApexAmp,
-    DDPTrainerBackend
+    DDPTrainerBackend,
 )
 
 from pymarlin.utils.checkpointer.checkpoint_utils import (
