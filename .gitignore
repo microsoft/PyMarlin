@@ -135,4 +135,4 @@ logs/
 .vscode/
 
 # pydoc-markdown auto-generated content
-website/docs/reference/**
+/website/docs/reference/**
