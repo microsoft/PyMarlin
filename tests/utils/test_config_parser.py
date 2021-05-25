@@ -58,3 +58,13 @@ class TestConfigParser(TestCase):
         with mock.patch('sys.argv', cmdline_args):
             parser = CustomArgParser(log_level='DEBUG')
             parser._add_arguments(['--dummy'])
+    
+    def test_params(self):
+        cmdline_args = ["test", "--config_path", ".//tests//utils//config.yaml", "--params", '{"test.test_str": "hello world!"}']
+        # cmdline_args = ["test", "--config_path", ".//config.yaml"]
+        with mock.patch('sys.argv', cmdline_args):
+            parser = CustomArgParser(log_level='DEBUG')
+            config = parser.parse()
+            self.assertTrue(config['test'] is not None)
+            args = Args(**config['test'])
+            self.assertTrue(args.test_str == 'hello world!')
