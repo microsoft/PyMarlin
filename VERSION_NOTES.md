@@ -1,3 +1,7 @@
+# 0.4.2
+* Disabling all reduce during gradient accumulation for DDP trainer. Significant improvement in _backward() speed.
+* Added bart summarization example
+
 # 0.3.2
 * Dependencies split for installation (i.e. pip install marlin[dev])
 

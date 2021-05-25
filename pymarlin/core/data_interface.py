@@ -41,7 +41,7 @@ class DataProcessor(ABC):
         formatting, filtering, or any required before Dataset creation.
         """
 
-    def analyze(self, *args) -> Any:
+    def analyze(self) -> Any:
         """
         Optional method for analyzing data.
         """
@@ -79,7 +79,7 @@ class DataInterface(ABC):
             Result of process() call.
         """
         res_process = data_processor.process(*args)
-        data_processor.analyze(res_process)
+        data_processor.analyze()
         return res_process
 
     def multi_process_data(self,
@@ -113,7 +113,7 @@ class DataInterface(ABC):
             p.close()
             p.join()
         res_process_list = list(itertools.chain.from_iterable(res_process_list))
-        data_processor.analyze(res_process_list)
+        data_processor.analyze()
         return res_process_list
 
     def _collect_params(self, *args) -> List:
