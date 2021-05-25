@@ -133,3 +133,6 @@ logs/
 
 # vscode
 .vscode/
+
+# pydoc-markdown auto-generated content
+website/docs/reference/**
