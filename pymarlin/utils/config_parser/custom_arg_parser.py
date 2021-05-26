@@ -9,7 +9,7 @@ import yaml
 from pymarlin.utils.logger.logging_utils import getlogger
 
 class CustomArgParser:
-    r"""
+    '''
     This class is part of utils and is provided to load arguments from the provided YAML config file.
     Further, the default values of arguments from config file can be overridden via commandline or via
     the special argument --params provided for easy AML experimentation. The class instance takes in the
@@ -27,7 +27,7 @@ class CustomArgParser:
     All commandline arguments not present in YAML config file will be ignored with a warning message.
     Example commandline override::
 
-    python train.py --tmgr.epochs 4 --chkp.save_dir "tmp\checkpoints"
+    python train.py --tmgr.epochs 4 --chkp.save_dir "tmp\\checkpoints"
 
     NOTE:
     Supported types for CustomArgParser are int, float, str, lists. null is inferred implicitly as str.
@@ -53,7 +53,7 @@ class CustomArgParser:
     section in the YAML config file.
 
 
-    """
+    '''
     def __init__(self, yaml_file_arg_key='config_path', default_yamlfile="config.yaml", log_level='INFO'):
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('--' + yaml_file_arg_key, type=str, default=default_yamlfile, help='Path to YAML config')
