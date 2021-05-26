@@ -13,6 +13,10 @@ from pymarlin.utils.logger.logging_utils import getlogger
 
 @dataclass
 class Checkpoint:
+    """
+    Checkpoint data class that holds the states for
+    module_interface, trainer and trainer_backend
+    """
     module_interface_state: dict = None
     trainer_state: dict = None
     trainer_backend_state: dict= None
@@ -20,7 +24,37 @@ class Checkpoint:
 @dataclass
 class DefaultCheckpointerArguments:
     """
-    Args for DefaultCheckpointer class.
+    Default Checkpointer Arguments.
+
+    Args:
+        checkpoint (bool): Flag indicating whether to checkpoint model when save()
+            is called. Other conditions are implemented within save(), allowing this
+            method to always be called within training loops and abstracting the
+            checkpointing logic out of Trainer and implemented in this class.
+        delete_existing_checkpoints (bool): Flag indicating whether to delete checkpoints
+            under save_dir before training. New checkpoints are saved regardless.
+        period (int): Period of index at which to checkpoint model. Evaluates
+            index % period == 0. This function is called with index set to the
+            epoch, and thus checkpoints every "period" number of epochs. The last
+            epoch is always checkpointed regardless.
+        save_dir (str): Path to directory where checkpoints are to be stored. Creates
+            folder if it does not exist.
+        model_state_save_dir (str): Path to directory where checkpointed models are to
+            be stored. Creates folder if it does not exist.
+        load_dir (str): Path to directory where checkpoints are to be loaded from.
+            If not set, will not attempt to load a checkpoint. If load_filename
+            is set, will search for this filename within the directory to load it.
+            If load_filename is not set, will load the file via get_latest_file().
+        load_filename (str): Filename of checkpoint to load under load_dir, overrides
+            automatic loading via get_latest_file().
+        file_prefix (str): Prefix of the checkpoint filename. Final filename to save
+            will be {file_prefix}_{index}.{file_ext}, or in the case of saving with
+            save_model(), {file_prefix}_mode_{index}.{file_ext}.
+        file_ext (str): File extension for the checkpoint filename when saving and when
+            searching under load_dir for loading via get_latest_file().
+            When cleaning save_dir via delete_existing_checkpoints=True, only files
+            with this extension are considered.
+        log_level (str): Logging level for checkpointer module (Default: 'INFO').
     """
     checkpoint: bool = True
     delete_existing_checkpoints: bool = False
@@ -88,40 +122,8 @@ class DefaultCheckpointer(AbstractCheckpointer):
     Default checkpointer implementation, implements AbstractCheckpointer and
     contains a few helper functions for managing checkpointed files.
 
-    Must be initialized with DefaultCheckpointerArguments. The argument's values
-    affect checkpointing as follows:
-
-    checkpoint: Flag indicating whether to checkpoint model when save()
-        is called. Other conditions are implemented within save(), allowing this
-        method to always be called within training loops and abstracting the
-        checkpointing logic out of Trainer and implemented in this class.
-    delete_existing_checkpoints: Flag indicating whether to delete checkpoints
-        under save_dir before training. New checkpoints are saved regardless.
-    period: Period of index at which to checkpoint model. Evaluates
-        index % period == 0. This function is called with index set to the
-        epoch, and thus checkpoints every "period" number of epochs. The last
-        epoch is always checkpointed regardless.
-    save_dir: Path to directory where checkpoints are to be stored. Creates
-        folder if it does not exist.
-    model_state_save_dir: Path to directory where checkpointed models are to
-        be stored. Creates folder if it does not exist.
-    load_dir: Path to directory where checkpoints are to be loaded from.
-        If not set, will not attempt to load a checkpoint. If load_filename
-        is set, will search for this filename within the directory to load it.
-        If load_filename is not set, will load the file via get_latest_file().
-    load_filename: Filename of checkpoint to load under load_dir, overrides
-        automatic loading via get_latest_file().
-    file_prefix: Prefix of the checkpoint filename. Final filename to save
-        will be {file_prefix}_{index}.{file_ext}, or in the case of saving with
-        save_model(), {file_prefix}_mode_{index}.{file_ext}.
-    file_ext: File extension for the checkpoint filename when saving and when
-        searching under load_dir for loading via get_latest_file().
-        When cleaning save_dir via delete_existing_checkpoints=True, only files
-        with this extension are considered.
-    log_level: Logging level for checkpointer module (Default: 'INFO').
+    Must be initialized with DefaultCheckpointerArguments.
     """
-
-
     def __init__(self, args: DefaultCheckpointerArguments):
         """
         Initialize checkpointer and delete existing checkpointed files
