@@ -18,10 +18,11 @@ class Plugin:
 
     `plugin.setup` is provided to bootstrap the entire pipeline for a specific
     downstream task.
-    Example::
-        >>> trainer = plugin.setup()
-        >>> trainer.train()
-        >>> trainer.validate()
+    Example:
+
+         trainer = plugin.setup()
+         trainer.train()
+         trainer.validate()
     """
 
     def __init__(self, config: Optional[Dict] = None):
@@ -138,7 +139,7 @@ class Plugin:
 
         This should be equivalent to::
 
-            >>> plugin.setup_datainterface()
-            >>> plugin.setup_module()
-            >>> plugin.setup_trainer()
+             plugin.setup_datainterface()
+             plugin.setup_module()
+             plugin.setup_trainer()
         """

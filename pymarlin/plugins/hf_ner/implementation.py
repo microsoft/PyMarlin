@@ -34,16 +34,18 @@ class HfNERPlugin(Plugin):
     """Named Entity Recognition or Token Classification plugin for HuggingFace models
 
     plugin.setup() bootstraps the entire pipeline and returns a fully setup trainer.
-    Example::
-            >>> trainer = plugin.setup()
-            >>> trainer.train()
-            >>> trainer.validate()
+    Example:
+
+             trainer = plugin.setup()
+             trainer.train()
+             trainer.validate()
 
     Alternatively, you can run `setup_datainterface` `setup_module` `setup_trainer` individually.
-    Example::
-            >>> plugin.setup_datainterface()
-            >>> plugin.setup_module()
-            >>> trainer = plugin.setup_trainer()
+    Example:
+
+             plugin.setup_datainterface()
+             plugin.setup_module()
+             trainer = plugin.setup_trainer()
     """
 
     def __init__(self, config: Optional[Dict] = None):
