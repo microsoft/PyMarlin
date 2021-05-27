@@ -5,7 +5,6 @@ logger = getlogger(__name__, "INFO")
 
 from pymarlin.core import data_interface, module_interface
 from pymarlin.core import trainer as trn
-from pymarlin.models import MarlinAutoModelForSequenceClassification
 from pymarlin.plugins.base import Plugin
 from pymarlin.plugins.hfdistill_utils import build_distill_module, DistillationArguments
 
@@ -24,7 +23,7 @@ import os
 from typing import Optional, Dict
 import multiprocessing
 
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 class HfSeqClassificationPlugin(Plugin):
     """Plugin for Text Sequence Classification using Huggingface models.
@@ -166,7 +165,7 @@ class HfSeqClassificationPlugin(Plugin):
         )
         self.moduleinterface.data = self.datainterface
         self.moduleinterface.setup_model(
-            MarlinAutoModelForSequenceClassification
+            AutoModelForSequenceClassification
         )  # initializes model weights
 
     def setup(self):
