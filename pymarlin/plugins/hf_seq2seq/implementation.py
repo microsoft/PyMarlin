@@ -23,16 +23,18 @@ class HfSeq2SeqPlugin(Plugin):
     """Plugin for Text Sequence to Sequence Generation using Huggingface models.
 
     plugin.setup() bootstraps the entire pipeline and returns a fully setup trainer.
-    Example::
-            >>> trainer = plugin.setup()
-            >>> trainer.train()
-            >>> trainer.validate()
+    Example:
+
+             trainer = plugin.setup()
+             trainer.train()
+             trainer.validate()
 
     Alternatively, you can run `setup_datainterface` `setup_module` `setup_trainer` individually.
-    Example::
-            >>> plugin.setup_datainterface()
-            >>> plugin.setup_module()
-            >>> trainer = plugin.setup_trainer()
+    Example:
+
+             plugin.setup_datainterface()
+             plugin.setup_module()
+             trainer = plugin.setup_trainer()
     """
 
     def __init__(self, config=None):
