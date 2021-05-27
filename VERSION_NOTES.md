@@ -4,6 +4,7 @@
 # 0.2.0
 * Adding plugins: SeqClassification, NER, Seq2Seq
 * --params json input
+* DDP allreduce optimization
 
 # 0.1.1
 * Tests & Lint Pipeline
