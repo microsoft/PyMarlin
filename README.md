@@ -3,7 +3,6 @@
 [![Docs](https://github.com/microsoft/PyMarlin/actions/workflows/deploy-website.yml/badge.svg)](https://github.com/microsoft/PyMarlin/actions/workflows/deploy-website.yml)
 [![AzureML Canary](https://github.com/microsoft/PyMarlin/actions/workflows/canary.yml/badge.svg)](https://github.com/microsoft/PyMarlin/actions/workflows/canary.yml)
 [![Test PyPi](https://github.com/microsoft/PyMarlin/actions/workflows/python-publish.yml/badge.svg)](https://github.com/microsoft/PyMarlin/actions/workflows/python-publish.yml)
-![](website/docs/Marlin.png)
 
 PyMarlin was developed with the goal of simplifying the E2E Deep Learning experimentation lifecycle both for Microsoft Office data scientists. The library enables an agile way to quickly prototype a new AI scenario on dev box and seamlessly scale it training multi-node DDP GPU training with AzureML or other cloud services.
 
