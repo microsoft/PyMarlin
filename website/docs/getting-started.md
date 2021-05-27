@@ -1,8 +1,6 @@
 # Getting Started
 
 ### Welcome to PyMarlin, a lightweight PyTorch library for agile deep learning!
-![](Marlin.png)
-
 PyMarlin was developed with the goal of simplifying the E2E Deep Learning experimentation lifecycle both in public and M365 compliant environments. The library enables an agile way to quickly prototype a new AI scenario on dev box and seamlessly scale it to public and compliant AML.  
 
 ## Key features
