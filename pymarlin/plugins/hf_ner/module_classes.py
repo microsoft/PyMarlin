@@ -8,7 +8,7 @@ from torch.optim import Adam
 from torch.optim.lr_scheduler import OneCycleLR
 
 from pymarlin.core import module_interface, data_interface
-from pymarlin.models import MarlinAutoConfig
+from transformers import AutoConfig
 
 from pymarlin.utils.stats import global_stats
 from pymarlin.utils.logger.logging_utils import getlogger
@@ -87,14 +87,14 @@ class NERModule(module_interface.ModuleInterface):
 
     def _setup_config(self):
         if self.args.model_args.model_config_path is not None:
-            self.model_config = MarlinAutoConfig.from_pretrained(
+            self.model_config = AutoConfig.from_pretrained(
                 os.path.join(
                     self.args.model_args.model_config_path,
                     self.args.model_args.model_config_file,
                 )
             )
         else:
-            self.model_config = MarlinAutoConfig.from_pretrained(
+            self.model_config = AutoConfig.from_pretrained(
                 self.args.model_args.hf_model
             )
 
@@ -116,7 +116,7 @@ class NERModule(module_interface.ModuleInterface):
             teacher = `NERModule.teacher`
 
         Args:
-            automodel_class: Huggingface MarlinAutoModelForTokenClassificaton class
+            automodel_class: Huggingface AutoModelForTokenClassificaton class
         """
         self._setup_config()
         if self.args.model_args.model_path is not None:

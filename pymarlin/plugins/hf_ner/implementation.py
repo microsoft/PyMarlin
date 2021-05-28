@@ -19,7 +19,7 @@ from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
 from .data_classes import DataArguments, NERProcessor, NERBaseDataset, NERDataInterface
 from .module_classes import NERModule, ModuleInterfaceArguments, ModelArguments
 
-from pymarlin.models import MarlinAutoModelForTokenClassification
+from transformers import AutoModelForTokenClassification
 from pymarlin.core.data_interface import DataProcessor, DataInterface
 from pymarlin.core.module_interface import ModuleInterface
 from pymarlin.plugins.base import Plugin
@@ -148,7 +148,7 @@ class HfNERPlugin(Plugin):
             or len(self.datainterface.get_val_dataset()) != 0
         )
         self.moduleinterface.data = self.datainterface
-        self.moduleinterface.setup_model(MarlinAutoModelForTokenClassification)
+        self.moduleinterface.setup_model(AutoModelForTokenClassification)
 
     def setup(self):
         """Method to be called to use plugin out of box. This method will complete preprocessing , create datasets
