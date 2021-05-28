@@ -1,6 +1,6 @@
 '''pymarlin.plugins.hfdistill_utils'''
 from pymarlin.core.module_interface import ModuleInterface
-from pymarlin.models import MarlinAutoConfig
+from transformers import AutoConfig
 from pymarlin.utils.distributed import rank_zero_only
 from pymarlin.utils.logger.logging_utils import getlogger
 
@@ -94,7 +94,7 @@ def build_distill_module(base):
                     config=self.teacher_config,
                 )
             else:
-                self.teacher_config = MarlinAutoConfig.from_pretrained(
+                self.teacher_config = AutoConfig.from_pretrained(
                     self.args.model_args.hf_model
                 )
                 self.teacher_config.num_labels = len(self.data.get_labels())

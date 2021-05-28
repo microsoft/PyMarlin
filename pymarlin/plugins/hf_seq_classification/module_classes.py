@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from torch.optim import Adam
 from torch.optim.lr_scheduler import OneCycleLR
 
-from pymarlin.models import MarlinAutoConfig
+from transformers import AutoConfig
 from pymarlin.utils.distributed import rank_zero_only
 from pymarlin.utils.stats import global_stats
 from pymarlin.utils.logger.logging_utils import getlogger
@@ -91,14 +91,14 @@ class HfSeqClassificationModule(module_interface.ModuleInterface):
 
     def _setup_config(self):
         if self.args.model_args.model_config_path is not None:
-            model_config = MarlinAutoConfig.from_pretrained(
+            model_config = AutoConfig.from_pretrained(
                 os.path.join(
                     self.args.model_args.model_config_path,
                     self.args.model_args.model_config_file,
                 )
             )
         else:
-            model_config = MarlinAutoConfig.from_pretrained(
+            model_config = AutoConfig.from_pretrained(
                 self.args.model_args.hf_model
             )
         model_config.num_labels = len(self.data.get_labels())
@@ -120,7 +120,7 @@ class HfSeqClassificationModule(module_interface.ModuleInterface):
             teacher = `HfSeqClassificationModule.teacher`
 
         Args:
-            automodel_class: Huggingface MarlinAutoModelForSequenceClassificaton class
+            automodel_class: Huggingface AutoModelForSequenceClassificaton class
         """
         self.model_config = self._setup_config()
         if self.args.model_args.model_path is not None:
