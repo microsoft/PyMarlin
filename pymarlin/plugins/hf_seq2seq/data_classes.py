@@ -58,7 +58,7 @@ class DataInterfaceArguments:
     data_dir: str = None
 
 
-class HfSeq2SeqData(pymarlin.core.data_interface.DataInterface):
+class HfSeq2SeqData(data_interface.DataInterface):
     """
     Class which expects input data to have different files for source and target.
     Returns dataset which returns non tokenized source and target text.
