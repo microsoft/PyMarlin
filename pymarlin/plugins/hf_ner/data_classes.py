@@ -101,17 +101,17 @@ class NERProcessor(data_interface.DataProcessor):
                     )
                 prev_word_idx = word_idx
 
-        feature = InputFeatures(
+        features = InputFeatures(
             input_ids=tokenized_inputs.input_ids.squeeze().tolist(),
             attention_mask=tokenized_inputs.attention_mask.squeeze().tolist(),
             token_type_ids=tokenized_inputs.token_type_ids.squeeze().tolist(),
             label=label_ids,
         )
+        return features
 
-        return feature
-
-    def analyze(self, features):
-        logger.info(f"# of features processed = {len(features)}")
+    def analyze(self):
+        #    logger.info(f"# of features processed = {self.num_features}")
+        pass
 
 
 class NERBaseDataset(Dataset):
