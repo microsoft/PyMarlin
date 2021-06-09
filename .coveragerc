@@ -1,0 +1,4 @@
+[run]
+omit =
+    # omit everything under plugins for now
+    pymarlin/plugins/*
