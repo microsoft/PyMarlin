@@ -1,5 +1,6 @@
 """A lightweight library for Deep Learning model training"""
 
+__version__ = '1.0.0'
 from pymarlin.core.trainer import (
     TrainerArguments,
     Trainer,
@@ -16,7 +17,7 @@ from pymarlin.core.trainer_backend import (
     SingleProcess,
     SingleProcessAmp,
     SingleProcessApexAmp,
-    DDPTrainerBackend
+    DDPTrainerBackend,
 )
 
 from pymarlin.utils.checkpointer.checkpoint_utils import (

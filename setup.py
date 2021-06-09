@@ -4,14 +4,15 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 # torch installed seperately
-required = ['tqdm','tensorboard', 'Pillow','azureml-core','pyyaml','pandas']
+required = ['tqdm','tensorboard', 'Pillow','azureml-core==1.26','pyyaml','pandas']
 extras = {
-    'dev': ['pytest', 'pytest-cov', 'pylint'],
+    'dev': ['pytest','pylint'],
+    'plugins': ['transformers','pandas','matplotlib','sklearn','scipy','rouge-score']
 }
 
 setup(
     name="pymarlin",
-    version="0.1.1",
+    version="1.0.0",
     author="ELR Team",
     author_email="elrcore@microsoft.com",
     description="Lightweight Deeplearning Library",
@@ -28,5 +29,4 @@ setup(
     extras_require=extras,
     python_requires=">=3.6",
 )
-
 # https://packaging.python.org/discussions/install-requires-vs-requirements/

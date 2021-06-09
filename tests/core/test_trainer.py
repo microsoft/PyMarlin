@@ -85,7 +85,7 @@ class TestTrainer(unittest.TestCase):
         )
         assert trainer.train_step_batch_size == 3
         assert trainer.gradient_accumulation == 2
-        assert trainer.val_step_batch_size == 3
+        assert trainer.val_step_batch_size == 8
 
     def test_train(self):
         self.trainer.train()
