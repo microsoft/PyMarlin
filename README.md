@@ -22,6 +22,9 @@ Read the [installation doc](website/docs/installation.md) for more information.
 
 ## Start exploring!
 
+### Full documentation website
+Full website with [guides and SDK reference](https://microsoft.github.io/PyMarlin/).
+
 ### Train your first model with pymarlin
 Check out the [CIFAR image classification example](website/docs/examples/cifar.md).
 
