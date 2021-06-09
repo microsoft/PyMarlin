@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 # torch installed seperately
-required = ['tqdm','tensorboard', 'Pillow','azureml-core==1.26','pyyaml','pandas']
+required = ['tqdm','tensorboard', 'Pillow','azureml-core','pyyaml','pandas']
 extras = {
     'dev': ['pylint', 'pytest', 'pytest-cov'],
     'plugins': ['transformers','pandas','matplotlib','sklearn','scipy','rouge-score']
@@ -12,7 +12,7 @@ extras = {
 
 setup(
     name="pymarlin",
-    version="0.2.2",
+    version="0.2.3",
     author="ELR Team",
     author_email="elrcore@microsoft.com",
     description="Lightweight Deeplearning Library",
