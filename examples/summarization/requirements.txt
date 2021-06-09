@@ -1,0 +1,7 @@
+matplotlib
+rouge-score
+nltk
+
+# for running with ort+deepspeed
+deepspeed
+onnxruntime

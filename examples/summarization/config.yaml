@@ -1,14 +1,14 @@
 data_path: 'D:/data/cnn_cln'
-trainer_backend_class: 'SingleProcessAmp'
+trainer_class: 'SingleProcessAmp'
 dist: False
 cuda: 0
 
 tmgr:
     max_train_steps_per_epoch : 2 # Maximum train steps per epoch.
     max_val_steps_per_epoch : 2 # Maximum validation steps per epoch.
-    train_batch_size: 4 # Training global batch size.
-    val_batch_size: 4 # Validation global batch size.
-    epochs: 2 # Total epochs to run.
+    train_batch_size: 1 # Training global batch size.
+    val_batch_size: 1 # Validation global batch size.
+    epochs: 3 # Total epochs to run.
     gpu_batch_size_limit : 16 # Max limit for GPU batch size during training.
     disable_tqdm : False
     writers: ["aml", "tensorboard"]
