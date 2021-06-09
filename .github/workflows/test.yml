@@ -31,7 +31,7 @@ jobs:
         pylint pymarlin --rcfile=.pylintrc 
     - name: test with coverage
       run: |
-        pytest --cov=pymarlin --cov-report=xml
+        pytest --cov=pymarlin --cov-report=xml --cov-config=.coveragerc
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
