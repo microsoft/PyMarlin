@@ -1,5 +1,4 @@
-# 1.0.0
-* opensourcing PyMarlin
+# Version Notes:
 
 ## 0.2.2
 * Plugins bug fix

@@ -18,15 +18,18 @@ PyMarlin was developed with the goal of simplifying the E2E Deep Learning experi
 
     pip install pymarlin
 
-Read the [installation doc](website/docs/installation.md) for more information.
+Read the [installation doc](https://microsoft.github.io/PyMarlin/docs/installation) for more information.
 
 ## Start exploring!
 
+### Full documentation website
+Full website with [guides and SDK reference](https://microsoft.github.io/PyMarlin/).
+
 ### Train your first model with pymarlin
-Check out the [CIFAR image classification example](website/docs/examples/cifar.md).
+Check out the [CIFAR image classification example](hhttps://microsoft.github.io/PyMarlin/docs/examples/cifar).
 
 ### GLUE task benchmarking
-Explore how to use pymarlin to [benchmark your language models on GLUE tasks](website/docs/examples/glue-tasks.md).
+Explore how to use pymarlin to [benchmark your language models on GLUE tasks](https://microsoft.github.io/PyMarlin/docs/examples/glue-tasks).
 
 ## We want your feedback!
-Reach out to us with your [feedback and suggestions](website/docs/credits.md).
+Reach out to us with your [feedback and suggestions](https://microsoft.github.io/PyMarlin/docs/credits).
