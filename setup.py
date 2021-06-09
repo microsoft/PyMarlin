@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 # torch installed seperately
 required = ['tqdm','tensorboard', 'Pillow','azureml-core==1.26','pyyaml','pandas']
 extras = {
-    'dev': ['pytest','pylint'],
+    'dev': ['pylint', 'pytest', 'pytest-cov'],
     'plugins': ['transformers','pandas','matplotlib','sklearn','scipy','rouge-score']
 }
 
