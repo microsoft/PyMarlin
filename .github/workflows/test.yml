@@ -4,6 +4,7 @@
 name: lint & test
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
   pull_request:
@@ -24,10 +25,21 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install torch==1.7.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
-        pip install .[dev]
+        pip install -e .[dev]
     - name: lint
       run: |
         pylint pymarlin --rcfile=.pylintrc 
-    - name: test
+    - name: test with coverage
       run: |
-        pytest
+        pytest --cov=pymarlin --cov-report=xml --cov-config=.coveragerc
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        files: ./coverage.xml
+        directory: ./coverage/reports/
+        flags: unittests
+        env_vars: OS,PYTHON
+        name: codecov-umbrella
+        fail_ci_if_error: true
+        path_to_write_report: ./coverage/codecov_report.txt
+        verbose: true
