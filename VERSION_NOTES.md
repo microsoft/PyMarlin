@@ -1,4 +1,6 @@
 # Version Notes:
+## 0.2.3
+* Unbound azureml-core version
 
 ## 0.2.2
 * Plugins bug fix
