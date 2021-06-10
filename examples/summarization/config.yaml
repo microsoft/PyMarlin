@@ -1,7 +1,4 @@
 data_path: 'D:/data/cnn_cln'
-trainer_class: 'SingleProcessAmp'
-dist: False
-cuda: 0
 
 trainer:
     max_train_steps_per_epoch : 2 # Maximum train steps per epoch.
