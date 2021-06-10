@@ -136,3 +136,6 @@ logs/
 
 # pydoc-markdown auto-generated content
 /website/docs/reference/**
+
+# AzureML Workspace Config JSON files
+config.json
