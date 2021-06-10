@@ -1,0 +1,38 @@
+#https://arxiv.org/pdf/1907.11692v1.pdf
+#We consider a limited hyperparameter
+# sweep for each task, with batch sizes ∈ {16, 32}
+# and learning rates ∈ {1e−5, 2e−5, 3e−5}, with a
+# linear warmup for the first 6% of steps followed by
+# a linear decay to 0. We finetune for 10 epochs and
+# perform early stopping based on each tasks evaluation metric on the dev set. 
+# The rest of the hyperparameters remain the same as during pretraining.
+
+glue_task: 'cola'
+mi:
+    encoder : "roberta-base"
+    tokenizer: "roberta-base"
+    num_labels : 2
+    max_lr : 0.00002
+    warmup : 0.06
+tr:
+    max_train_steps_per_epoch : null # Maximum train steps per epoch.
+    max_val_steps_per_epoch : null # Maximum validation steps per epoch.
+    train_batch_size: 32 # Training global batch size.
+    val_batch_size: 64 # Validation global batch size.
+    epochs: 10 # Total epochs to run.
+    gpu_batch_size_limit : 32 # Max limit for GPU batch size during training.
+    disable_tqdm : False
+    writers: ["tensorboard"]
+
+wrt:
+    tb_log_dir : 'logs_roberta_base/cola/from_pretrained'
+
+stat:
+    log_steps : 20
+
+dist:
+    local_rank : 3
+    period: 5
+  
+ckp:
+    checkpoint : False
