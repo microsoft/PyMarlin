@@ -11,7 +11,7 @@ which acts as ochestrator and implements an interface
 for other modules to request train, test, validation datasets.
 Please consider using the DataInterface.setup_datasets() method
 to store these datasets within the DataInterface instance, and
-thus have the get_[train,test,val]_dataset() methods be as
+thus have the get_[train,val]_dataset() methods be as
 quick and computationally inexpensive as possible, as they are
 called at every epoch.
 """
@@ -33,7 +33,13 @@ class DataProcessor(ABC):
     Designed to be used in conjunction with a DataInterface, must be extended
     to implement the process() method.
     """
-
+    def __init__(self, distrib_args: DistributedPreprocessArguments = None):
+        """
+        Accepts DistributedPreprocessArguments for custom multiprocess
+        rank handling.
+        """
+        self.distrib_args = distrib_args
+        
     @abstractmethod
     def process(self, *args) -> Any:
         """
@@ -45,30 +51,8 @@ class DataProcessor(ABC):
         """
         Optional method for analyzing data.
         """
-
-
-class DataInterface(ABC):
-    """
-    Organizer and orchestrator for loading and processing data.
-
-    Designed to be used in conjunction with DataProcessors.
-    Abstract methods get_train_dataset(), get_test_dataset() and
-    get_val_dataset() must be implemented to return datasets.
-    """
-
-    def __init__(self, distrib_args: DistributedPreprocessArguments = None):
-        """
-        Accepts DistributedPreprocessArguments for custom multiprocess
-        rank handling.
-        """
-        self.distrib_args = distrib_args
-
-    def setup_datasets(self) -> None:
-        """
-        Setup the datasets before training.
-        """
-
-    def process_data(self, data_processor: DataProcessor, *args) -> Any:
+    
+    def process_data(self, *args) -> Any:
         """
         Process data via a DataProcessor's process() method.
 
@@ -78,12 +62,11 @@ class DataInterface(ABC):
         Returns:
             Result of process() call.
         """
-        res_process = data_processor.process(*args)
-        data_processor.analyze()
+        res_process = self.process(*args)
+        self.analyze()
         return res_process
 
     def multi_process_data(self,
-                           data_processor: DataProcessor,
                            *args,
                            process_count=1) -> List:
         """
@@ -108,12 +91,13 @@ class DataInterface(ABC):
         list_params = self._collect_params(*args)
 
         with multiprocessing.Pool(processes=process_count) as p:
-            res_process_list = p.starmap(data_processor.process,
+            res_process_list = p.starmap(self.process,
                                          zip(*list_params))
             p.close()
             p.join()
-        res_process_list = list(itertools.chain.from_iterable(res_process_list))
-        data_processor.analyze()
+        if any(res_process_list):
+            res_process_list = list(itertools.chain.from_iterable(res_process_list))
+        self.analyze()
         return res_process_list
 
     def _collect_params(self, *args) -> List:
@@ -193,6 +177,21 @@ class DataInterface(ABC):
 
         return node_params
 
+
+class DataInterface(ABC):
+    """
+    Organizer and orchestrator for loading and processing data.
+
+    Designed to be used in conjunction with DataProcessors.
+    Abstract methods get_train_dataset(), get_test_dataset() and
+    get_val_dataset() must be implemented to return datasets.
+    """
+
+    def setup_datasets(self) -> None:
+        """
+        Setup the datasets before training.
+        """
+
     @abstractmethod
     def get_train_dataset(self, *args, **kwargs) -> Dataset:
         """
@@ -203,9 +202,4 @@ class DataInterface(ABC):
     def get_val_dataset(self, *args, **kwargs) -> Dataset:
         """
         Returns Dataset for val data.
-        """
-
-    def get_test_dataset(self, *args, **kwargs) -> Dataset:
-        """
-        Returns Dataset for test data.
         """
