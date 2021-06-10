@@ -41,43 +41,22 @@ print(f"config: {config}")
 dm = SummarizationData()
 dm.setup_datasets(root=config["data_path"])
 
-tm = SummarizationBartModule_ds_ort(dm, **config["tm"], generate_kwargs=config["generate"])
+summarization_module = SummarizationBartModule_ds_ort(dm, **config["tm"], generate_kwargs=config["generate"])
 
-tmArgs = trainer.TrainerArguments(
+trainer_args = trainer.TrainerArguments(
     **config["tmgr"],
     stats_args=trainer.stats.StatInitArguments(**config["stat"]),
     writer_args=trainer.WriterInitArguments(**config["wrt"]),
     checkpointer_args=trainer.DefaultCheckpointerArguments(**config["chkp"])
 )
 
-if config["tm"]["deepspeed"]:
-
-    tm.deepspeed_resume_from_checkpoint = config["chkp"]["load_dir"]
-    tm.deepspeed_ckpt_tag = config["chkp"]["deepspeed_ckpt_tag"]
+if config["module"]["deepspeed"]:
+    summarization_module.deepspeed_resume_from_checkpoint = config["chkp"]["load_dir"]
+    summarization_module.deepspeed_ckpt_tag = config["chkp"]["deepspeed_ckpt_tag"]
     assert len(config["DEEPSPEED_CKPT_PREFIX"].strip()) > 0, f"config[\"DEEPSPEED_CKPT_PREFIX\"] must be non-empty"
-    tm.DEEPSPEED_CKPT_PREFIX = config["DEEPSPEED_CKPT_PREFIX"].strip()
+    summarization_module.DEEPSPEED_CKPT_PREFIX = config["DEEPSPEED_CKPT_PREFIX"].strip()
 
-    tr = deepspeed_trainer_backend()
-    if config["dist"]:
-        tr = deepspeed_dist_trainer_backend(tr)
-        tmArgs.distributed_training_args = trainer.DistributedTrainingArguments(
-            local_rank=config["cuda"],
-            world_size=config["world_size"]
-        )
-    else:
-        if config["AML"]:
-            raise ValueError(f"Error, config[\"tm\"][\"deepspeed\"] and config[\"AML\"] are True while config[\"dist\"] is False, deepspeed will not able to initialize with single Node single process in AML")
-    trainer = deepspeed_Trainer(trainer_backend=tr, module=tm, args=tmArgs)
-else:
-    tr = build_trainer_backend(config["tmgr"]["backend"])
-    if config["dist"]:
-        tr = trainer_backend.DDPTrainerBackend(tr)
-    else:
-        tmArgs.distributed_training_args = trainer.DistributedTrainingArguments(
-            local_rank=config["cuda"],
-            world_size=config["world_size"]
-        )
-    trainer = trainer.Trainer(trainer_backend=tr, module=tm, args=tmArgs)
+trainer = trainer.Trainer(module=summarization_module, args=trainer_args)
 
 trainer.train()
 trainer.validate()
