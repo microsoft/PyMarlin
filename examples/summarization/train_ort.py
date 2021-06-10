@@ -41,10 +41,10 @@ print(f"config: {config}")
 dm = SummarizationData()
 dm.setup_datasets(root=config["data_path"])
 
-summarization_module = SummarizationBartModule_ds_ort(dm, **config["tm"], generate_kwargs=config["generate"])
+summarization_module = SummarizationBartModule_ds_ort(dm, **config["module"], generate_kwargs=config["generate"])
 
 trainer_args = trainer.TrainerArguments(
-    **config["tmgr"],
+    **config["trainer"],
     stats_args=trainer.stats.StatInitArguments(**config["stat"]),
     writer_args=trainer.WriterInitArguments(**config["wrt"]),
     checkpointer_args=trainer.DefaultCheckpointerArguments(**config["chkp"])

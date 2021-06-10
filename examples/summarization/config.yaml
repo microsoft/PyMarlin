@@ -9,6 +9,7 @@ trainer:
     gpu_batch_size_limit : 16 # Max limit for GPU batch size during training.
     disable_tqdm : False
     writers: ["aml", "tensorboard"]
+    backend: "sp"
 
 module:
     max_length_encoder : 128
