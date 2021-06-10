@@ -27,5 +27,3 @@ RUN pip install --no-cache-dir --use-feature=2020-resolver \
     matplotlib \
     sklearn \
     scipy
-
-RUN conda install ruamel.yaml
