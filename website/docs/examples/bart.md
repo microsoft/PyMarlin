@@ -6,8 +6,7 @@ Krishan Subudhi
 
 This is an example explaining entire pipe line for a summarization task using pymarlin library.
 
-
-This is an example explaining entire pipe line for a summarization task using pymarlin library.
+[Source code location](https://github.com/microsoft/PyMarlin/tree/main/examples/bart)
 
 Dataset used: CNN Daily mail
 
