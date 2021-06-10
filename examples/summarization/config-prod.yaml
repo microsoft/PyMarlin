@@ -1,12 +1,7 @@
 data_path: 'D:/data/cnn_cln'
-trainer_class: 'SingleProcessAmp'
-dist: False
-AML: True
-cuda: 0 # to use a different GPU other than default
-world_size: 1
 DEEPSPEED_CKPT_PREFIX: "deepspeed_ckpt"
 
-tmgr:
+trainer:
     max_train_steps_per_epoch : null # Maximum train steps per epoch.
     max_val_steps_per_epoch : 200000 # Maximum validation steps per epoch.
     train_batch_size: 32 # Training global batch size.
@@ -15,17 +10,19 @@ tmgr:
     gpu_batch_size_limit : 4 # Max limit for GPU batch size during training.
     disable_tqdm : False
     writers: ["stdout", "aml", "tensorboard"]
-    backend: "sp"
+    backend: "ddp-amp"
 
-wrt:
-    tb_log_dir : 'logs'
-tm:
+module:
     max_length_encoder : 1024
     max_length_decoder : 128
     ort: False
     deepspeed: False
     deepspeed_config: ''
     deepspeed_transformer_kernel: False
+
+wrt:
+    tb_log_dir : 'logs'
+
 
 stat:
     log_steps : 20

@@ -208,27 +208,16 @@ if __name__ == '__main__':
     dm.setup_datasets(root=config["data_path"])
 
     # Training Module Interface
-    tm = SummarizationBartModule(dm, **config["tm"], generate_kwargs=config["generate"])
+    summarization_module = SummarizationBartModule(dm, **config["module"], generate_kwargs=config["generate"])
 
-    # Trainer
-    TrainerBackendClass = eval("trainer_backend." + config["trainer_backend_class"])
-    tr = TrainerBackendClass()
-
-    tmArgs = trainer.TrainerArguments(
-        **config["tmgr"],
+    trainer_args = trainer.TrainerArguments(
+        **config["trainer"],
         stats_args=trainer.stats.StatInitArguments(**config["stat"]),
         writer_args=trainer.WriterInitArguments(**config["wrt"]),
         checkpointer_args=trainer.DefaultCheckpointerArguments(**config["chkp"])
     )
 
-    if config["dist"]:
-        tr = trainer_backend.DDPTrainerBackend(tr)
-    else:
-        tmArgs.distributed_training_args = trainer.DistributedTrainingArguments(
-            local_rank = config["cuda"]
-            )
-
-    trainer = trainer.Trainer(trainer_backend=tr, module=tm, args=tmArgs)
+    trainer = trainer.Trainer(module=summarization_module, args=trainer_args)
 
     trainer.validate()
     trainer.train()
