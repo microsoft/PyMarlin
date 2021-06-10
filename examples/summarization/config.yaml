@@ -3,7 +3,7 @@ trainer_class: 'SingleProcessAmp'
 dist: False
 cuda: 0
 
-tmgr:
+trainer:
     max_train_steps_per_epoch : 2 # Maximum train steps per epoch.
     max_val_steps_per_epoch : 2 # Maximum validation steps per epoch.
     train_batch_size: 1 # Training global batch size.
@@ -13,11 +13,13 @@ tmgr:
     disable_tqdm : False
     writers: ["aml", "tensorboard"]
 
-wrt:
-    tb_log_dir : 'logs'
-tm:
+module:
     max_length_encoder : 128
     max_length_decoder : 128
+
+wrt:
+    tb_log_dir : 'logs'
+
 stat:
     log_steps : 1
 chkp:
