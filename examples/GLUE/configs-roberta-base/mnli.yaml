@@ -1,0 +1,34 @@
+glue_task: 'mnli'
+
+distributed : False
+mi:
+    encoder : "roberta-base"
+    tokenizer: "roberta-base"
+    num_labels : 3
+    max_lr : 0.00002
+    s1_key : 'premise'
+    s2_key : 'hypothesis'
+tr:
+    max_train_steps_per_epoch : null # Maximum train steps per epoch.
+    max_val_steps_per_epoch : null # Maximum validation steps per epoch.
+    train_batch_size: 32 # Training global batch size.
+    val_batch_size: 64 # Validation global batch size.
+    epochs: 3 # Total epochs to run.
+    gpu_batch_size_limit : 16 # Max limit for GPU batch size during training.
+    disable_tqdm : False
+    writers: ["tensorboard"]
+
+wrt:
+    tb_log_dir : 'logs_roberta_base/mnli/from_pretrained'
+
+stat:
+    log_steps : 20
+
+dist:
+    local_rank : 3
+  
+ckp:
+    checkpoint : False
+    period: 2
+
+# python -m torch.distributed.launch --nproc_per_node 2  src/mtl/finetune_glue.py --config_path configs/roberta-base/mnli.yaml --distributed

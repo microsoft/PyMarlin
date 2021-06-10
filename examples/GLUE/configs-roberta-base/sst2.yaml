@@ -1,0 +1,29 @@
+glue_task: 'sst2'
+
+
+mi:
+    encoder : "roberta-base"
+    tokenizer: "roberta-base"
+    num_labels : 2
+    max_lr : 0.00002
+    max_length : 128
+tr:
+    max_train_steps_per_epoch : null # Maximum train steps per epoch.
+    max_val_steps_per_epoch : null # Maximum validation steps per epoch.
+    train_batch_size: 32 # Training global batch size.
+    val_batch_size: 64 # Validation global batch size.
+    epochs: 3 # Total epochs to run.
+    gpu_batch_size_limit : 32 # Max limit for GPU batch size during training.
+    disable_tqdm : False
+    writers: ["tensorboard"]
+
+wrt:
+    tb_log_dir : 'logs_roberta_base/sst2/from_pretrained'
+
+stat:
+    log_steps : 20
+dist:
+    local_rank : 1
+ckp:
+    checkpoint : False
+    period: 2
