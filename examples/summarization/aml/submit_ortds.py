@@ -1,9 +1,15 @@
 from azureml.core import Experiment, Workspace, Datastore, ScriptRunConfig
+from azureml.core.authentication import InteractiveLoginAuthentication
 from azureml.core.compute import ComputeTarget, AmlCompute
 from azureml.core.runconfig import MpiConfiguration, RunConfiguration, DEFAULT_GPU_IMAGE
+from argparse import ArgumentParser
+
+parser = ArgumentParser()
+parser.add_argument('--image_exists', action='store_true', help='whether to use an existing image from a private ACR')
+args = parser.parse_args()
 
 # put your AML workspace JSON in this directory!
-ws = Workspace.from_config()
+ws = Workspace.from_config(auth=InteractiveLoginAuthentication('72f988bf-86f1-41af-91ab-2d7cd011db47'))
 ws_details = ws.get_details()
 print('Name:\t\t{}\nLocation:\t{}'
       .format(ws_details['name'],
@@ -14,6 +20,8 @@ print('Datastore name: ' + ds.name,
       'Container name: ' + ds.container_name,
       'Datastore type: ' + ds.datastore_type,
       'Workspace name: ' + ds.workspace.name, sep='\n')
+
+kv = ws.get_default_keyvault()
 
 gpu_compute_target = ComputeTarget(workspace=ws, name='sriovdedicated1')
 print(gpu_compute_target.status.serialize())
@@ -39,20 +47,20 @@ def get_args(outputSuffix="deepspeed_ort_amp_nopadding_v100_8"):
     all_params_default = [
         '--data_path', get_input_dataset(ds, f'krishan/bart/cnn_dm', "data_path"),
         '--config_path', 'config-prod.yaml',
-        '--tmgr.train_batch_size', 32,
-        '--tmgr.gpu_batch_size_limit', 64,
-        '--tmgr.val_batch_size', 64,
-        '--tmgr.epochs', 3,
-        '--tmgr.backend', "sp-amp",
+        '--trainer.train_batch_size', 32,
+        '--trainer.gpu_batch_size_limit', 64,
+        '--trainer.val_batch_size', 64,
+        '--trainer.epochs', 3,
+        '--trainer.backend', "sp-amp",
         '--dist',
         '--chkp.save_dir', get_output_dataset(ds, f'jsleep/bart/cnndm_sum/' + outputSuffix + "/ckpts/save_dir", "chkp_save_dir"),
         '--chkp.model_state_save_dir', get_output_dataset(ds, f'jsleep/bart/cnndm_sum/' + outputSuffix + "/ckpts/model_state_save_dir", "model_state_save_dir"),
         '--wrt.tb_log_dir', get_output_dataset(ds, f'jsleep/bart/cnndm_sum/' + outputSuffix + "/tblogs", "tb_log_dir"),
         # '--chkp.load_dir', get_input_dataset(ds, f'jsleep/bart/ckpts/cnndm_sum/deepspeed_test_0/save_dir', "load_dir"),
-        '--tm.ort',
-        '--tm.deepspeed',
-        '--tm.deepspeed_config', 'deepspeed/deepspeedConfig.json',
-
+        '--module.ort',
+        '--module.deepspeed',
+        '--module.deepspeed_transformer_kernel',
+        '--module.deepspeed_config', 'deepspeed_methods/deepspeedConfig.json',
     ]
     return all_params_default
 
@@ -62,9 +70,19 @@ from azureml.core import Environment
 # Creates the environment inside a Docker container.
 pytorch_env = Environment(name='myEnv')
 pytorch_env.docker.enabled = True
-with open("Dockerfile", "r") as f:
-    dockerfile=f.read()
-pytorch_env.docker.base_dockerfile = dockerfile
+
+if args.image_exists:
+    # this is the image built in the Dockerfile local to the file. re-using because it takes > 1.5hrs to build, greater than aml default timeout
+    pytorch_env.docker.base_image = "bart:cuda11.1.cudnn8.ds.ort.pymarlin0.2.3"
+    pytorch_env.python.user_managed_dependencies = True
+    pytorch_env.docker.base_image_registry.address = 'elrsubstrate.azurecr.io'
+    pytorch_env.docker.base_image_registry.username = 'elrsubstrate'
+    pytorch_env.docker.base_image_registry.password = kv.get_secret('elrsubstrate_acr_password')
+    pytorch_env.python.interpreter_path = '/opt/miniconda/bin/python'
+else:
+    with open("Dockerfile", "r") as f:
+        dockerfile=f.read()
+    pytorch_env.docker.base_dockerfile = dockerfile
 
 mpi = MpiConfiguration()
 mpi.process_count_per_node = 4

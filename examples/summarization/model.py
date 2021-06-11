@@ -9,8 +9,8 @@ from onnxruntime.training.ortmodule import ORTModule
 
 from filelock import FileLock
 
-from deepspeed.deepspeed_utils import initialize_deepspeed
-from deepspeed.deepspeed_utils import get_core_model
+from deepspeed_methods.deepspeed_utils import initialize_deepspeed
+from deepspeed_methods.deepspeed_utils import get_core_model
 
 from train import SummarizationBartModule
 
