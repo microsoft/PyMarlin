@@ -1,5 +1,7 @@
 data_path: 'D:/data/cnn_cln'
 DEEPSPEED_CKPT_PREFIX: "deepspeed_ckpt"
+dist: true
+AML: true
 
 trainer:
     max_train_steps_per_epoch : null # Maximum train steps per epoch.
@@ -15,10 +17,10 @@ trainer:
 module:
     max_length_encoder : 1024
     max_length_decoder : 128
-    ort: False
-    deepspeed: False
-    deepspeed_config: ''
-    deepspeed_transformer_kernel: False
+    ort: true
+    deepspeed: true
+    deepspeed_config: 'deepspeed/deepspeedConfig.json'
+    deepspeed_transformer_kernel: true
 
 wrt:
     tb_log_dir : 'logs'
