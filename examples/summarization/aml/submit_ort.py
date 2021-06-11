@@ -2,6 +2,7 @@ from azureml.core import Experiment, Workspace, Datastore, ScriptRunConfig
 from azureml.core.compute import ComputeTarget, AmlCompute
 from azureml.core.runconfig import MpiConfiguration, RunConfiguration, DEFAULT_GPU_IMAGE
 
+# put your AML workspace JSON in this directory!
 ws = Workspace.from_config()
 ws_details = ws.get_details()
 print('Name:\t\t{}\nLocation:\t{}'

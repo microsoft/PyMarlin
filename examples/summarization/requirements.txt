@@ -2,6 +2,6 @@ matplotlib
 rouge-score
 nltk
 
-# for running with ort+deepspeed
-deepspeed
-onnxruntime
+# for running with ort+deepspeed (TBA for pip packages)
+# deepspeed
+# onnxruntime
