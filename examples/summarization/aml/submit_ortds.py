@@ -77,7 +77,7 @@ if args.image_exists:
     pytorch_env.python.user_managed_dependencies = True
     pytorch_env.docker.base_image_registry.address = 'elrsubstrate.azurecr.io'
     pytorch_env.docker.base_image_registry.username = 'elrsubstrate'
-    pytorch_env.docker.base_image_registry.password = kv.get_secret('elrsubstrate_acr_password')
+    pytorch_env.docker.base_image_registry.password = kv.get_secret('elrsubstrate-acr-password')
     pytorch_env.python.interpreter_path = '/opt/miniconda/bin/python'
 else:
     with open("Dockerfile", "r") as f:
