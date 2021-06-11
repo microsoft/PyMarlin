@@ -18,7 +18,7 @@ print('Datastore name: ' + ds.name,
 gpu_compute_target = ComputeTarget(workspace=ws, name='sriovdedicated1')
 print(gpu_compute_target.status.serialize())
 
-script_name = 'train_ort.py'
+script_name = 'train_ortds.py'
 codepath = '..'
 
 from azureml.core import Dataset

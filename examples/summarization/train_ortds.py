@@ -5,13 +5,14 @@ from pymarlin.core import trainer_backend, module_interface, trainer
 from pymarlin.core.trainer_backend import build_trainer_backend
 from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
 
-from data import SummarizationData
+from .data import SummarizationData
 
 from filelock import FileLock
 
-from deepspeed.deepspeed_trainer import deepspeed_Trainer
-from deepspeed.deepspeed_trainer_backend import deepspeed_trainer_backend, deepspeed_dist_trainer_backend
-from model import SummarizationBartModule_ds_ort
+from .deepspeed.deepspeed_trainer import deepspeed_Trainer
+from .deepspeed.deepspeed_trainer_backend import deepspeed_trainer_backend, deepspeed_dist_trainer_backend
+
+from .model import SummarizationBartModule_ds_ort
 
 try:
     import nltk
@@ -41,9 +42,9 @@ print(f"config: {config}")
 dm = SummarizationData()
 dm.setup_datasets(root=config["data_path"])
 
-summarization_module = SummarizationBartModule_ds_ort(dm, **config["module"], generate_kwargs=config["generate"])
+tm = SummarizationBartModule_ds_ort(dm, **config["module"], generate_kwargs=config["generate"])
 
-trainer_args = trainer.TrainerArguments(
+tmArgs = trainer.TrainerArguments(
     **config["trainer"],
     stats_args=trainer.stats.StatInitArguments(**config["stat"]),
     writer_args=trainer.WriterInitArguments(**config["wrt"]),
@@ -51,12 +52,25 @@ trainer_args = trainer.TrainerArguments(
 )
 
 if config["module"]["deepspeed"]:
-    summarization_module.deepspeed_resume_from_checkpoint = config["chkp"]["load_dir"]
-    summarization_module.deepspeed_ckpt_tag = config["chkp"]["deepspeed_ckpt_tag"]
-    assert len(config["DEEPSPEED_CKPT_PREFIX"].strip()) > 0, f"config[\"DEEPSPEED_CKPT_PREFIX\"] must be non-empty"
-    summarization_module.DEEPSPEED_CKPT_PREFIX = config["DEEPSPEED_CKPT_PREFIX"].strip()
 
-trainer = trainer.Trainer(module=summarization_module, args=trainer_args)
+    tm.deepspeed_resume_from_checkpoint = config["chkp"]["load_dir"]
+    tm.deepspeed_ckpt_tag = config["chkp"]["deepspeed_ckpt_tag"]
+    assert len(config["DEEPSPEED_CKPT_PREFIX"].strip()) > 0, f"config[\"DEEPSPEED_CKPT_PREFIX\"] must be non-empty"
+    tm.DEEPSPEED_CKPT_PREFIX = config["DEEPSPEED_CKPT_PREFIX"].strip()
+
+    tr = deepspeed_trainer_backend()
+    if config["dist"]:
+        tr = deepspeed_dist_trainer_backend(tr)
+        tmArgs.distributed_training_args = trainer.DistributedTrainingArguments(
+            local_rank=config["cuda"],
+            world_size=config["world_size"]
+        )
+    else:
+        if config["AML"]:
+            raise ValueError(f"Error, config[\"tm\"][\"deepspeed\"] and config[\"AML\"] are True while config[\"dist\"] is False, deepspeed will not able to initialize with single Node single process in AML")
+    trainer = deepspeed_Trainer(trainer_backend=tr, module=tm, args=tmArgs)
+else:
+    trainer = trainer.Trainer(module=tm, args=tmArgs)
 
 trainer.train()
 trainer.validate()
