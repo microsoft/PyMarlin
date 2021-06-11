@@ -4,15 +4,15 @@ import os
 # too long import
 from pymarlin.utils.stats import global_stats
 
-from .data import SummarizationData
 from onnxruntime.training.ortmodule import ORTModule
 
 from filelock import FileLock
 
-from .deepspeed_methods.deepspeed_utils import initialize_deepspeed
-from .deepspeed_methods.deepspeed_utils import get_core_model
+from deepspeed_methods.deepspeed_utils import initialize_deepspeed
+from deepspeed_methods.deepspeed_utils import get_core_model
 
-from .train import SummarizationBartModule
+from data import SummarizationData
+from train import SummarizationBartModule
 
 try:
     import nltk
