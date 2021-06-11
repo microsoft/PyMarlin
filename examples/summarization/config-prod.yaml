@@ -21,6 +21,7 @@ module:
     deepspeed: false
     deepspeed_config: ''
     deepspeed_transformer_kernel: false
+    deepspeed_ckpt_tag: null    # optional, let deepspeed load specific checkpoint, unnecessary if save_latest is true (default) when checkpointing with deepspeed
 
 wrt:
     tb_log_dir : 'logs'
@@ -35,7 +36,6 @@ chkp:
     model_state_save_dir: null
     load_dir: null
     load_filename: null
-    deepspeed_ckpt_tag: null    # optional, let deepspeed load specific checkpoint, unnecessary if save_latest is true (default) when checkpointing with deepspeed
 
 # add more from BartForConditionalGeneration.generate?
 generate:

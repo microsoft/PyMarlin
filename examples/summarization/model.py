@@ -4,15 +4,15 @@ import os
 # too long import
 from pymarlin.utils.stats import global_stats
 
-from data import SummarizationData
+from .data import SummarizationData
 from onnxruntime.training.ortmodule import ORTModule
 
 from filelock import FileLock
 
-from deepspeed_methods.deepspeed_utils import initialize_deepspeed
-from deepspeed_methods.deepspeed_utils import get_core_model
+from .deepspeed_methods.deepspeed_utils import initialize_deepspeed
+from .deepspeed_methods.deepspeed_utils import get_core_model
 
-from train import SummarizationBartModule
+from .train import SummarizationBartModule
 
 try:
     import nltk
@@ -37,6 +37,7 @@ class SummarizationBartModule_ds_ort(SummarizationBartModule):
             deepspeed=False,
             deepspeed_config='',
             deepspeed_transformer_kernel=False,
+            deepspeed_ckpt_tag=None,
             generate_kwargs={}
     ):
         super().__init__(data, max_length_encoder, max_length_decoder, max_lr, generate_kwargs)
@@ -51,7 +52,7 @@ class SummarizationBartModule_ds_ort(SummarizationBartModule):
         self.ort = ort
         self.deepspeed = deepspeed
         self.deepspeed_resume_from_checkpoint = None
-        self.deepspeed_ckpt_tag = None
+        self.deepspeed_ckpt_tag = deepspeed_ckpt_tag
         self.DEEPSPEED_CKPT_PREFIX = "deepspeed_ckpt"
 
     def get_optimizers_schedulers(
