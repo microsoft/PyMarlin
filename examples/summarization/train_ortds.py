@@ -7,11 +7,11 @@ from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
 
 from filelock import FileLock
 
-from deepspeed_methods.deepspeed_trainer import deepspeed_Trainer
-from deepspeed_methods.deepspeed_trainer_backend import deepspeed_trainer_backend, deepspeed_dist_trainer_backend
+from .deepspeed_methods.deepspeed_trainer import deepspeed_Trainer
+from .deepspeed_methods.deepspeed_trainer_backend import deepspeed_trainer_backend, deepspeed_dist_trainer_backend
 
-from data import SummarizationData
-from model import SummarizationBartModule_ds_ort
+from .data import SummarizationData
+from .model import SummarizationBartModule_ds_ort
 
 try:
     import nltk
@@ -53,7 +53,7 @@ tmArgs = trainer.TrainerArguments(
 if config["module"]["deepspeed"]:
 
     tm.deepspeed_resume_from_checkpoint = config["chkp"]["load_dir"]
-    tm.deepspeed_ckpt_tag = config["chkp"]["deepspeed_ckpt_tag"]
+    tm.deepspeed_ckpt_tag = config["module"]["deepspeed_ckpt_tag"]
     assert len(config["DEEPSPEED_CKPT_PREFIX"].strip()) > 0, f"config[\"DEEPSPEED_CKPT_PREFIX\"] must be non-empty"
     tm.DEEPSPEED_CKPT_PREFIX = config["DEEPSPEED_CKPT_PREFIX"].strip()
 
