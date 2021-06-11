@@ -7,11 +7,11 @@ from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
 
 from filelock import FileLock
 
-from .deepspeed_methods.deepspeed_trainer import deepspeed_Trainer
-from .deepspeed_methods.deepspeed_trainer_backend import deepspeed_trainer_backend, deepspeed_dist_trainer_backend
+from deepspeed_methods.deepspeed_trainer import deepspeed_Trainer
+from deepspeed_methods.deepspeed_trainer_backend import deepspeed_trainer_backend, deepspeed_dist_trainer_backend
 
-from .data import SummarizationData
-from .model import SummarizationBartModule_ds_ort
+from data import SummarizationData
+from model import SummarizationBartModule_ds_ort
 
 try:
     import nltk
