@@ -38,9 +38,13 @@ class SummarizationBartModule_ds_ort(SummarizationBartModule):
             deepspeed_config='',
             deepspeed_transformer_kernel=False,
             deepspeed_ckpt_tag=None,
+            deepspeed_resume_from_checkpoint=None,
             generate_kwargs={}
     ):
         super().__init__(data, max_length_encoder, max_length_decoder, max_lr, generate_kwargs)
+        
+        #setting this here to avoid issues after wrapping
+        self._pad_token_id = self.model.config.pad_token_id
 
         if ort:
             print(f"Employing ORT, wrapping model with ORTModule")
@@ -51,9 +55,13 @@ class SummarizationBartModule_ds_ort(SummarizationBartModule):
 
         self.ort = ort
         self.deepspeed = deepspeed
-        self.deepspeed_resume_from_checkpoint = None
+        self.deepspeed_resume_from_checkpoint = deepspeed_resume_from_checkpoint
         self.deepspeed_ckpt_tag = deepspeed_ckpt_tag
         self.DEEPSPEED_CKPT_PREFIX = "deepspeed_ckpt"
+    
+    @property
+    def pad_token_id(self):
+        return self._pad_token_id
 
     def get_optimizers_schedulers(
             self, estimated_global_steps_per_epoch: int, epochs: int
