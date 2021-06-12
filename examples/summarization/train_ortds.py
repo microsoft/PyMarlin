@@ -27,15 +27,6 @@ if NLTK_AVAILABLE:
 
 config = CustomArgParser(yaml_file_arg_key="config_path").parse()
 
-if config["dist"] and config["AML"]:
-    try:
-        config["cuda"] = int(os.environ["OMPI_COMM_WORLD_LOCAL_RANK"])
-        config["world_size"] = int(os.environ.get("OMPI_COMM_WORLD_SIZE", 1))
-    except KeyError as e:
-        print(f"Encountered KeyError: {e}, which likely result from one of following: (1) Not using AML (2) Using AML with 1 node and 1 process")
-        print(f"Setting config[\"cuda\"] to 0")
-        config["cuda"] = 0
-
 print(f"config: {config}")
 
 dm = SummarizationData()
@@ -58,15 +49,6 @@ if config["module"]["deepspeed"]:
     tm.DEEPSPEED_CKPT_PREFIX = config["DEEPSPEED_CKPT_PREFIX"].strip()
 
     tr = deepspeed_trainer_backend()
-    if config["dist"]:
-        tr = deepspeed_dist_trainer_backend(tr)
-        tmArgs.distributed_training_args = trainer.DistributedTrainingArguments(
-            local_rank=config["cuda"],
-            world_size=config["world_size"]
-        )
-    else:
-        if config["AML"]:
-            raise ValueError(f"Error, config[\"tm\"][\"deepspeed\"] and config[\"AML\"] are True while config[\"dist\"] is False, deepspeed will not able to initialize with single Node single process in AML")
     trainer = deepspeed_Trainer(trainer_backend=tr, module=tm, args=tmArgs)
 else:
     trainer = trainer.Trainer(module=tm, args=tmArgs)

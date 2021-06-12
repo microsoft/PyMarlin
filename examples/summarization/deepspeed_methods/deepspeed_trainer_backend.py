@@ -41,7 +41,7 @@ class deepspeed_trainer_backend(SingleProcess):
                 tbatch.set_description(f"Global Batch: {self.global_step_completed + 1} ")
                 # forward
                 outputs = self.model.forward(
-                    stage=module_interface.Stage.train,
+                    stage=module_interface.Stage.TRAIN,
                     batch=batch,
                     device=self.args.device,
                     global_step=self.global_step_completed + 1,

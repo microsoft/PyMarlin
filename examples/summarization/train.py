@@ -97,9 +97,13 @@ class SummarizationBartModule(module_interface.ModuleInterface):
             max_length=self.max_length_decoder,
         )
         labels = target_tokens["input_ids"]
-        labels[labels[:, :] == self.model.config.pad_token_id] = -100
+        labels[labels[:, :] == self.pad_token_id] = -100
         source_tokens["labels"] = labels
         return source_tokens
+    
+    @property
+    def pad_token_id(self):
+        return self.model.config.pad_token_id
 
     def train_step(self, global_step: int, batch, device):
         batch = batch.to(device)
@@ -116,10 +120,10 @@ class SummarizationBartModule(module_interface.ModuleInterface):
             **self.generate_kwargs
         )
         labels = batch.labels
-        labels[labels[:, :] == -100] = self.model.config.pad_token_id
+        labels[labels[:, :] == -100] = self.pad_token_id
         # pad summaries till same length for gathering
         # Idle solution will be calculate ROUGE in a distributed manner if possible. Will save gather cost
-        padded_summaries = torch.ones_like(labels) * self.model.config.pad_token_id
+        padded_summaries = torch.ones_like(labels) * self.pad_token_id
         padded_summaries[:,:summaries.shape[-1]] = summaries
         return padded_summaries, labels
 
