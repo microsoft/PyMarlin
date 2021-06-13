@@ -47,8 +47,7 @@ if config["module"]["deepspeed"]:
     tm.deepspeed_ckpt_tag = config["module"]["deepspeed_ckpt_tag"]
     assert len(config["DEEPSPEED_CKPT_PREFIX"].strip()) > 0, f"config[\"DEEPSPEED_CKPT_PREFIX\"] must be non-empty"
     tm.DEEPSPEED_CKPT_PREFIX = config["DEEPSPEED_CKPT_PREFIX"].strip()
-
-    tr = deepspeed_trainer_backend()
+    tr =  deepspeed_dist_trainer_backend() if config["dist"] else deepspeed_trainer_backend()
     trainer = deepspeed_Trainer(trainer_backend=tr, module=tm, args=tmArgs)
 else:
     trainer = trainer.Trainer(module=tm, args=tmArgs)

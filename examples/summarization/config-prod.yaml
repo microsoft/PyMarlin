@@ -1,4 +1,6 @@
 data_path: 'D:/data/cnn_cln'
+DEEPSPEED_CKPT_PREFIX: "deepspeed_ckpt"
+dist: true
 
 trainer:
     max_train_steps_per_epoch : null # Maximum train steps per epoch.
