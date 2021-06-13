@@ -3,13 +3,17 @@ from azureml.core.authentication import InteractiveLoginAuthentication
 from azureml.core.compute import ComputeTarget, AmlCompute
 from azureml.core.runconfig import MpiConfiguration, RunConfiguration, DEFAULT_GPU_IMAGE
 from argparse import ArgumentParser
+import json
 
 parser = ArgumentParser()
 parser.add_argument('--image_exists', action='store_true', help='whether to use an existing image from a private ACR')
 args = parser.parse_args()
 
-# put your AML workspace JSON in this directory!
-ws = Workspace.from_config(auth=InteractiveLoginAuthentication('72f988bf-86f1-41af-91ab-2d7cd011db47'))
+# put your AML workspace JSON and add tenant id in this directory!
+with open('./config.json','r') as f:
+    aml_config = json.load(f)
+tenant_id = aml_config['tenant_id']
+ws = Workspace.from_config('./config.json', auth=InteractiveLoginAuthentication(tenant_id))
 ws_details = ws.get_details()
 print('Name:\t\t{}\nLocation:\t{}'
       .format(ws_details['name'],
@@ -48,11 +52,11 @@ def get_args(outputSuffix="deepspeed_ort_amp_nopadding_v100_8"):
         '--data_path', get_input_dataset(ds, f'krishan/bart/cnn_dm', "data_path"),
         '--config_path', 'config-prod.yaml',
         '--trainer.train_batch_size', 32,
-        '--trainer.gpu_batch_size_limit', 64,
+        '--trainer.gpu_batch_size_limit', 32,
         '--trainer.val_batch_size', 64,
         '--trainer.epochs', 3,
-        '--trainer.backend', "sp-amp",
-        '--dist',
+        '--trainer.backend', "ddp-amp-apex",
+        '--trainer.disable_tqdm', "true", # ugly logging in AML
         '--chkp.save_dir', get_output_dataset(ds, f'jsleep/bart/cnndm_sum/' + outputSuffix + "/ckpts/save_dir", "chkp_save_dir"),
         '--chkp.model_state_save_dir', get_output_dataset(ds, f'jsleep/bart/cnndm_sum/' + outputSuffix + "/ckpts/model_state_save_dir", "model_state_save_dir"),
         '--wrt.tb_log_dir', get_output_dataset(ds, f'jsleep/bart/cnndm_sum/' + outputSuffix + "/tblogs", "tb_log_dir"),
@@ -85,6 +89,7 @@ else:
     pytorch_env.docker.base_dockerfile = dockerfile
 
 mpi = MpiConfiguration()
+#NCv3_24rs - 4 16GB V100 GPU's per node
 mpi.process_count_per_node = 4
 mpi.node_count = 2
 
@@ -101,5 +106,8 @@ experiment = Experiment(ws, name=experiment_name)
 run = experiment.submit(config)
 
 run.tag('nodes', f'{mpi.node_count}')
+run.tag('process_count_per_node', f'{mpi.process_count_per_node}')
+run.tag('notes', '2 node run with ort+ds')
+
 print("Submitted run")
 print(f"\n{run.get_portal_url()}")
