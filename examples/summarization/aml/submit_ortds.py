@@ -107,7 +107,7 @@ run = experiment.submit(config)
 
 run.tag('nodes', f'{mpi.node_count}')
 run.tag('process_count_per_node', f'{mpi.process_count_per_node}')
-run.tag('notes', '2 node run with ort+ds')
+run.tag('notes', '2 node with ort+ds')
 
 print("Submitted run")
 print(f"\n{run.get_portal_url()}")
