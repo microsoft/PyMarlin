@@ -3,6 +3,7 @@ import os
 
 # too long import
 from pymarlin.utils.stats import global_stats
+from pymarlin.utils.logger import getlogger
 
 from onnxruntime.training.ortmodule import ORTModule
 
@@ -13,6 +14,8 @@ from deepspeed_methods.deepspeed_utils import get_core_model
 
 from data import SummarizationData
 from train import SummarizationBartModule
+
+logger = getlogger(__file__)
 
 try:
     import nltk
@@ -47,10 +50,10 @@ class SummarizationBartModule_ds_ort(SummarizationBartModule):
         self._pad_token_id = self.model.config.pad_token_id
 
         if ort:
-            print(f"Employing ORT, wrapping model with ORTModule")
+            logger.info(f"Employing ORT, wrapping model with ORTModule")
             self.model = ORTModule(self.model)
         if deepspeed:
-            print(f"Employing Deepspeed, wrapping model with Deepspeed")
+            logger.info(f"Employing Deepspeed, wrapping model with Deepspeed")
             self.model, _ = initialize_deepspeed(self.model, deepspeed_config, deepspeed_transformer_kernel)
 
         self.ort = ort
@@ -116,7 +119,7 @@ class SummarizationBartModule_ds_ort(SummarizationBartModule):
             deepspeed_checkpoint_dirs = sorted(glob.glob(f"{loading_path}/*"))
 
             if len(deepspeed_checkpoint_dirs) > 0:
-                print(f"Attempting to resume from {loading_path}")
+                logger.info(f"Attempting to resume from {loading_path}")
                 # this magically updates self.optimizer and self.lr_scheduler
                 load_path, _ = self.model.load_checkpoint(
                     loading_path,
@@ -127,7 +130,7 @@ class SummarizationBartModule_ds_ort(SummarizationBartModule):
                 if load_path is None:
                     raise ValueError(f"[deepspeed] failed to resume from checkpoint {self.deepspeed_resume_from_checkpoint}")
             else:
-                print(f"{loading_path} doesn't have deepspeed checkpoints, doing nothing")
+                logger.error(f"{loading_path} doesn't have deepspeed checkpoints, doing nothing")
 
         else:
             super().update_state(state)
