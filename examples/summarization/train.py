@@ -6,7 +6,9 @@ from torch.utils.data import DataLoader
 
 # too long import
 from pymarlin.utils.stats import global_stats
+from pymarlin.utils.logger import getlogger
 from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
+from pymarlin.utils.distributed import rank_zero_only
 from torch.optim.lr_scheduler import OneCycleLR
 
 from data import SummarizationData
@@ -15,6 +17,7 @@ import re
 
 from filelock import FileLock
 
+logger = getlogger(__file__)
 
 try:
     import nltk
@@ -66,6 +69,7 @@ class SummarizationBartModule(module_interface.ModuleInterface):
             batch_size=batch_size,
             collate_fn=self.collate_fun,
             sampler=sampler(train_ds),
+            drop_last=True, # ORT fix, batch size needs to stay constant
         )
         return dl
 
@@ -76,6 +80,7 @@ class SummarizationBartModule(module_interface.ModuleInterface):
             batch_size=batch_size,
             collate_fn=self.collate_fun,
             sampler=sampler(val_ds),
+            drop_last=True, # ORT fix, batch size needs to stay constant
         )
         return dl
 
@@ -184,8 +189,12 @@ class SummarizationBartModule(module_interface.ModuleInterface):
         else:
             return aggregator._scores  # here we return defaultdict(list)
 
+    @rank_zero_only
     def on_end_val_epoch(self, global_step, *collated_output, key="default"):
-        print('Evaluating gathered results.')
+        logger.log('Evaluating gathered results.')
+        if len(collated_output) == 0:
+            logger.error("len(collated_output) == 0)")
+            return 
         summaries, labels = collated_output
         #decode
         preds = self.tokenizer.batch_decode(
@@ -194,13 +203,12 @@ class SummarizationBartModule(module_interface.ModuleInterface):
         refs = self.tokenizer.batch_decode(
             labels, skip_special_tokens=True, clean_up_tokenization_spaces=False
         )
-        # print(refs[:2])
-        # print(preds[:2])
+        logger.log(f"preds[:2]: {preds[:2]}")
+        logger.log(f"refs[:2]: {refs[:2]}")
         ROUGE_KEYS = ["rouge1", "rouge2", "rougeL", "rougeLsum"]
         scores: dict =  self.calculate_rouge(preds, refs, rouge_keys = ROUGE_KEYS)
         global_stats.update_multi('metrics/rouge', scores)
         print(scores)
-
 
 if __name__ == '__main__':
     config = CustomArgParser(yaml_file_arg_key="config_path").parse()
