@@ -191,7 +191,7 @@ class SummarizationBartModule(module_interface.ModuleInterface):
 
     @rank_zero_only
     def on_end_val_epoch(self, global_step, *collated_output, key="default"):
-        logger.log('Evaluating gathered results.')
+        logger.info('Evaluating gathered results.')
         if len(collated_output) == 0:
             logger.error("len(collated_output) == 0)")
             return 
@@ -203,8 +203,8 @@ class SummarizationBartModule(module_interface.ModuleInterface):
         refs = self.tokenizer.batch_decode(
             labels, skip_special_tokens=True, clean_up_tokenization_spaces=False
         )
-        logger.log(f"preds[:2]: {preds[:2]}")
-        logger.log(f"refs[:2]: {refs[:2]}")
+        logger.info(f"preds[:2]: {preds[:2]}")
+        logger.info(f"refs[:2]: {refs[:2]}")
         ROUGE_KEYS = ["rouge1", "rouge2", "rougeL", "rougeLsum"]
         scores: dict =  self.calculate_rouge(preds, refs, rouge_keys = ROUGE_KEYS)
         global_stats.update_multi('metrics/rouge', scores)
