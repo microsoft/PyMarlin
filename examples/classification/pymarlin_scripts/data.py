@@ -175,8 +175,8 @@ if __name__ == '__main__':
     stage2 = Stage2(data_args)
 
     # Run DataProcessors specifying inputs and ouputs
-    data_interface.process_data(stage1)
-    ret = data_interface.process_data(stage2)
+    stage1.process_data()
+    ret = stage2.process_data()
 
     # Set Datasets and label mappings in DataInterface
     train_ds, val_ds, test_ds, labels_to_index, index_to_labels = ret
@@ -191,12 +191,11 @@ if __name__ == '__main__':
     data_interface = TweetSentData(data_args)
     stage1 = Stage1(data_args)
     stage2 = Stage2(data_args)
-    data_interface.multi_process_data(
-        stage1,
+    stage1.multi_process_data(
         [data_args.filepath_train, data_args.filepath_test],
         process_count=2,
         )
-    ret = data_interface.process_data(stage2)
+    ret = stage2.process_data()
     train_ds, val_ds, test_ds, labels_to_index, index_to_labels = ret
     data_interface.setup_datasets(
         train_ds, val_ds, test_ds,
