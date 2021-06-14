@@ -36,6 +36,7 @@ class NERProcessor(data_interface.DataProcessor):
     """
 
     def __init__(self, args):
+        super().__init__()
         self.args = args
         self.label_map = (
             {label: i for i, label in enumerate(self.args.labels_list)}
@@ -101,18 +102,18 @@ class NERProcessor(data_interface.DataProcessor):
                     )
                 prev_word_idx = word_idx
 
-        feature = InputFeatures(
+        features = InputFeatures(
             input_ids=tokenized_inputs.input_ids.squeeze().tolist(),
             attention_mask=tokenized_inputs.attention_mask.squeeze().tolist(),
             token_type_ids=tokenized_inputs.token_type_ids.squeeze().tolist(),
             label=label_ids,
         )
 
-        return feature
+        return features
 
-    def analyze(self, features):
-        logger.info(f"# of features processed = {len(features)}")
-
+    def analyze(self):
+        #logger.info(f"# of features processed = {len(features)}")
+        pass
 
 class NERBaseDataset(Dataset):
     def __init__(self, features, isLabel=True):
@@ -155,7 +156,7 @@ class NERDataInterface(data_interface.DataInterface):
         self.train_dataset = []
         self.val_dataset = []
 
-    def setup_datasets(self, train_features, val_features, test_features=None):
+    def setup_datasets(self, train_features, val_features):
         self.train_dataset = NERBaseDataset(train_features, self.args.has_labels)
         self.val_dataset = NERBaseDataset(val_features, self.args.has_labels)
 

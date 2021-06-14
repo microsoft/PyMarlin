@@ -31,7 +31,6 @@ class ModelArguments:
 
 @dataclasses.dataclass
 class ModuleInterfaceArguments:
-    tr_backend: "singleprocess"
     output_dir: None
     max_lr: 0.00004  # Maximum learning rate.
     warmup_prop: 0.1  # % of steps

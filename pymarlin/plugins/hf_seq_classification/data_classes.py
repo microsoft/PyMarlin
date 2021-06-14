@@ -44,6 +44,7 @@ class HfSeqClassificationProcessor(data_interface.DataProcessor):
     """
 
     def __init__(self, args):
+        super().__init__()
         self.args = args
         self.label_map = (
             {label: i for i, label in enumerate(self.args.labels_list)}
@@ -142,9 +143,9 @@ class HfSeqClassificationProcessor(data_interface.DataProcessor):
         )
         return features
 
-    def analyze(self, features):
-        logger.info(f"# of features processed = {len(features)}")
-
+    def analyze(self):
+        #logger.info(f"# of features processed = {len(features)}")
+        pass
 
 class HfSeqClassificationDataset(Dataset):
     """PyTorch Dataset."""
