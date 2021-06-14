@@ -1,16 +1,10 @@
 from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
-from pymarlin.utils.logger.logging_utils import getlogger
-
-logger = getlogger(__name__, "INFO")
-
 from pymarlin.core import data_interface, module_interface
-from pymarlin.core import trainer as trn
 from pymarlin.plugins.base import Plugin
 from pymarlin.plugins.hfdistill_utils import build_distill_module, DistillationArguments
 
 from .data_classes import (
     HfSeqClassificationDataInterface,
-    # HfSeqClassificationProcessor,
     DataArguments,
 )
 from .module_classes import (
@@ -28,20 +22,11 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 class HfSeqClassificationPlugin(Plugin):
     """Plugin for Text Sequence Classification using Huggingface models.
 
-    plugin.setup() bootstraps the entire pipeline and returns a fully setup trainer.
     Example:
     ```python
-    trainer = plugin.setup()
+    trainer = plugin.setup_trainer()
     trainer.train()
     trainer.validate()
-    ```
-
-    Alternatively, you can run `setup_datainterface` `setup_module` `setup_trainer` individually.
-    Example:
-    ```python
-    plugin.setup_datainterface()
-    plugin.setup_module()
-    trainer = plugin.setup_trainer()
     ```
     """
 
@@ -60,9 +45,6 @@ class HfSeqClassificationPlugin(Plugin):
                 instead of regular training.
         Sets properties:
             self.datainterface: data_interface.DataInterface [HfSeqClassificationDataInterface] object
-            self.dataprocessor: data_interface.DataProcessor [HfSeqClassificationProcessor] object.
-                These two together are used to read raw data and create sequences of tokens in `setup_datainterface`.
-                The processed data is fed to HuggingFace AutoModelForSequenceClassification models.
             self.module: module_interface.ModuleInterface [HfSeqClassificationModule] object
                 This is used to initialize a Marlin trainer.
         """
@@ -83,22 +65,3 @@ class HfSeqClassificationPlugin(Plugin):
             module_params = [self.distill_args] + module_params
             module_class = build_distill_module(module_class)
         self.moduleinterface = module_class(*module_params)
-
-    def setup_datainterface(self):
-        """Executes the data processing pipeline. Tokenizes train and val datasets using the
-        `dataprocessor` and `datainterface`.
-        Finally calls `datainterface.setup_datasets(train_data, val_data)`.
-
-        Assumptions:
-            Training and validation files are placed in separate directories.
-            Accepted file formats: json, tsv, csv.
-            YAML config file should specify the column names or ids:
-                data:
-                    text_a_col
-                    text_b_col (optional None)
-                    label_col (optional None)
-            Header row is skipped for tsv/csv file if data_args.header = True
-            data_args.hf_tokenizer: String corresponding to Huggingface AutoTokenizer
-            data_args.cpu_threads: Number of processes to use for Python CPU multiprocessing
-        """
-        pass
