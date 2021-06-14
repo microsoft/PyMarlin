@@ -12,12 +12,8 @@ from .module_classes import (
     ModuleInterfaceArguments,
     ModelArguments,
 )
-
-import os
 from typing import Optional, Dict
-import multiprocessing
 
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 class HfSeqClassificationPlugin(Plugin):
     """Plugin for Text Sequence Classification using Huggingface models.
@@ -35,8 +31,7 @@ class HfSeqClassificationPlugin(Plugin):
         is not provided, assumes YAML file is named config.yaml and present in working directory.
         Instantiates dataclasses:
             self.data_args (arguments.DataInterfaceArguments): Instantiated dataclass containing
-            args required to initialize HfSeqClassificationDataInterface and HfSeqClassificationProcessor
-            classes.
+            args.
             self.module_args (arguments.ModuleInterfaceArguments): Instantiated dataclass containing
             args required to initialize HfSeqClassificationModule class.
             self.distill_args (arguments.DistillationArguments): Instantiated dataclass
