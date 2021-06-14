@@ -31,8 +31,7 @@ class MyDataset(Dataset):
 
 class MyData(DataInterface):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self):        
         self._train_ds = None
         self._val_ds = None
 
@@ -50,6 +49,7 @@ class MyData(DataInterface):
 class MyDataProcessor(DataProcessor):
 
     def __init__(self, args):
+        super().__init__()
         self.args = args
 
     def process(self):
@@ -61,6 +61,7 @@ class MyDataProcessor(DataProcessor):
 class MyDataMultiProcessor(DataProcessor):
 
     def __init__(self, args):
+        super().__init__()
         self.args = args
 
     def process(self, filename):
