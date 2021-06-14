@@ -31,8 +31,7 @@ class MyDataset(Dataset):
 
 class MyData(DataInterface):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self):        
         self._train_ds = None
         self._val_ds = None
 
@@ -50,6 +49,7 @@ class MyData(DataInterface):
 class MyDataProcessor(DataProcessor):
 
     def __init__(self, args):
+        super().__init__()
         self.args = args
 
     def process(self):
@@ -61,6 +61,7 @@ class MyDataProcessor(DataProcessor):
 class MyDataMultiProcessor(DataProcessor):
 
     def __init__(self, args):
+        super().__init__()
         self.args = args
 
     def process(self, filename):
@@ -91,7 +92,7 @@ class TestDataInterface(unittest.TestCase):
                            self.args.label_field: [1, 2]})
         df.to_csv(self.args.filepath_train)
 
-        train_ds = self.data_interface.process_data(self.data_processor)
+        train_ds = self.data_processor.process_data()
         assert train_ds[0] == ('one', 1)
         assert len(train_ds) == 2
 
@@ -103,8 +104,7 @@ class TestDataInterface(unittest.TestCase):
         df1.to_csv(self.args.filepath_train)
         df2.to_csv(self.args.filepath_test)
 
-        train_ds_list = self.data_interface.multi_process_data(
-            self.data_multiprocessor,
+        train_ds_list = self.data_multiprocessor.multi_process_data(
             [self.args.filepath_train, self.args.filepath_test],
             process_count=2)
         assert train_ds_list[0] == ('one', 1)
@@ -117,8 +117,8 @@ class TestDataInterface(unittest.TestCase):
         list_to_split = ['first', 'second', 'third']
         a_dict = {'test': 'dict'}
         list_not_to_split = [['this', 'lists', 'elements', 'dont', 'split']]
-        self.data_interface._set_ranks()
-        list_params = self.data_interface._collect_params(
+        self.data_processor._set_ranks()
+        list_params = self.data_processor._collect_params(
             a_number,
             single_argument,
             list_to_split,
