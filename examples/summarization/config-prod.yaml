@@ -3,8 +3,8 @@ DEEPSPEED_CKPT_PREFIX: "deepspeed_ckpt"
 dist: true
 
 trainer:
-    max_train_steps_per_epoch : null # Maximum train steps per epoch.
-    max_val_steps_per_epoch : 200000 # Maximum validation steps per epoch.
+    max_train_steps_per_epoch : 250 # Maximum train steps per epoch.
+    max_val_steps_per_epoch : 100 # Maximum validation steps per epoch.
     train_batch_size: 32 # Training global batch size.
     val_batch_size: 64 # Validation global batch size.
     epochs: 3 # Total epochs to run.
