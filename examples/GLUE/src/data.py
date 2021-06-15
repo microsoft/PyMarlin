@@ -82,8 +82,12 @@ class GlueData(DataInterface):
         self.glue_task = glue_task
         datasets = load_dataset("glue",glue_task, cache_dir = cache_dir)
         self.train_ds = datasets['train']
-        self.val_ds = datasets['validation']
-        self.test_ds = datasets['test']
+        if glue_task == 'mnli':
+            self.val_ds = {'mnli_matched':datasets['validation_matched'],'mnli_mismatched':datasets['validation_mismatched']}
+            self.test_ds = [datasets['test_matched'],datasets['test_mismatched']]
+        else:
+            self.val_ds = datasets['validation']
+            self.test_ds = datasets['test']
     
     def get_train_dataset(self):
         return self.train_ds
@@ -94,34 +98,12 @@ class GlueData(DataInterface):
     def get_test_dataset(self):
         return self.test_ds
 
-class MNLIData(GlueData):
-    def setup_datasets(self, glue_task = 'mnli'):
-        self.glue_task = glue_task
-        datasets = load_dataset("glue",glue_task, cache_dir = cache_dir)
-        self.train_ds = datasets['train']
-        self.val_ds = {'mnli_matched':datasets['validation_matched'],'mnli_mismatched':datasets['validation_mismatched']}
-        self.test_ds = [datasets['test_matched'],datasets['test_mismatched']]
-    
-    def get_val_dataset(self):
-        return self.val_ds 
-
-    def get_test_dataset(self):
-        return self.test_ds
-
-def data_factory(glue_task):
-    factory = {
-        'default':GlueData(),
-        'mnli':MNLIData()
-    }
-    glue_task = glue_task if glue_task in factory else 'default'
-    return factory[glue_task]
-
 if __name__ == "__main__":
     import sys
      
     glue_task = sys.argv[1] if len(sys.argv) >1 else 'cola'
     print(glue_task)
-    di = data_factory(glue_task)
+    di = GlueData(glue_task)
     di.setup_datasets()
     di.process_data(analyzer_factory(glue_task))
 
