@@ -1,0 +1,32 @@
+glue_task : 'rte'
+
+mi:
+    encoder : "roberta-base"
+    tokenizer: "roberta-base"
+    num_labels : 2
+    max_lr : 0.00002
+    s1_key : 'sentence1'
+    s2_key : 'sentence2'
+    max_length : 128
+    warmup : 0.06
+tr:
+    max_train_steps_per_epoch : null # Maximum train steps per epoch.
+    max_val_steps_per_epoch : null # Maximum validation steps per epoch.
+    train_batch_size: 32 # Training global batch size.
+    val_batch_size: 64 # Validation global batch size.
+    epochs: 10 # Total epochs to run.
+    gpu_batch_size_limit : 32 # Max limit for GPU batch size during training.
+    disable_tqdm : False
+    writers: ["tensorboard"]
+    backend: 'sp'
+
+wrt:
+    tb_log_dir : 'logs_roberta_base/rte/from_pretrained'
+
+stat:
+    log_steps : 20
+dist:
+    local_rank : 1
+ckp:
+    checkpoint : False
+    period: 5

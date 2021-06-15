@@ -1,20 +1,21 @@
 # Feedback & Credits
 
 ## Feedback
-pymarlin library is developed by the Substrate Intelligence Horizontal Sciences team in MSAI with collaboration from AML team.
+pymarlin library is developed by the Microsoft Office and Azure team.
+
 Please reach out to us for any feedback and suggestions about the library here: marlin-discuss@microsoft.com
 
 ## Developer Credits
-Krishan Subudhi (Tech Lead) (@krkusuk)  
-Amin Saied (@amsaied)  
-Ananth Rao (@anarao)  
-Ashwin Srinivasan (@ashwinsr)  
-Eduardo Gonzalez (@eduardogo)  
-Han Yu (@hanyu)  
-Jon Sleep (@josleep)  
-Shruti Gullapuram (@shgullap)  
-  
+* Krishan Subudhi (Tech Lead)
+* Amin Saied
+* Ananth Rao
+* Ashwin Srinivasan
+* Eduardo Gonzalez
+* Han Yu
+* Jon Sleep
+* Shruti Gullapuram
+
 Leadership:  
-Damien Jose (EM) (@dajose)  
-Dongwoo Kim (EM) (@dok)  
-Shobana Balakrishnan (PM) (@shobanab) 
+* Damien Jose (EM)
+* Dongwoo Kim (EM)
+* Shobana Balakrishnan (PM)

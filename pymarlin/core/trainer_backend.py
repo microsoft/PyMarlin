@@ -637,7 +637,7 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
         @wraps(fwbw)
         def new_fw_bw(*args, **kwargs):
             # self.batches_completed is not incremented yet.
-            if self.trainer_backend.batches_completed+1 % self.args.gradient_accumulation == 0:
+            if ((self.trainer_backend.batches_completed+1) % self.args.gradient_accumulation) == 0:
                 result = fwbw(*args, **kwargs)
             else:
                 with self.trainer_backend.model.no_sync():

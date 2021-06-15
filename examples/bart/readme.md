@@ -7,7 +7,8 @@ Krishan Subudhi
 This is an example explaining entire pipe line for a summarization task using pymarlin library.
 
 Dataset used: CNN Daily mail
-Model : [BART] (https://arxiv.org/abs/1910.13461)
+
+Model : [BART](https://arxiv.org/abs/1910.13461)
 
 We start with a pretrained checkpoint from huggingface and finetune on CNN dailymail data. 
 
@@ -170,3 +171,4 @@ Tunnel tensorboard in local machine
     # ssh -N -f -L 127.0.0.1:6006:127.0.0.1:6006  $user@${machine} -p $port
 
 Now open tensorboard: http://localhost:6006/#scalars
+![tensorboard screenshot](images/tensorboard_screenshot_bart.jpg)
