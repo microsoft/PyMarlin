@@ -11,7 +11,7 @@ from deepspeed_methods.deepspeed_trainer import deepspeed_Trainer
 from deepspeed_methods.deepspeed_trainer_backend import deepspeed_trainer_backend, deepspeed_dist_trainer_backend
 
 from data import SummarizationData
-from model import SummarizationBartModule_ds_ort
+from model_ortds import SummarizationBartModule_ds_ort
 
 try:
     import nltk

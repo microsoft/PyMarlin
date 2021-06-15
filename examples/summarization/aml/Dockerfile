@@ -37,14 +37,13 @@ RUN conda install -y pip=$PIP_INSTALL_VERSION
 #ENV PATH=/usr/local/cmake-${CMAKE_VERSION}-Linux-x86_64/bin:${PATH}
 #
 #WORKDIR /workspace
-
 RUN conda install cmake
 
 # ------------------------------------------------------------------------------------------------ #
 # PyTorch
 # ------------------------------------------------------------------------------------------------ #
 
-RUN pip install --no-cache-dir torch torchvision torchaudio
+pip install torch torchvision torchaudio -f https://download.pytorch.org/whl/lts/1.8/torch_lts.html
 
 # ------------------------------------------------------------------------------------------------ #
 # PyMarlin Packages

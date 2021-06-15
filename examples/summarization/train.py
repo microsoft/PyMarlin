@@ -189,6 +189,7 @@ class SummarizationBartModule(module_interface.ModuleInterface):
         else:
             return aggregator._scores  # here we return defaultdict(list)
 
+    @rank_zero_only
     def on_end_val_epoch(self, global_step, *collated_output, key="default"):
         logger.info('Evaluating gathered results.')
         if len(collated_output) == 0:
