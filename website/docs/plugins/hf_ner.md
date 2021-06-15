@@ -66,13 +66,10 @@ data:
     val_dir : null
     labels_list: [B-LOC, B-LOCderiv, B-LOCpart, B-ORG, B-ORGderiv, B-ORGpart, B-OTH, B-OTHderiv,
         B-OTHpart, B-PER, B-PERderiv, B-PERpart, I-LOC, I-LOCderiv, I-LOCpart, I-ORG, I-ORGderiv,
-        I-ORGpart, I-OTH, I-OTHderiv, I-OTHpart, I-PER, I-PERderiv, I-PERpart, O]
-    max_seq_len: 128
-    pad_label_id: -100
-    has_labels: True
+        I-ORGpart, I-OTH, I-OTHderiv, I-OTHpart, I-PER, I-PERderiv, I-PERpart, O]  
     tokenizer: "bert-base-multilingual-cased"
     file_format: "tsv"
-    label_all_tokens: False
+    has_labels: True
 
 # model arguments
 model:
@@ -89,6 +86,8 @@ module:
     output_dir: null
     max_lr : 0.00003 # Maximum learning rate.
     warmup_prop: 0.1
+    max_seq_len: 128
+    pad_label_id: -100
     has_labels: True
 
 # trainer arguments
@@ -111,18 +110,18 @@ trainer:
 Next we need a orchestrating script to initialize the plugin and start training. Assume the script test.py. It will contain the following.
 
 ```python
-from marlin.plugins import HfNERPlugin
+from pymarlin.plugins import HfNERPlugin
 plugin = HfNERPlugin()
-
-plugin.setup()
-plugin.trainer.train()
-plugin.trainer.validate()
+plugin.setup_trainer()
+trainer = plugin.trainer
+trainer.train()
+trainer.validate()
 ```
 
 We can now schedule a run locally using CLI , modify to point to the train and validation directory appropriately :
 
 ```python
-python test.py --data.train_dir ./train_germ --data.val_dir ./val_germ --config_path config_germ.yaml
+python test.py --data.train_filepath ./train_germ/train.tsv --data.val_filepath ./val_germ/dev.tsv --config_path config_germ.yaml
 ```
 
 ## Evaluation
@@ -178,7 +177,7 @@ model:
     model_config_path: "marlin_model.bin"
 ```
 
-You can use NER Plugin to evaluate as well with 3 lines:
+You can use NER Plugin to evaluate:
 
 ```
 from marlin.plugins import HfNERPlugin
