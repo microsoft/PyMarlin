@@ -88,10 +88,10 @@ class GlueData(DataInterface):
         else:
             self.val_ds = datasets['validation']
             self.test_ds = datasets['test']
-    
+  
     def get_train_dataset(self):
         return self.train_ds
-    
+
     def get_val_dataset(self):
         return self.val_ds 
 
@@ -103,8 +103,8 @@ if __name__ == "__main__":
      
     glue_task = sys.argv[1] if len(sys.argv) >1 else 'cola'
     print(glue_task)
-    di = GlueData(glue_task)
-    di.setup_datasets()
+    di = GlueData()
+    di.setup_datasets(glue_task=glue_task)
     di.process_data(analyzer_factory(glue_task))
 
 #python src/data_hf_glue.py rte
