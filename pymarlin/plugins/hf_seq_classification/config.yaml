@@ -3,19 +3,14 @@
 
 # data arguments
 data:
-    train_dir: null # provide path to train dir
-    val_dir: null # provide path to dev dir
-    file_format: "tsv"
-    header: True
-    text_a_col: null
-    text_b_col: null
-    label_col: null
-    labels_list: null
-    max_seq_len: 128
-    no_labels: False
-    tokenizer_path: null
-    hf_tokenizer: "bert-base-uncased"
-    cpu_threads: -1
+    train_filepath: null
+    val_filepath: null
+    file_format: "csv"
+    header: 0 # file has a header at row 0
+    text_a_col: "OriginalTweet"
+    text_b_col: null # null in config file is equivalent to None
+    label_col: "Sentiment"
+    labels_list: ["Extremely Negative","Negative","Neutral","Positive","Extremely Positive"] # list of labels which will be mapped in order from 0 to 4 for the model
 
 # model arguments
 model:
@@ -23,14 +18,17 @@ model:
     model_config_file: "config.json"
     model_path: null # provide path to model weights dir
     model_file: "pytorch_model.bin"
-    hf_model: "bert-base-uncased"
-    encoder_key: "bert"
+    hf_model: "roberta-base"
+    encoder_key: "roberta"
+    tokenizer_path: null
 
 # module_interface arguments
 module:
+    metric: "acc_and_f1"
     max_lr : 0.00002
     warmup_prop: 0.1
-    no_labels: False
+    has_labels: True
+    max_seq_len: 128
 
 # distill module arguments
 distill:
@@ -50,13 +48,13 @@ trainer:
     backend: "sp" # sp, sp-amp, ddp, ddp-amp
     train_batch_size: 32 # Training global batch size.
     val_batch_size: 16 # Validation global batch size.
-    epochs: 1 # Total epochs to run.
+    epochs: 3 # Total epochs to run.
     gpu_batch_size_limit : 8 # Max limit for GPU batch size during training.
     clip_grads : True # Enable or disable clipping of gradients.
     use_gpu: True # Enable or disable use of GPU.
     max_grad_norm: 1.0 # Maximum value for gradient norm.
     disable_tqdm: True
-    log_level: "DEBUG"
+    log_level: "INFO"
 
 # Checkpointer arguments
 ckpt:
