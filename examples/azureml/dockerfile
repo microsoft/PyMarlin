@@ -23,7 +23,7 @@ RUN pip install --no-cache-dir --use-feature=2020-resolver \
     pandas \
     tqdm \
     tensorboard \
-    azureml-sdk \
+    azureml-core \
     matplotlib \
     sklearn \
     scipy
