@@ -139,3 +139,6 @@ logs/
 
 # AzureML Workspace Config JSON files
 config.json
+
+# local snapshots of pymarlin for submitted to azureml
+/examples/*/pymarlin
