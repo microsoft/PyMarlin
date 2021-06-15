@@ -1,5 +1,4 @@
 glue_task : 'rte'
-distributed: False
 
 mi:
     encoder : "roberta-base"
@@ -19,6 +18,7 @@ tr:
     gpu_batch_size_limit : 32 # Max limit for GPU batch size during training.
     disable_tqdm : False
     writers: ["tensorboard"]
+    backend: 'sp'
 
 wrt:
     tb_log_dir : 'logs_roberta_base/rte/from_pretrained'

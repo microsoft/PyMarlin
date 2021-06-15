@@ -88,7 +88,7 @@ Script Single GPU:
 
 Script multiple GPUs:
 
-    python -m torch.distributed.launch --nproc_per_node 4 src/train.py --config_path configs-roberta-base/rte.yaml --distributed
+    python -m torch.distributed.launch --nproc_per_node 4 src/train.py --config_path configs-roberta-base/rte.yaml --tr.backend ddp-amp
 
 Results:
 
