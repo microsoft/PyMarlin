@@ -198,7 +198,7 @@ if __name__ == "__main__":
 
     # Run DataProcessors specifying inputs and ouputs
     # data_interface.process_data(stage1)
-    ret = data_interface.process_data(stage2)
+    ret = stage2.process_data()
 
     # Set Datasets and label mappings in DataInterface
     train_ds, val_ds, test_ds, labels_to_index, index_to_labels = ret

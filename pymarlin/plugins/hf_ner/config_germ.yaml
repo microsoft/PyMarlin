@@ -27,8 +27,6 @@ model:
 
 # module_interface arguments
 module:
-    operation: "train"
-    tr_backend: "singleprocess"
     output_dir: null
     max_lr : 0.00003 # Maximum learning rate.
     warmup_prop: 0.1
@@ -48,6 +46,7 @@ distill:
 
 # trainer arguments
 trainer:
+    backend: "sp"
     train_batch_size: 32 # Training global batch size.
     val_batch_size: 16 # Validation global batch size.
     epochs: 25 # Total epochs to run.

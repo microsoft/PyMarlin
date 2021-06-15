@@ -3,7 +3,7 @@ module.exports = {
   title: 'PyMarlin',
   tagline: 'Lightweight PyTorch Training Framework',
   url: 'https://github.com/microsoft/PyMarlin',
-  baseUrl: '/',
+  baseUrl: '/PyMarlin/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',

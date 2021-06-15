@@ -6,7 +6,7 @@ name: pypi
 
 on:
   push:
-    branches: [master, marlin_krishan]
+    branches: [main]
 jobs:
   deploy:
 
@@ -34,9 +34,9 @@ jobs:
       run: |
         python -m twine upload --repository testpypi dist/* --skip-existing
       
-    # - name: Publish to PyPi
-    #   env:
-    #     TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-    #     TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-    #   run: |
-    #     python -m twine upload dist/* --skip-existing
+    - name: Publish to PyPi
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: |
+        python -m twine upload dist/* --skip-existing

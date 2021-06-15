@@ -107,8 +107,7 @@ class HfNERPlugin(Plugin):
                 os.path.join(self.data_args.train_dir, filename)
                 for filename in os.listdir(self.data_args.train_dir)
             ]
-            train_features = self.datainterface.multi_process_data(
-                self.dataprocessor,
+            train_features = self.dataprocessor.multi_process_data(
                 train_files,
                 tokenizer,
                 process_count=multiprocessing.cpu_count(),
@@ -119,8 +118,7 @@ class HfNERPlugin(Plugin):
                 os.path.join(self.data_args.val_dir, filename)
                 for filename in os.listdir(self.data_args.val_dir)
             ]
-            val_features = self.datainterface.multi_process_data(
-                self.dataprocessor,
+            val_features = self.dataprocessor.multi_process_data(
                 val_files,
                 tokenizer,
                 process_count=multiprocessing.cpu_count(),
