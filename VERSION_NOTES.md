@@ -1,4 +1,7 @@
 # Version Notes:
+## 0.2.4
+* Fixed bug where DDP all-reduce was not working
+
 ## 0.2.3
 * Unbound azureml-core version
 
