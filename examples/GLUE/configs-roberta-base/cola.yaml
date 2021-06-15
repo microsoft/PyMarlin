@@ -8,7 +8,6 @@
 # The rest of the hyperparameters remain the same as during pretraining.
 
 glue_task: 'cola'
-distributed: False
 
 mi:
     encoder : "roberta-base"
@@ -25,6 +24,7 @@ tr:
     gpu_batch_size_limit : 32 # Max limit for GPU batch size during training.
     disable_tqdm : False
     writers: ["tensorboard"]
+    backend: 'sp'
 
 wrt:
     tb_log_dir : 'logs_roberta_base/cola/from_pretrained'

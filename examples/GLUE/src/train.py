@@ -335,25 +335,16 @@ def run_glue_finetune(config):
 
     recipe = recipe_factory(glue_task, data_interface = data, **config['mi'])
 
-    # Trianing code
-
-    trainer_backend = SingleProcessAmp() #DDPTrainerBackend(SingleProcessAmp())
-    distributed_training_args= DistributedTrainingArguments(**config["dist"])
-
-    if 'distributed' in config and config['distributed']:
-        trainer_backend = DDPTrainerBackend(trainer_backend)
-        distributed_training_args = None #auto fetch
-
+    # Training code
     print(recipe)
     trainer = Trainer(
         recipe,
         TrainerArguments(
-            **config["tr"], writer_args=WriterInitArguments(**config["wrt"]), 
+            **config["tr"], 
+            writer_args=WriterInitArguments(**config["wrt"]), 
             stats_args = StatInitArguments(**config["stat"]),
-            distributed_training_args= distributed_training_args,
             checkpointer_args= DefaultCheckpointerArguments(**config["ckp"]) if 'ckp' in config else DefaultCheckpointerArguments()
         ),
-        trainer_backend=trainer_backend
     )
     trainer.validate()
     trainer.train()
