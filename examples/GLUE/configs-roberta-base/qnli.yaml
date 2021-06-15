@@ -1,5 +1,5 @@
 glue_task: 'qnli'
-
+distributed: False
 
 mi:
     encoder : "roberta-base"

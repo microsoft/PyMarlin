@@ -1,4 +1,5 @@
 glue_task : 'rte'
+distributed: False
 
 mi:
     encoder : "roberta-base"

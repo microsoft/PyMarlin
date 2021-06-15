@@ -1,5 +1,5 @@
 glue_task: 'sst2'
-
+distributed: False
 
 mi:
     encoder : "roberta-base"

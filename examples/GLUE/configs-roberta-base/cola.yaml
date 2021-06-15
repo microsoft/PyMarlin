@@ -8,6 +8,8 @@
 # The rest of the hyperparameters remain the same as during pretraining.
 
 glue_task: 'cola'
+distributed: False
+
 mi:
     encoder : "roberta-base"
     tokenizer: "roberta-base"
