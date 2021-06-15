@@ -2,18 +2,14 @@ from azureml.core import Experiment, Workspace, Datastore, ScriptRunConfig
 from azureml.core.authentication import InteractiveLoginAuthentication
 from azureml.core.compute import ComputeTarget, AmlCompute
 from azureml.core.runconfig import MpiConfiguration, RunConfiguration, DEFAULT_GPU_IMAGE
-from argparse import ArgumentParser
 import json
-
-parser = ArgumentParser()
-parser.add_argument('--image_exists', action='store_true', help='whether to use an existing image from a private ACR')
-args = parser.parse_args()
 
 # put your AML workspace JSON and add tenant id in this directory!
 with open('./config.json','r') as f:
     aml_config = json.load(f)
 tenant_id = aml_config['tenant_id']
-ws = Workspace.from_config('./config.json', auth=InteractiveLoginAuthentication(tenant_id))
+# may need to specify auth=InteractiveLoginAuthentication(tenant_id) if you run in multiple tenants
+ws = Workspace.from_config('./config.json')
 ws_details = ws.get_details()
 print('Name:\t\t{}\nLocation:\t{}'
       .format(ws_details['name'],
@@ -25,10 +21,12 @@ print('Datastore name: ' + ds.name,
       'Datastore type: ' + ds.datastore_type,
       'Workspace name: ' + ds.workspace.name, sep='\n')
 
-kv = ws.get_default_keyvault()
-
-gpu_compute_target = ComputeTarget(workspace=ws, name='sriovdedicated1')
+gpu_compute_target = AmlCompute(workspace=ws, name='sriovdedicated1')
 print(gpu_compute_target.status.serialize())
+
+# upload preprocessed data to azureml
+path_to_preprocessed_cnndailymail = '~/cnn_dm'
+ds.upload_files([path_to_preprocessed_cnndailymail])
 
 script_name = 'train_ortds.py'
 codepath = '..'
@@ -55,7 +53,7 @@ def get_args(outputSuffix="deepspeed_ort_amp_nopadding_v100_8"):
         '--trainer.gpu_batch_size_limit', 32,
         '--trainer.val_batch_size', 32,
         '--trainer.epochs', 3,
-        '--trainer.backend', "ddp-amp-apex",
+        '--trainer.backend', "ddp-amp",
         '--trainer.disable_tqdm', "true", # ugly logging in AML
         '--chkp.save_dir', get_output_dataset(ds, f'jsleep/bart/cnndm_sum/' + outputSuffix + "/ckpts/save_dir", "chkp_save_dir"),
         '--chkp.model_state_save_dir', get_output_dataset(ds, f'jsleep/bart/cnndm_sum/' + outputSuffix + "/ckpts/model_state_save_dir", "model_state_save_dir"),
@@ -74,19 +72,9 @@ from azureml.core import Environment
 # Creates the environment inside a Docker container.
 pytorch_env = Environment(name='myEnv')
 pytorch_env.docker.enabled = True
-
-if args.image_exists:
-    # this is the image built in the Dockerfile local to the file. re-using because it takes > 1.5hrs to build, greater than aml default timeout
-    pytorch_env.docker.base_image = "bart:cuda11.1.cudnn8.ds.ort.pymarlin0.2.3"
-    pytorch_env.python.user_managed_dependencies = True
-    pytorch_env.docker.base_image_registry.address = 'elrsubstrate.azurecr.io'
-    pytorch_env.docker.base_image_registry.username = 'elrsubstrate'
-    pytorch_env.docker.base_image_registry.password = kv.get_secret('elrsubstrate-acr-password')
-    pytorch_env.python.interpreter_path = '/opt/miniconda/bin/python'
-else:
-    with open("Dockerfile", "r") as f:
-        dockerfile=f.read()
-    pytorch_env.docker.base_dockerfile = dockerfile
+pytorch_env.docker.base_image = "pymarlin/base-gpu"
+pytorch_env.python.user_managed_dependencies = True
+pytorch_env.python.interpreter_path = '/opt/miniconda/bin/python'
 
 mpi = MpiConfiguration()
 #NCv3_24rs - 4 16GB V100 GPU's per node
