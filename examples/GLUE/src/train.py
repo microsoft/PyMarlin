@@ -359,7 +359,6 @@ def run_glue_finetune(config):
     trainer.train()
 
 if __name__ == "__main__":
-    
     # torch.manual_seed(0)
     # random.seed(0)
     # np.random.seed(0)
