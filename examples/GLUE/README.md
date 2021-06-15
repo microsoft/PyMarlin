@@ -10,7 +10,13 @@ We can train any GLUE task using this code. This blog only shows instruction for
 
 This code can be used for any other single sentence or sentence pair classifier too. A new DataInterface needs to be created for non-GLUE dataset.
 
+## Move the code to GPU VM (Optional)
+
+    scp -r -P $port .\examples\GLUE\  $user@${machine}:/home/$user
+    ssh $user@$machine -p $port
+
 ## Setup environment and dependencies
+
     conda create -n pymarlin
     conda activate pymarlin
     pip install -r requirements.txt
@@ -76,13 +82,25 @@ Result:
 
 
 ## Train and validate
-Script:
+Script Single GPU:
 
     python src/train.py --config_path configs-roberta-base/rte.yaml
+
+Script multiple GPUs:
+
+    python -m torch.distributed.launch --nproc_per_node 4 src/train.py --config_path configs-roberta-base/rte.yaml --distributed
 
 Results:
 
     tensorboard --logdir logs_roberta_base
+
+Tunnel to view tensorboard UI: (if using VM):
+
+    ssh -N -f -L 127.0.0.1:6006:127.0.0.1:6006  $user@${machine} -p $port
+
+View Tensorboard UI:
+
+    http://localhost:6006/
 
 ![results](images/tensorboard_screenshot.jpg)
 ## infer
