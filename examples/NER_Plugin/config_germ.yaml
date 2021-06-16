@@ -3,17 +3,13 @@
 
 # data_processor args
 data:
-    train_dir : null
-    val_dir : null
+    train_filepath : null
+    val_filepath : null
     labels_list: [B-LOC, B-LOCderiv, B-LOCpart, B-ORG, B-ORGderiv, B-ORGpart, B-OTH, B-OTHderiv,
         B-OTHpart, B-PER, B-PERderiv, B-PERpart, I-LOC, I-LOCderiv, I-LOCpart, I-ORG, I-ORGderiv,
         I-ORGpart, I-OTH, I-OTHderiv, I-OTHpart, I-PER, I-PERderiv, I-PERpart, O]
-    max_seq_len: 128
-    pad_label_id: -100
     has_labels: True
-    tokenizer: "bert-base-multilingual-cased"
     file_format: "tsv"
-    label_all_tokens: False
 
 # model arguments
 model:
@@ -24,13 +20,17 @@ model:
     model_config_file: "config.json"
     model_path: null
     model_config_path: null
+    tokenizer_path: null
 
 # module_interface arguments
 module:
     output_dir: null
-    max_lr : 0.00003 # Maximum learning rate.
+    max_lr : 0.00002 # Maximum learning rate.
     warmup_prop: 0.1
     has_labels: True
+    max_seq_len: 128
+    pad_label_id: -100
+    label_all_tokens: False
 
 # distill module arguments
 distill:
@@ -49,7 +49,7 @@ trainer:
     backend: "sp"
     train_batch_size: 32 # Training global batch size.
     val_batch_size: 16 # Validation global batch size.
-    epochs: 1 # Total epochs to run.
+    epochs: 10 # Total epochs to run.
     gpu_batch_size_limit : 8 # Max limit for GPU batch size during training.
     clip_grads : True # Enable or disable clipping of gradients.
     use_gpu: True # Enable or disable use of GPU.
@@ -57,17 +57,16 @@ trainer:
     writers: ['stdout', 'aml', 'tensorboard'] # List of all the writers to use.
     disable_tqdm: True
     log_level: "DEBUG"
-    max_train_steps_per_epoch: 1
-    max_val_steps_per_epoch: 1
-
+    
 # Checkpointer arguments
 ckpt:
-    checkpoint: False # Flag indicating whether to checkpoint model.
-    delete_existing_checkpoints: False
+    checkpoint: True # Flag indicating whether to checkpoint model.
+    delete_existing_checkpoints: True
     period: 1 # Period of epochs at which to checkpoint model.
     save_dir: 'ckpts' # Path to directory where checkpoints are to be stored.
-    file_prefix: 'bert' # Prefix of the checkpoint filename.
-    file_ext: 'tar' # File extension for the checkpoint.
+    model_state_save_dir: 'model_ckpts'
+    file_prefix: 'marlin' # Prefix of the checkpoint filename.
+    file_ext: 'bin' # File extension for the checkpoint.
 
 # Basic-Statistics arguments
 stats:
