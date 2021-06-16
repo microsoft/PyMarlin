@@ -4,3 +4,4 @@ torch==1.8.1+cu111
 transformers
 sklearn
 rouge-score
+matplotlib
