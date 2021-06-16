@@ -3,6 +3,7 @@ import torch
 from pymarlin.core import trainer_backend, module_interface, trainer
 from transformers import BartForConditionalGeneration, BartTokenizerFast
 from torch.utils.data import DataLoader
+from deepspeed_methods.deepspeed_utils import get_core_model
 
 # too long import
 from pymarlin.utils.stats import global_stats
@@ -115,12 +116,15 @@ class SummarizationBartModule(module_interface.ModuleInterface):
         result = self.model.forward(**batch)
         global_stats.update("lr", self.schedulers.get_last_lr()[0], frequent=True)
         return result.loss
+    
+    def get_core_model(self):
+        return self.model
 
     def val_step(self, global_step: int, batch, device):
         batch = batch.to(device)
-        # result = self.model.forward(**batch)
-        summaries = self.model.generate(
-           input_ids=batch.input_ids, 
+        module = self.get_core_model()
+        summaries = module.generate(
+            input_ids=batch.input_ids,
             attention_mask=batch.attention_mask,
             **self.generate_kwargs
         )

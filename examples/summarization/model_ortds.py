@@ -87,23 +87,9 @@ class SummarizationBartModule_ds_ort(SummarizationBartModule):
         loss = result["loss"]
 
         return loss
-
-    def val_step(self, global_step: int, batch, device):
-        batch = batch.to(device)
-        module = get_core_model(self.model, deepspeed_flag=self.deepspeed, ort_flag=self.ort)
-
-        summaries = module.generate(
-            input_ids=batch.input_ids, attention_mask=batch.attention_mask
-        )
-        preds = self.tokenizer.batch_decode(
-            summaries, skip_special_tokens=True, clean_up_tokenization_spaces=False
-        )
-        labels = batch.labels
-        labels[labels[:, :] == -100] = self.pad_token_id
-        refs = self.tokenizer.batch_decode(
-            labels, skip_special_tokens=True, clean_up_tokenization_spaces=False
-        )
-        return preds, refs
+    
+    def get_core_model(self):
+        return get_core_model(self.model, self.deepspeed, self.ort)
 
     def get_state(self) -> Dict:
         if self.deepspeed:

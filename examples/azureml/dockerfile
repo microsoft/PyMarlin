@@ -1,14 +1,6 @@
 FROM mcr.microsoft.com/azureml/openmpi4.1.0-cuda11.0.3-cudnn8-ubuntu18.04
 
 ##############################################################################
-# Custom Conda environment
-##############################################################################
-
-ENV CONDAPATH /opt/miniconda/envs/pymarlin
-RUN conda create -p $CONDAPATH python=3.8 pip=20.2.4
-ENV PATH $CONDAPATH/bin:$PATH
-
-##############################################################################
 # PyTorch
 ##############################################################################
 
@@ -31,7 +23,9 @@ RUN pip install --no-cache-dir --use-feature=2020-resolver \
     pandas \
     tqdm \
     tensorboard \
-    azureml-core \
+    azureml-sdk \
     matplotlib \
     sklearn \
     scipy
+
+RUN conda install ruamel.yaml
