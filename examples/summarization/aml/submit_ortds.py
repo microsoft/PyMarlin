@@ -4,12 +4,8 @@ from azureml.core.compute import ComputeTarget, AmlCompute
 from azureml.core.runconfig import MpiConfiguration, RunConfiguration, DEFAULT_GPU_IMAGE
 import json
 
-# put your AML workspace JSON and add tenant id in this directory!
-with open('./config.json','r') as f:
-    aml_config = json.load(f)
-tenant_id = aml_config['tenant_id']
-# may need to specify auth=InteractiveLoginAuthentication(tenant_id) if you run in multiple tenants
-ws = Workspace.from_config('./config.json')
+# put your AML workspace JSON in this directory!
+ws = Workspace.from_config()
 ws_details = ws.get_details()
 print('Name:\t\t{}\nLocation:\t{}'
       .format(ws_details['name'],
@@ -21,15 +17,10 @@ print('Datastore name: ' + ds.name,
       'Datastore type: ' + ds.datastore_type,
       'Workspace name: ' + ds.workspace.name, sep='\n')
 
+kv = ws.get_default_keyvault()
+
 gpu_compute_target = AmlCompute(workspace=ws, name='sriovdedicated1')
 print(gpu_compute_target.status.serialize())
-
-# upload preprocessed data to azureml
-path_to_preprocessed_cnndailymail = '~/cnn_dm'
-ds.upload_files([path_to_preprocessed_cnndailymail])
-
-script_name = 'train_ortds.py'
-codepath = '..'
 
 from azureml.core import Dataset
 from azureml.data import OutputFileDatasetConfig
@@ -72,7 +63,8 @@ from azureml.core import Environment
 # Creates the environment inside a Docker container.
 pytorch_env = Environment(name='myEnv')
 pytorch_env.docker.enabled = True
-pytorch_env.docker.base_image = "pymarlin/base-gpu"
+# docker file in this directory built for your convenience
+pytorch_env.docker.base_image = "pymarlin/base-gpu:cuda11.1.cudnn8.ds.ort"
 pytorch_env.python.user_managed_dependencies = True
 pytorch_env.python.interpreter_path = '/opt/miniconda/bin/python'
 
@@ -81,21 +73,24 @@ mpi = MpiConfiguration()
 mpi.process_count_per_node = 4
 mpi.node_count = 2
 
+script = "train_ortds.py"
+codepath = '..'
+
 config = ScriptRunConfig(source_directory=codepath,
-                         script=script_name,
+                         script=script,
                          arguments=get_args(),
                          compute_target=gpu_compute_target,
                          environment=pytorch_env,
                          distributed_job_config=mpi)
 
-experiment_name = 'josleep_pymarlin_summarization_bart_ortds'
+experiment_name = 'pymarlin_summarization_bart_ortds'
 experiment = Experiment(ws, name=experiment_name)
 
 run = experiment.submit(config)
 
 run.tag('nodes', f'{mpi.node_count}')
 run.tag('process_count_per_node', f'{mpi.process_count_per_node}')
-run.tag('notes', '2 node with ort+ds, removing rank_zero_only')
+run.tag('notes', '2 node with ort+ds')
 
 print("Submitted run")
 print(f"\n{run.get_portal_url()}")

@@ -13,4 +13,4 @@ We have extended this example to be optimized with ORT+DeepSpeed! Starting from 
 3. Adjust the values in submit_ortds.py to point to your new gpu cluster, and upload data. (make this autonomous?)
 4. Upload preprocessed CNN/DailyMail from original README by uncommenting the lines to.
 4. Install azureml-sdk with `pip install azureml-sdk`
-5. Submit job with `python ./submit_ortds.py`
+5. From examples/summarization/aml, Submit job with `python submit_ortds.py` TODO: use common azureml submit.
