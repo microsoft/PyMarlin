@@ -188,7 +188,7 @@ if __name__ == "__main__":
     logger = getlogger(__name__)
     logger.info(f"final merged config = {config}")
 
-    # Instanciate arguments and create DataInterface
+    # Instantiate arguments and create DataInterface
     data_args = DataInterfaceArguments(**config['data'])
     data_interface = TweetSentData(data_args)
 
