@@ -28,5 +28,5 @@ stat:
 dist:
     local_rank : 1
 ckp:
-    checkpoint : False
+    checkpoint : True
     period: 5

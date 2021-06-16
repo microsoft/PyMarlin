@@ -323,13 +323,13 @@ def recipe_factory(glue_task, *args, **kwargs):
     }
     return factory[glue_task](*args, **kwargs)
     
-from data import data_factory
+from data import GlueData
 
 def run_glue_finetune(config):
 
     glue_task = config['glue_task']
     print(glue_task)
-    data = data_factory(glue_task)
+    data = GlueData()
     data.setup_datasets(glue_task)
     print(data.get_train_dataset()[:5])
 
