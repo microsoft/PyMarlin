@@ -22,4 +22,3 @@ if __name__ == '__main__':
     plugin.setup_trainer()
     trainer = plugin.trainer
     trainer.train()
-    trainer.validate()
