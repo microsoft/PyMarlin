@@ -27,8 +27,6 @@ model:
 
 # module_interface arguments
 module:
-    operation: "train"
-    tr_backend: "singleprocess"
     output_dir: null
     max_lr : 0.00003 # Maximum learning rate.
     warmup_prop: 0.1
@@ -48,9 +46,10 @@ distill:
 
 # trainer arguments
 trainer:
+    backend: "sp"
     train_batch_size: 32 # Training global batch size.
     val_batch_size: 16 # Validation global batch size.
-    epochs: 25 # Total epochs to run.
+    epochs: 1 # Total epochs to run.
     gpu_batch_size_limit : 8 # Max limit for GPU batch size during training.
     clip_grads : True # Enable or disable clipping of gradients.
     use_gpu: True # Enable or disable use of GPU.
@@ -58,6 +57,8 @@ trainer:
     writers: ['stdout', 'aml', 'tensorboard'] # List of all the writers to use.
     disable_tqdm: True
     log_level: "DEBUG"
+    max_train_steps_per_epoch: 1
+    max_val_steps_per_epoch: 1
 
 # Checkpointer arguments
 ckpt:

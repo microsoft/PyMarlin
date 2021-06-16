@@ -98,4 +98,6 @@ class PluginModuleInterface(module_interface.ModuleInterface):
                 config=self.model_config,
             )
         else:
-            self.model = automodel_class.from_config(self.model_config)
+            self.model = automodel_class.from_pretrained(
+                self.args.model_args.hf_model, config=self.model_config
+            )

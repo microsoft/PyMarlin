@@ -9,7 +9,7 @@ For example purpose we are using 27 files from wikipedia raw text.
 For ease of use we have configs passed in as YAML files. 
 In this case we use the config file : config_prod.yaml included with example code.
 
-Snippet of config:
+Snippet of config: ( modify file paths according to your folder structure)
 
 ```python
 input_dir: 'C:/Users/ashwinsr/wikipedia.part1'
@@ -36,14 +36,14 @@ dataInterface = Ex_dataInterface()
 file_list = dataInterface.get_file_names(config["input_dir"])
 #create and run processor1
 example_processor = Processor1(config["input_dir"], config["out_dir"])
-out = dataInterface.multi_process_data(example_processor, file_list, process_count=config["process_count"])
+out = example_processor.multi_process_data(file_list, process_count=config["process_count"])
 ```
-Here we create a list of files in the directory and initialize the processor with the input and output directory. When calling the multi_process_data function in DataInterface we pass the list of files , with the process count. The DataInterface then spins up those many number of processes to create coressponding output. 
+Here we create a list of files in the directory and initialize the processor with the input and output directory. We call the the multi_process_data function in the processor, passing the list of files , with the process count. The processor then spins up those many number of processes to create coressponding output. 
 
 ### Selective node preprocessing
 For a case where we have a single node but want to process the data in batches. We want the processor to run on different subset of files depending upon the rank we assign. This is to emulate multi-node behaviour with a single node by controlling the node rank parameter.
 
-For instance if we have 30 files to process over 5 separate runs , then we need to add the following to config and initialize dataInterface accordingly
+For instance if we have 30 files to process over 5 separate runs , then we need to add the following to config and initialize dataProcessor accordingly
 
 ```python
 distribArgs:
@@ -57,8 +57,18 @@ distribArgs:
 
 ```python
 distrib = DistributedPreprocessArguments(**config["distribArgs"])
-dataInterface = Ex_dataInterface(distrib)
+example_processorer = Processor1(config["input_dir"], config["out_dir"], distrib)
 ```
+Remember to initialize the base dataProcessor class with the distributed arguemnts as shown below, the default None would treat it like a regular multi-node processing job
+
+```
+class Processor1(data_interface.DataProcessor):
+    def __init__(self, input_dir, out_dir, distrib_args = None):
+        super(Processor1, self).__init__(distrib_args)
+        self.input_dir = input_dir
+        self.out_dir = out_dir
+```
+
 With the above setting we would process files 18-24 out of 30. Since the node_rank is 3 (0 indexed) and can be a maximum of 4. node_count gives us a count of total nodes available
 This gives a flexibility with large data processing with limited compute.
 
