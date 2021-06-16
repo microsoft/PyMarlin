@@ -12,13 +12,40 @@ NER plugin expects the input to be a TSV or CSV with 2 columns. A column with th
 
 For GermEval dataset we have already modified and provided the dataset along with this example. You will find the train file under train_germ and dev file under val_germ.
 
-## Running on CLI
+## Running on VM
+```
+conda create -n pymarlin
+conda activate pymarlin
+pip install -r requirements.txt
+```
+
+Moving data : 
+
+scp -r -P $port .\examples\NER_Plugin\  $user@${machine}:/home/$user
+ssh $user@$machine -p $port
 
 Running on CLI would be as simple as:
 
 ```
 python test.py --data.train_filepath ./train_germ/train.tsv --data.val_filepath ./val_germ/dev.tsv --config_path config_germ.yaml
 ```
+
+Running with multi-GPU:
+
+```
+python -m torch.distributed.launch --nproc_per_node 4 test.py --data.train_filepath ./train_germ/train.tsv --data.val_filepath ./val_germ/dev.tsv --config_path config_germ.yaml --trainer.backend ddp-amp
+```
+Results:
+
+    tensorboard --logdir logs
+
+Tunnel to view tensorboard UI: (if using VM):
+
+    ssh -N -f -L 127.0.0.1:6006:127.0.0.1:6006  $user@${machine} -p $port
+
+View Tensorboard UI:
+
+    http://localhost:6006/
 
 ## Running on Azure ML
 
