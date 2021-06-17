@@ -105,6 +105,7 @@ if __name__ == "__main__":
     print(glue_task)
     di = GlueData()
     di.setup_datasets(glue_task=glue_task)
-    di.process_data(analyzer_factory(glue_task))
+    dp = analyzer_factory(glue_task)
+    dp.process_data()
 
 #python src/data_hf_glue.py rte
