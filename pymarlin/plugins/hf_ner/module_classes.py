@@ -147,7 +147,6 @@ class NERModule(PluginModuleInterface):
         batch = self._inputs_to_device(batch, device)
         outputs = self.model.forward(**batch)
         loss = outputs.loss
-        logger.debug(f"Loss = {loss.item()}")
         return loss
 
     def val_step(self, global_step, batch, device):

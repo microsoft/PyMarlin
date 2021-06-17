@@ -166,7 +166,7 @@ if __name__ == '__main__':
 
     ## ----------------------- SINGLE PROCESS ------------------- ##
 
-    # Instanciate arguments and create DataInterface
+    # Instantiate arguments and create DataInterface
     data_args = DataInterfaceArguments()
     data_interface = TweetSentData(data_args)
 
