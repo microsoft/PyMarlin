@@ -16,7 +16,7 @@ trainer:
 module:
     max_length_encoder : 1024
     max_length_decoder : 128
-    deepspeed_config: 'deepspeed_methods/deepConfig.json'
+    deepspeed_config: 'deepspeed_methods/deepspeedConfig.json'
     deepspeed_transformer_kernel: true
     deepspeed_ckpt_tag: "deepspeed_ckpt"    # optional, let deepspeed load specific checkpoint, unnecessary if save_latest is true (default) when checkpointing with deepspeed
 
