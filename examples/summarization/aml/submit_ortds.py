@@ -19,10 +19,8 @@ def get_input_dataset(datastore, path_on_datastore, dataset_name):
     dataset = Dataset.File.from_files(path=[(datastore, path_on_datastore)])
     return dataset.as_named_input(dataset_name).as_mount()
 
-
 def get_output_dataset(datastore, path_on_datastore, dataset_name):
     return OutputFileDatasetConfig(destination=(datastore, path_on_datastore), name=dataset_name).as_mount()
-
 
 def get_args(outputSuffix="deepspeed_ort_amp_nopadding_v100_8"):
     all_params_default = [

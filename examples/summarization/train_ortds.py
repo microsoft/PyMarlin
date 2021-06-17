@@ -20,9 +20,8 @@ if __name__ == '__main__':
 
     print(f"config: {config}")
 
-    data = SummarizationData()
-    data.setup_datasets(root=config["data_path"])
-
+    data = SummarizationData(root=config["data_path"])
+    
     if config['ortds']:
         module_class = SummarizationBartModuleDeepSpeedORT
     elif config['ort']:
