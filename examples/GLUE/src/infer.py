@@ -3,7 +3,7 @@ from mock import MagicMock
 
 def load_classifier():
     config = CustomArgParser().parse()
-    checkpoint_path = '/home/azureuser/GLUE/checkpoints/model_9.pt'
+    checkpoint_path = 'checkpoints/model_9.pt'
     glue_task = config['glue_task']
     data = MagicMock()
     classifier = recipe_factory(glue_task, data_interface = data, **config['mi'])

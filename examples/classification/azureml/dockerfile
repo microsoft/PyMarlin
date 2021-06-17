@@ -14,24 +14,8 @@ ENV PATH $CONDAPATH/bin:$PATH
 
 RUN pip install --no-cache-dir torch==1.8.1+cu111 torchvision==0.9.1+cu111 torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
 
-##############################################################################
-# Tensorflow, tensorboard, tensorboardX
-##############################################################################
-
-RUN pip install --no-cache-dir tensorflow==2.3.0 tensorboard==2.3.0 tensorboardX==2.1
-
 ################################################################################################
-# Python Packages including AML-defaults, dataprep, transformers
+# pymarlin[plugins] should have everything needed to run classification
 ################################################################################################
 
-RUN pip install --no-cache-dir --use-feature=2020-resolver \
-    transformers \
-    pylint \
-    pyyaml \
-    pandas \
-    tqdm \
-    tensorboard \
-    azureml-core \
-    matplotlib \
-    sklearn \
-    scipy
+RUN pip install --no-cache-dir --use-feature=2020-resolver pymarlin[plugins]
