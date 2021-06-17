@@ -21,7 +21,7 @@ if __name__ == '__main__':
     print(f"config: {config}")
 
     data = SummarizationData(root=config["data_path"])
-    
+
     if config['ortds']:
         module_class = SummarizationBartModuleDeepSpeedORT
     elif config['ort']:
@@ -40,9 +40,6 @@ if __name__ == '__main__':
 
     if config['ortds']:
         module.deepspeed_resume_from_checkpoint = config["chkp"]["load_dir"]
-        module.deepspeed_ckpt_tag = config["module"]["deepspeed_ckpt_tag"]
-        assert len(config["DEEPSPEED_CKPT_PREFIX"].strip()) > 0, f"config[\"DEEPSPEED_CKPT_PREFIX\"] must be non-empty"
-        module.DEEPSPEED_CKPT_PREFIX = config["DEEPSPEED_CKPT_PREFIX"].strip()
         tr =  DeepSpeedDistributedTrainerBackend(DeepSpeedTrainerBackend()) if config["dist"] else DeepSpeedTrainerBackend()
         trainer = DeepSpeedTrainer(trainer_backend=tr, module=module, args=trainer_args)
     else:
