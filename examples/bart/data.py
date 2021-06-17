@@ -47,30 +47,26 @@ class SummarizationData(pymarlin.core.data_interface.DataInterface):
     Class which expects input data to have different files for source and target. 
     Returns dataset which returns non tokenized source and target text.
     '''
-    def __init__(self):
-        pass
-    def setup_datasets(self, root= 'D:/data/cnn_cln'):
+    def __init__(self, root= 'D:/data/cnn_cln'):
         self.root = root
         self.train_ds = SummarizationDataset(*get_source_target(root, 'train'))
         self.val_ds = SummarizationDataset(*get_source_target(root, 'val'))
         print('self.train_ds length = ', len(self.train_ds))
+
     def get_train_dataset(self, *args, **kwargs):
         return self.train_ds
-
     def get_val_dataset(self, *args, **kwargs):
         return self.val_ds
     def get_test_dataset(self, *args, **kwargs):
         pass
 
 if __name__ == '__main__':
-    dm= SummarizationData()
     root = sys.argv[1] #'D:/data/cnn_cln'
+    print(root)
     print('\n**** Analyzing Train ***')
-    dm.process_data(AnalyzeProcessor(*get_source_target(root = root, stage='train')))
+    dp = AnalyzeProcessor(*get_source_target(root = root, stage='train'))
+    dp.process_data()
     print('\n**** Analyzing Val ***')
-    dm.process_data(AnalyzeProcessor(*get_source_target(root = root, stage='val')))
+    dp = AnalyzeProcessor(*get_source_target(root = root, stage='val'))
+    dp.process_data()
     plt.show()
-
-    # dm.setup_datasets()
-    # ds = dm.get_train_dataset()
-    # len(ds),ds[0]
