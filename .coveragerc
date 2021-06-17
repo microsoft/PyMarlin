@@ -2,3 +2,9 @@
 omit =
     # omit everything under plugins for now
     pymarlin/plugins/*
+
+[report]
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    # exclude abstract functions that will most likely never get run anyways
+    pass
