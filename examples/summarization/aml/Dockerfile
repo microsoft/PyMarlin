@@ -129,21 +129,12 @@ RUN pip install --no-cache-dir tensorflow tensorboard tensorboardX
 RUN pip install --no-cache-dir pymarlin[plugins]
 
 # ------------------------------------------------------------------------------------------------ #
-# install MS custom transformer
-# ------------------------------------------------------------------------------------------------ #
-
-#ADD . /workdir
-#WORKDIR /workdir
-#
-#RUN pip install -U -e .
-
-# ------------------------------------------------------------------------------------------------ #
 # Install Apex
 # ------------------------------------------------------------------------------------------------ #
 
-# RUN git clone https://github.com/NVIDIA/apex &&\
-#     cd apex &&\
-#     pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+RUN git clone https://github.com/NVIDIA/apex &&\
+    cd apex &&\
+    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 
 # ------------------------------------------------------------------------------------------------ #
 # Install DeepSpeed
