@@ -18,7 +18,7 @@ Huggingface Bart model documantation: https://huggingface.co/transformers/model_
 ## 1. Download Data
 
 
-    wget https://cdn-datasets.huggingface.co/summarization/cnn_dm_v2.tgz -UseBasicParsing
+    wget -OutFile "C:/Users/krkusuk/Downloads/cnn_dm_v2.tgz" https://cdn-datasets.huggingface.co/summarization/cnn_dm_v2.tgz -UseBasicParsing
 
     dir 'C:/Users/krkusuk/Downloads/'
 
@@ -78,7 +78,7 @@ restart shell
 
 
 
-## 4. Downlaod data
+## 4. Download data
     $ wget https://cdn-datasets.huggingface.co/summarization/cnn_dm_v2.tgz
     tar -xzvf cnn_dm_v2.tgz
     cd PyMarlin/bart
