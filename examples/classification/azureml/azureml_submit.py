@@ -6,7 +6,7 @@ from azureml.core.runconfig import PyTorchConfiguration, MpiConfiguration
 from azureml.data import OutputFileDatasetConfig
 from azureml.exceptions import ComputeTargetException
 
-def classification_example():
+def prepare_env_cmd():
     """Prepare the environment and submission command for the classification example."""
     env = Environment("pymarlin_requirements")
     env.docker.enabled = True
@@ -16,7 +16,7 @@ def classification_example():
     env.python.interpreter_path = "/opt/miniconda/bin/python"
     env.register(ws)
 
-    cmd = f"pip install -U -e . && cd examples/classification/pymarlin_scripts && python train.py --trainer.backend {args.backend}".split()
+    cmd = f"python train.py --trainer.backend {args.backend}".split()
     
     return env, cmd
     
@@ -47,11 +47,10 @@ if __name__ == "__main__":
     else:
         raise ValueError(f"Didn't recognize the distributed config {args.distributed_config}. Select on of 'mpi' or 'pytorch'.")
 
-    if args.marlin_example == "classification":
-        env, cmd = classification_example()
+    env, cmd = prepare_env_cmd()
 
     src = ScriptRunConfig(
-        source_directory='.',
+        source_directory='..',
         command=cmd,
         compute_target=target,
         distributed_job_config=distributed_job_config,

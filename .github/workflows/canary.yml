@@ -22,4 +22,6 @@ jobs:
       with:
         creds: ${{secrets.AZURE_CREDENTIALS}}
     - name: release canary
-      run: python examples/azureml/azureml_submit.py --backend ddp-amp --process_count 2 --wait
+      run: |
+        cd examples/classification/azureml/
+        python azureml_submit.py --backend ddp-amp --process_count 2 --wait
