@@ -134,14 +134,16 @@ class CifarModule(ModuleInterface):
     def get_train_dataloader(
         self, sampler:type, batch_size:int
         ):
-        return torch.utils.data.DataLoader(self.data_interface.get_train_dataset(), batch_size=batch_size,
-                                          shuffle=True)
+        dataset = self.data_interface.get_train_dataset()
+        return torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+                                          sampler = sampler(dataset))
 
     def get_val_dataloaders(
         self, sampler:torch.utils.data.Sampler, batch_size : int
         ): 
+        dataset = self.data_interface.get_val_dataset()
         return torch.utils.data.DataLoader(self.data_interface.get_val_dataset(), batch_size=batch_size,
-                                         shuffle=False)
+                                         sampler = sampler(dataset))
 
     def train_step(
         self, global_step: int, batch, device
