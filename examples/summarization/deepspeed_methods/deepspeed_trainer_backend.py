@@ -7,7 +7,7 @@ from pymarlin.core import module_interface
 from pymarlin.core.trainer_backend import TrainerBackendArguments, OutputCollector, DDPTrainerBackend
 
 
-class deepspeed_trainer_backend(SingleProcess):
+class DeepSpeedTrainerBackend(SingleProcess):
 
     def init(self, args: TrainerBackendArguments):
         self.args = args
@@ -91,7 +91,7 @@ class deepspeed_trainer_backend(SingleProcess):
         self.stats.log_stats(self.global_step_completed)
 
 
-class deepspeed_dist_trainer_backend(DDPTrainerBackend):
+class DeepSpeedDistributedTrainerBackend(DDPTrainerBackend):
 
     def init(self, args: TrainerBackendArguments):
         # unpack trainer_backend arguments

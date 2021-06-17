@@ -3,7 +3,6 @@ import torch
 from pymarlin.core import trainer_backend, module_interface, trainer
 from transformers import BartForConditionalGeneration, BartTokenizerFast
 from torch.utils.data import DataLoader
-from deepspeed_methods.deepspeed_utils import get_core_model
 
 # too long import
 from pymarlin.utils.stats import global_stats
@@ -196,9 +195,6 @@ class SummarizationBartModule(module_interface.ModuleInterface):
     @rank_zero_only
     def on_end_val_epoch(self, global_step, *collated_output, key="default"):
         logger.info('Evaluating gathered results.')
-        if len(collated_output) == 0:
-            logger.error("len(collated_output) == 0)")
-            return 
         summaries, labels = collated_output
         #decode
         preds = self.tokenizer.batch_decode(
@@ -207,8 +203,8 @@ class SummarizationBartModule(module_interface.ModuleInterface):
         refs = self.tokenizer.batch_decode(
             labels, skip_special_tokens=True, clean_up_tokenization_spaces=False
         )
-        logger.info(f"preds[:2]: {preds[:2]}")
-        logger.info(f"refs[:2]: {refs[:2]}")
+        logger.debug(f"preds[:2]: {preds[:2]}")
+        logger.debug(f"refs[:2]: {refs[:2]}")
         ROUGE_KEYS = ["rouge1", "rouge2", "rougeL", "rougeLsum"]
         scores: dict =  self.calculate_rouge(preds, refs, rouge_keys = ROUGE_KEYS)
         global_stats.update_multi('metrics/rouge', scores)

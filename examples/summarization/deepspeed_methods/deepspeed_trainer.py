@@ -4,7 +4,7 @@ from pymarlin import Trainer
 from pymarlin.utils.checkpointer.checkpoint_utils import Checkpoint
 
 
-class deepspeed_Trainer(Trainer):
+class DeepSpeedTrainer(Trainer):
 
     def save_checkpoint(self, force=False) -> None:
         # deepspeed will require all processes to call save_checkpoint method
