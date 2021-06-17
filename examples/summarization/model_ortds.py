@@ -9,8 +9,7 @@ from onnxruntime.training.ortmodule import ORTModule
 
 from filelock import FileLock
 
-from deepspeed_methods.deepspeed_utils import initialize_deepspeed
-from deepspeed_methods.deepspeed_utils import get_core_model
+from deepspeed_methods  import deepspeed_utils
 from train import SummarizationBartModule
 
 logger = getlogger(__file__)
@@ -30,13 +29,13 @@ class SummarizationBartModuleORT(SummarizationBartModule):
         self.model = ORTModule(self.model)
         
     def get_core_model(self):
-        return get_core_model(self.model, ort_flag=True)
+        return deepspeed_utils.get_core_model(self.model, ort_flag=True)
     
     @property
     def pad_token_id(self):
         return self._pad_token_id
 
-class SummarizationBartModuleDeepSpeedORT(SummarizationBartModuleORT):
+class SummarizationBartModuleORTDeepSpeed(SummarizationBartModuleORT):
     def __init__(
             self,
             *args,
@@ -44,12 +43,11 @@ class SummarizationBartModuleDeepSpeedORT(SummarizationBartModuleORT):
             deepspeed_transformer_kernel=False,
             deepspeed_ckpt_tag=None,
             deepspeed_resume_from_checkpoint=None,
-            generate_kwargs={},
             **kwargs
     ):
         super().__init__(*args, **kwargs)
         logger.info(f"Employing Deepspeed, wrapping model with Deepspeed")
-        self.model, _ = initialize_deepspeed(self.model, deepspeed_config, deepspeed_transformer_kernel)
+        self.model, _ = deepspeed_utils.initialize_deepspeed(self.model, deepspeed_config, deepspeed_transformer_kernel)
         self.deepspeed_resume_from_checkpoint = deepspeed_resume_from_checkpoint
         self.deepspeed_ckpt_tag = deepspeed_ckpt_tag
         self.DEEPSPEED_CKPT_PREFIX = "deepspeed_ckpt"
@@ -61,7 +59,7 @@ class SummarizationBartModuleDeepSpeedORT(SummarizationBartModuleORT):
         return [], []
 
     def get_core_model(self):
-        return get_core_model(self.model, ort_flag=True, deepspeed_flag=True)
+        return deepspeed_utils.get_core_model(self.model, ort_flag=True, deepspeed_flag=True)
 
     def train_step(self, global_step: int, batch, device):
         batch = batch.to(device)
