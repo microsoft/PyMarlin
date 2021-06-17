@@ -47,7 +47,7 @@ class SummarizationData(pymarlin.core.data_interface.DataInterface):
     Class which expects input data to have different files for source and target. 
     Returns dataset which returns non tokenized source and target text.
     '''
-    def __init__(self, root= 'D:/data/cnn_cln'):
+    def __init__(self, root='D:/data/cnn_cln'):
         self.root = root
         self.train_ds = SummarizationDataset(*get_source_target(root, 'train'))
         self.val_ds = SummarizationDataset(*get_source_target(root, 'val'))
