@@ -1,5 +1,5 @@
 The jupyter notebook is good for just trying out CIFAR using pymarlin.
-## Run in [Collab](https://colab.research.google.com/github/microsoft/PyMarlin/blob/krkusuk/examples/examples/CIFAR/CIFAR.ipynb)
+## Run in [Collab](https://colab.research.google.com/github/microsoft/PyMarlin/blob/main/CIFAR/CIFAR.ipynb)
 
 To use other advanced features like distributed training, yaml parser, tensorboard etc. use the python file and follow the instructions below.
 
