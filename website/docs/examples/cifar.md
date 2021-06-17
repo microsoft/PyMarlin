@@ -4,7 +4,7 @@ In this tutorial, we will demonstrate how we can use [Microsoft PyMarlin](https:
 
 This tutorial is based on official [PyTorch blog on Training a classifier](https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html#sphx-glr-beginner-blitz-cifar10-tutorial-py) which trains a image classifier using CIFAR data.
 
-## Run in [Collab](https://colab.research.google.com/github/microsoft/PyMarlin/blob/main/CIFAR/CIFAR.ipynb)
+## Run in [Colab](https://colab.research.google.com/github/microsoft/PyMarlin/blob/main/examples/CIFAR/CIFAR.ipynb)
 
 
 ```python
