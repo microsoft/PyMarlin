@@ -204,8 +204,7 @@ if __name__ == '__main__':
     print(config)
 
     # data interface
-    dm = SummarizationData()
-    dm.setup_datasets(root=config["data_path"])
+    dm = SummarizationData(root=config["data_path"])
 
     # Training Module Interface
     tm = SummarizationBartModule(dm, **config["tm"], generate_kwargs=config["generate"])
