@@ -1,23 +1,11 @@
-from azureml.core import Experiment, Workspace, Datastore, ScriptRunConfig
-from azureml.core.authentication import InteractiveLoginAuthentication
-from azureml.core.compute import ComputeTarget, AmlCompute
-from azureml.core.runconfig import MpiConfiguration, RunConfiguration, DEFAULT_GPU_IMAGE
-import json
+from azureml.core import Experiment, Workspace, ScriptRunConfig
+from azureml.core.compute import  AmlCompute
+from azureml.core.runconfig import MpiConfiguration
 
-# put your AML workspace JSON in this directory!
+# put your AML workspace config.json in this directory!
 ws = Workspace.from_config()
 ws_details = ws.get_details()
-print('Name:\t\t{}\nLocation:\t{}'
-      .format(ws_details['name'],
-              ws_details['location']))
-
 ds = ws.get_default_datastore()
-print('Datastore name: ' + ds.name,
-      'Container name: ' + ds.container_name,
-      'Datastore type: ' + ds.datastore_type,
-      'Workspace name: ' + ds.workspace.name, sep='\n')
-
-kv = ws.get_default_keyvault()
 
 gpu_compute_target = AmlCompute(workspace=ws, name='sriovdedicated1')
 print(gpu_compute_target.status.serialize())
@@ -39,24 +27,13 @@ def get_output_dataset(datastore, path_on_datastore, dataset_name):
 def get_args(outputSuffix="deepspeed_ort_amp_nopadding_v100_8"):
     all_params_default = [
         '--data_path', get_input_dataset(ds, f'krishan/bart/cnn_dm', "data_path"),
-        '--config_path', 'config-prod.yaml',
-        '--trainer.train_batch_size', 32,
-        '--trainer.gpu_batch_size_limit', 32,
-        '--trainer.val_batch_size', 32,
-        '--trainer.epochs', 3,
-        '--trainer.backend', "ddp-amp",
-        '--trainer.disable_tqdm', "true", # ugly logging in AML
+        '--config_path', 'config-ortds.yaml',
         '--chkp.save_dir', get_output_dataset(ds, f'jsleep/bart/cnndm_sum/' + outputSuffix + "/ckpts/save_dir", "chkp_save_dir"),
         '--chkp.model_state_save_dir', get_output_dataset(ds, f'jsleep/bart/cnndm_sum/' + outputSuffix + "/ckpts/model_state_save_dir", "model_state_save_dir"),
         '--wrt.tb_log_dir', get_output_dataset(ds, f'jsleep/bart/cnndm_sum/' + outputSuffix + "/tblogs", "tb_log_dir"),
-        # '--chkp.load_dir', get_input_dataset(ds, f'jsleep/bart/ckpts/cnndm_sum/deepspeed_test_0/save_dir', "load_dir"),
-        '--module.ort',
-        '--module.deepspeed',
-        '--module.deepspeed_transformer_kernel',
-        '--module.deepspeed_config', 'deepspeed_methods/deepspeedConfig.json',
     ]
-    return all_params_default
 
+    return all_params_default
 
 from azureml.core import Environment
 
