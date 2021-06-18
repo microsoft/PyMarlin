@@ -12,7 +12,7 @@ Model : [BART](https://arxiv.org/abs/1910.13461)
 
 We start with a pretrained checkpoint from huggingface and finetune on CNN dailymail data. 
 
-Huggingface Bart model documantation: https://huggingface.co/transformers/model_doc/bart.html
+Huggingface Bart model documentation: https://huggingface.co/transformers/model_doc/bart.html
 
 # Local Machine
 ## 1. Download Data
@@ -49,6 +49,7 @@ Create these environment variables in your local machine for easy login.
 ## 1. Setup VM environment
 
     ssh $user@$machine -p $port
+    ssh -i C:\Users\shgullap\Desktop\workspace\shgullap-dsvm-key.pem azureuser@20.88.203.77 -p 50000
     bash
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
     bash Miniconda3-latest-Linux-x86_64.sh -y
@@ -59,29 +60,19 @@ restart shell
     conda create -n pymarlin python=3.8 -y
     conda activate pymarlin
     conda install pytorch cudatoolkit=10.2 -c pytorch -y # make sure cuda version is same as nvidia-smi
-    mkdir PyMarlin
 
-## 2. Transfer code form local machine to VM
-    scp -P $port -r C:\Users\krkusuk\repos\PyMarlin\pymarlin $user@${machine}:/home/$user/PyMarlin/pymarlin
-    scp -P $port -r C:\Users\krkusuk\repos\PyMarlin\setup.py  $user@${machine}:/home/$user/PyMarlin
-    scp -P $port -r C:\Users\krkusuk\repos\PyMarlin\README.md  $user@${machine}:/home/$user/PyMarlin
-    scp -P $port -r C:\Users\krkusuk\repos\PyMarlin\examples\bart $user@${machine}:/home/$user\PyMarlin\bart 
-
-## 3. Install pymarlin and requirements
+## 2. Install pymarlin and requirements
     > ssh $user@$machine -p $port
     $ conda activate pymarlin
-    $ pip install  ./PyMarlin --force-reinstall
+    $ pip install pymarlin
+    $ git clone https://github.com/microsoft/PyMarlin.git
+    $ pip install -r PyMarlin/examples/bart/requirements.txt
+    Make sure to separately install PyTorch with GPU or CPU: https://pytorch.org/get-started/locally/
 
-    or
-
-    $ export PYTHONPATH=~/PyMarlin/
-
-
-
-## 4. Download data
+## 3. Download data
     $ wget https://cdn-datasets.huggingface.co/summarization/cnn_dm_v2.tgz
     tar -xzvf cnn_dm_v2.tgz
-    cd PyMarlin/bart
+    cd PyMarlin/examples/bart
 
 ## 5. Analyze Data
         python data.py  ~/cnn_cln
@@ -165,7 +156,7 @@ Prod config
 ## 8. Start tensorboard in VM
 In a separate shell,
 
-    $ tensorboard --logdir ~/PyMarlin/bart/logs.
+    $ tensorboard --logdir ~/PyMarlin/examples/bart/logs.
 
 Tunnel tensorboard in local machine
     # ssh -N -f -L 127.0.0.1:6006:127.0.0.1:6006  $user@${machine} -p $port
