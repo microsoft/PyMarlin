@@ -49,7 +49,6 @@ Create these environment variables in your local machine for easy login.
 ## 1. Setup VM environment
 
     ssh $user@$machine -p $port
-    ssh -i C:\Users\shgullap\Desktop\workspace\shgullap-dsvm-key.pem azureuser@20.88.203.77 -p 50000
     bash
     wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
     bash Miniconda3-latest-Linux-x86_64.sh -y
