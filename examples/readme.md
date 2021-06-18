@@ -7,5 +7,3 @@ A collection of examples of PyMarlin in action!
 3. `GLUE Benchmark` with RoBERTa
 4. Named Entity Recognition (Plugin) on `GERM` with bert-base-multilingual-cased
 5. CIFAR Image Classifcation notebook
-
-In addition the `azureml` dir contains a boiler plate script that can submit these examples to AzureML.

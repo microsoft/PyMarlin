@@ -8,9 +8,9 @@ We have extended this example to be optimized with ORT+DeepSpeed! Starting from 
 * [aml/submit_ortds.py](aml/submit_ortds.py): azureml submit script (needs to be abstracted to upload data / not hard-code compute/ pull docker image built from pymarlin docker repo)
 
 ## Submitting
-1. Create an AzureML workspace and place the config.json with subscription id, resouce group, workspace name into the aml folder.
-2. Create a gpu cluster.
-3. Adjust the values in submit_ortds.py to point to your new gpu cluster, and upload data. (make this autonomous?)
-4. Upload preprocessed CNN/DailyMail from original README by uncommenting the lines to.
-4. Install azureml-sdk with `pip install azureml-sdk`
-5. From examples/summarization/aml, Submit job with `python submit_ortds.py` TODO: use common azureml submit.
+1. Install azureml-sdk and create an AzureML workspace, great [instructions on both here](https://azure.github.io/azureml-cheatsheets/docs/cheatsheets/python/v1/installation).
+2. Write out the config.json for the workspace with [write_config()](https://azure.github.io/azureml-cheatsheets/docs/cheatsheets/python/v1/workspace#helpful-methods)
+3. Create a gpu cluster in the workspace, for more info go [here](https://azure.github.io/azureml-cheatsheets/docs/cheatsheets/python/v1/compute-targets#creating-compute-targets)
+4. Adjust the values in submit_ortds.py to point to your new gpu cluster.
+5. Upload preprocessed CNN/DailyMail from original README by uncommenting line 48 and point to local path.
+6. From examples/summarization/aml, Submit job with `python submit_ortds.py`
