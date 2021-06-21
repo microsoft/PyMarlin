@@ -172,3 +172,6 @@ Tunnel tensorboard in local machine
 
 Now open tensorboard: http://localhost:6006/#scalars
 ![tensorboard screenshot](images/tensorboard_screenshot_bart.jpg)
+
+## 9. Optimize with ORT+DeepSpeed and run in AzureML
+Go to [the ORT README](ORT_README.md) for more instructions.

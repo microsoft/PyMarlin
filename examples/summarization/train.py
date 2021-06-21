@@ -6,7 +6,9 @@ from torch.utils.data import DataLoader
 
 # too long import
 from pymarlin.utils.stats import global_stats
+from pymarlin.utils.logger import getlogger
 from pymarlin.utils.config_parser.custom_arg_parser import CustomArgParser
+from pymarlin.utils.distributed import rank_zero_only
 from torch.optim.lr_scheduler import OneCycleLR
 
 from data import SummarizationData
@@ -15,6 +17,7 @@ import re
 
 from filelock import FileLock
 
+logger = getlogger(__file__)
 
 try:
     import nltk
@@ -66,6 +69,7 @@ class SummarizationBartModule(module_interface.ModuleInterface):
             batch_size=batch_size,
             collate_fn=self.collate_fun,
             sampler=sampler(train_ds),
+            drop_last=True, # ORT fix, batch size needs to stay constant
         )
         return dl
 
@@ -76,6 +80,7 @@ class SummarizationBartModule(module_interface.ModuleInterface):
             batch_size=batch_size,
             collate_fn=self.collate_fun,
             sampler=sampler(val_ds),
+            drop_last=True, # ORT fix, batch size needs to stay constant
         )
         return dl
 
@@ -97,29 +102,36 @@ class SummarizationBartModule(module_interface.ModuleInterface):
             max_length=self.max_length_decoder,
         )
         labels = target_tokens["input_ids"]
-        labels[labels[:, :] == self.model.config.pad_token_id] = -100
+        labels[labels[:, :] == self.pad_token_id] = -100
         source_tokens["labels"] = labels
         return source_tokens
+    
+    @property
+    def pad_token_id(self):
+        return self.model.config.pad_token_id
 
     def train_step(self, global_step: int, batch, device):
         batch = batch.to(device)
         result = self.model.forward(**batch)
         global_stats.update("lr", self.schedulers.get_last_lr()[0], frequent=True)
         return result.loss
+    
+    def get_core_model(self):
+        return self.model
 
     def val_step(self, global_step: int, batch, device):
         batch = batch.to(device)
-        # result = self.model.forward(**batch)
-        summaries = self.model.generate(
-           input_ids=batch.input_ids, 
+        module = self.get_core_model()
+        summaries = module.generate(
+            input_ids=batch.input_ids,
             attention_mask=batch.attention_mask,
             **self.generate_kwargs
         )
         labels = batch.labels
-        labels[labels[:, :] == -100] = self.model.config.pad_token_id
+        labels[labels[:, :] == -100] = self.pad_token_id
         # pad summaries till same length for gathering
         # Idle solution will be calculate ROUGE in a distributed manner if possible. Will save gather cost
-        padded_summaries = torch.ones_like(labels) * self.model.config.pad_token_id
+        padded_summaries = torch.ones_like(labels) * self.pad_token_id
         padded_summaries[:,:summaries.shape[-1]] = summaries
         return padded_summaries, labels
 
@@ -180,8 +192,9 @@ class SummarizationBartModule(module_interface.ModuleInterface):
         else:
             return aggregator._scores  # here we return defaultdict(list)
 
+    @rank_zero_only
     def on_end_val_epoch(self, global_step, *collated_output, key="default"):
-        print('Evaluating gathered results.')
+        logger.info('Evaluating gathered results.')
         summaries, labels = collated_output
         #decode
         preds = self.tokenizer.batch_decode(
@@ -190,13 +203,12 @@ class SummarizationBartModule(module_interface.ModuleInterface):
         refs = self.tokenizer.batch_decode(
             labels, skip_special_tokens=True, clean_up_tokenization_spaces=False
         )
-        # print(refs[:2])
-        # print(preds[:2])
+        logger.debug(f"preds[:2]: {preds[:2]}")
+        logger.debug(f"refs[:2]: {refs[:2]}")
         ROUGE_KEYS = ["rouge1", "rouge2", "rougeL", "rougeLsum"]
         scores: dict =  self.calculate_rouge(preds, refs, rouge_keys = ROUGE_KEYS)
         global_stats.update_multi('metrics/rouge', scores)
         print(scores)
-
 
 if __name__ == '__main__':
     config = CustomArgParser(yaml_file_arg_key="config_path").parse()
@@ -207,27 +219,16 @@ if __name__ == '__main__':
     dm = SummarizationData(root=config["data_path"])
 
     # Training Module Interface
-    tm = SummarizationBartModule(dm, **config["tm"], generate_kwargs=config["generate"])
+    summarization_module = SummarizationBartModule(dm, **config["module"], generate_kwargs=config["generate"])
 
-    # Trainer
-    TrainerBackendClass = eval("trainer_backend." + config["trainer_backend_class"])
-    tr = TrainerBackendClass()
-
-    tmArgs = trainer.TrainerArguments(
-        **config["tmgr"],
+    trainer_args = trainer.TrainerArguments(
+        **config["trainer"],
         stats_args=trainer.stats.StatInitArguments(**config["stat"]),
         writer_args=trainer.WriterInitArguments(**config["wrt"]),
         checkpointer_args=trainer.DefaultCheckpointerArguments(**config["chkp"])
     )
 
-    if config["dist"]:
-        tr = trainer_backend.DDPTrainerBackend(tr)
-    else:
-        tmArgs.distributed_training_args = trainer.DistributedTrainingArguments(
-            local_rank = config["cuda"]
-            )
-
-    trainer = trainer.Trainer(trainer_backend=tr, module=tm, args=tmArgs)
+    trainer = trainer.Trainer(module=summarization_module, args=trainer_args)
 
     trainer.validate()
     trainer.train()

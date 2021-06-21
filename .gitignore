@@ -137,5 +137,8 @@ logs/
 # pydoc-markdown auto-generated content
 /website/docs/reference/**
 
-# aml workspaces
+# AzureML Workspace Config JSON files
 config.json
+
+# local snapshots of pymarlin for submitted to azureml
+/examples/*/pymarlin
