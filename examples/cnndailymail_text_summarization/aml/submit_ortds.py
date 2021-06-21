@@ -24,7 +24,7 @@ def get_output_dataset(datastore, path_on_datastore, dataset_name):
 
 def get_args(outputSuffix="deepspeed_ort_amp_nopadding_v100_8"):
     all_params_default = [
-        '--data_path', get_input_dataset(ds, f'datasets/preprocessed/bart/cnn_dm', "data_path"),
+        '--data_path', get_input_dataset(ds, f'datasets/cnn_dm/preprocessed/bart/', "data_path"),
         '--config_path', 'config-ortds.yaml',
     ]
 

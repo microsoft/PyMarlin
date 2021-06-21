@@ -1,18 +1,22 @@
 # Covid-19 Text Sentiment Classification
 
 ## Instructions
-1. Install requirements
+1. Install requirements (start in this directory)
         pip install -r requirements.txt
 2. Download data from kaggle
         Ref: https://github.com/Kaggle/kaggle-api
         Get your credentials file from kaggle here: C:\Users\<user>\.kaggle\kaggle.json
+        mkdir data
+        cd data
         kaggle datasets download -d datatattle/covid-19-nlp-text-classification
+        (if windows): Expand-Archive .\covid-19-nlp-text-classification.zip 
+        (else): unzip ./covid-19-nlp-text-classification.zip 
 3. Install pymarlin library
         pip install pymarlin
         or
         $env:PYTHONPATH=<pymarlin repo path>
 4. Set working directory
-        cd pymarlin_scripts
+        cd ..
 5. Prepare data
         python data.py
 6. Train

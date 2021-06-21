@@ -6,13 +6,14 @@ from torch.utils.data import random_split
 from torch.utils.data import Dataset
 from pymarlin.core.data_interface import DataInterface, DataProcessor
 from pymarlin.utils.logger.logging_utils import getlogger
+from pymarlin import CustomArgParser
 
 
 @dataclass
 class DataInterfaceArguments:
-    filepath_train: str = '../data/Corona_NLP_train.csv'
-    filepath_test: str = '../data/Corona_NLP_test.csv'
-    preprocessed_dir: str = '../preprocessed'
+    filepath_train: str = 'data\covid-19-nlp-text-classification\Corona_NLP_train.csv'
+    filepath_test: str = 'data\covid-19-nlp-text-classification\Corona_NLP_test.csv'
+    preprocessed_dir: str = 'data\covid-19-nlp-text-classification\preprocessed'
     encoding: str = 'ISO-8859-1'
     text_field: str = 'OriginalTweet'
     label_field: str = 'Sentiment'
@@ -167,7 +168,9 @@ if __name__ == '__main__':
     ## ----------------------- SINGLE PROCESS ------------------- ##
 
     # Instantiate arguments and create DataInterface
-    data_args = DataInterfaceArguments()
+    parser = CustomArgParser()
+    config = parser.parse()
+    data_args = DataInterfaceArguments(**config['data'])
     data_interface = TweetSentData(data_args)
 
     # Create DataProcessors
@@ -187,17 +190,17 @@ if __name__ == '__main__':
 
     ## ----------------------- MULTI PROCESS ------------------- ##
 
-    data_args = DataInterfaceArguments()
-    data_interface = TweetSentData(data_args)
-    stage1 = Stage1(data_args)
-    stage2 = Stage2(data_args)
-    stage1.multi_process_data(
-        [data_args.filepath_train, data_args.filepath_test],
-        process_count=2,
-        )
-    ret = stage2.process_data()
-    train_ds, val_ds, test_ds, labels_to_index, index_to_labels = ret
-    data_interface.setup_datasets(
-        train_ds, val_ds, test_ds,
-        labels_to_index, index_to_labels,)
-    plt.show()
+    # data_args = DataInterfaceArguments()
+    # data_interface = TweetSentData(data_args)
+    # stage1 = Stage1(data_args)
+    # stage2 = Stage2(data_args)
+    # stage1.multi_process_data(
+    #     [data_args.filepath_train, data_args.filepath_test],
+    #     process_count=2,
+    #     )
+    # ret = stage2.process_data()
+    # train_ds, val_ds, test_ds, labels_to_index, index_to_labels = ret
+    # data_interface.setup_datasets(
+    #     train_ds, val_ds, test_ds,
+    #     labels_to_index, index_to_labels,)
+    # plt.show()

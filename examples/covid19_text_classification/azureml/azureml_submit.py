@@ -1,36 +1,36 @@
 import argparse
 
-from azureml.core import Workspace, Datastore, Dataset, Experiment, ScriptRunConfig, Environment
-from azureml.core.compute import ComputeTarget, AmlCompute
+from azureml.core import Workspace, Dataset, Experiment, ScriptRunConfig, Environment
 from azureml.core.runconfig import PyTorchConfiguration, MpiConfiguration
-from azureml.data import OutputFileDatasetConfig
-from azureml.exceptions import ComputeTargetException
 
 def prepare_env_cmd():
     """Prepare the environment and submission command for the classification example."""
     env = Environment("pymarlin_requirements")
     env.docker.enabled = True
     env.docker.base_image = None
-    env.docker.base_dockerfile = 'examples/azureml/dockerfile'
+    env.docker.base_dockerfile = 'dockerfile'
     env.python.user_managed_dependencies = True
     env.python.interpreter_path = "/opt/miniconda/bin/python"
     env.register(ws)
 
-    cmd = f"python train.py --trainer.backend {args.backend}".split()
+    ds = ws.get_default_datastore()
+    dataset = Dataset.File.from_files((ds, 'datasets/covid19_classification/preprocessed/bert/')).as_download()
+
+    cmd = f'''python train.py --trainer.backend {args.backend} --data.preprocessed_dir {dataset}'''.split()
     
     return env, cmd
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--target_name", default="sriovdedicated1")
+    parser.add_argument("--target_name", '-t', default="sriovdedicated1")
     parser.add_argument("--node_count", "-n", type=int, default=1)
     parser.add_argument("--process_count", "-p", type=int, default=1)
-    parser.add_argument("--experiment_name", type=str, default="marlin-tests")
+    parser.add_argument("--experiment_name", '-e', type=str, default="marlin-tests")
     parser.add_argument("--distributed_config", "-d", type=str, choices=["mpi", "pytorch"], default="pytorch")
     parser.add_argument("--backend", "-b", choices=["sp", "ddp-amp"], default="sp")
-    parser.add_argument("--subscription_id", help='azure subscription id', required=True)
-    parser.add_argument("--resource_group", help='azure resource group', required=True)
-    parser.add_argument("--workspace_name", help='azure machine learning workspace', required=True)
+    parser.add_argument("--subscription_id", '-s', help='azure subscription id', required=True)
+    parser.add_argument("--resource_group", '-rg', help='azure resource group', required=True)
+    parser.add_argument("--workspace_name",'-ws',  help='azure machine learning workspace', required=True)
     parser.add_argument("--wait", "-w", action="store_true", help="Throw error is Azure ML job fails.")
     args = parser.parse_args()
 

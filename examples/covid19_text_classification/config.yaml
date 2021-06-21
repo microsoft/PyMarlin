@@ -49,9 +49,9 @@ module:
     log_level: 'INFO'
 
 data:
-    filepath_train: '../data/Corona_NLP_train.csv'
-    filepath_test: '../data/Corona_NLP_test.csv'
-    preprocessed_dir: '../preprocessed/'
+    filepath_train: 'data\covid-19-nlp-text-classification\Corona_NLP_train.csv'
+    filepath_test: 'data\covid-19-nlp-text-classification\Corona_NLP_test.csv'
+    preprocessed_dir: 'data\covid-19-nlp-text-classification\preprocessed\bert'
     encoding: 'ISO-8859-1'
     text_field: 'OriginalTweet'
     label_field: 'Sentiment'

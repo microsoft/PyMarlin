@@ -134,7 +134,7 @@ logs/
 # vscode
 .vscode/
 
-# pydoc-markdown auto-generated content
+# pydoc-markdown auto-generated reference docs
 /website/docs/reference/**
 
 # AzureML Workspace Config JSON files
@@ -142,3 +142,6 @@ config.json
 
 # local snapshots of pymarlin for submitted to azureml
 /examples/*/pymarlin
+
+# don't check in data as it normally comes with its own restrictive license
+/examples/*/data
