@@ -6,4 +6,4 @@ A collection of examples of PyMarlin in action!
 2. Summarization on `CNN/DailyMail` with BART (and optionally with ORT+DeepSpeed extensions)
 3. `GLUE Benchmark` with RoBERTa
 4. Named Entity Recognition (Plugin) on `GERM` with bert-base-multilingual-cased
-5. CIFAR Image Classifcation notebook
+5. CIFAR Image Classification notebook
