@@ -24,4 +24,6 @@ jobs:
     - name: release canary
       run: |
         cd examples/classification/azureml/
-        python azureml_submit.py --backend ddp-amp --process_count 2 --wait
+        python azureml_submit.py --backend ddp-amp --process_count 2 --wait \
+         --subscription_id ${{secrets.SUBSCIPRIPTION_ID}} --resource_group ${{secrets.RESOURCE_GROUP}} \
+         --workspace_name ${{secrets.WORKSPACE_NAME}}
