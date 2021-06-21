@@ -28,9 +28,9 @@ if __name__ == "__main__":
     parser.add_argument("--experiment_name", type=str, default="marlin-tests")
     parser.add_argument("--distributed_config", "-d", type=str, choices=["mpi", "pytorch"], default="pytorch")
     parser.add_argument("--backend", "-b", choices=["sp", "ddp-amp"], default="sp")
-    parser.add_argument("--subsciption_id", help='azure subscription id', optional=False)
-    parser.add_argument("--resource_group", help='azure resource group', optional=False)
-    parser.add_argument("--workspace_name", help='azure machine learning workspace', optional=False)
+    parser.add_argument("--subsciption_id", help='azure subscription id', required=True)
+    parser.add_argument("--resource_group", help='azure resource group', required=True)
+    parser.add_argument("--workspace_name", help='azure machine learning workspace', required=True)
     parser.add_argument("--wait", "-w", action="store_true", help="Throw error is Azure ML job fails.")
     args = parser.parse_args()
 
