@@ -1,9 +1,9 @@
 # PyMarlin, a lightweight PyTorch library for agile deep learning!
 [![Unit Tests](https://github.com/microsoft/PyMarlin/actions/workflows/test.yml/badge.svg)](https://github.com/microsoft/PyMarlin/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/microsoft/PyMarlin/branch/main/graph/badge.svg?token=wUF3ZODLpN)](https://codecov.io/gh/microsoft/PyMarlin)
-[![Docs](https://github.com/microsoft/PyMarlin/actions/workflows/deploy-website.yml/badge.svg)](https://github.com/microsoft/PyMarlin/actions/workflows/deploy-website.yml)
+[![Docs](https://github.com/microsoft/PyMarlin/actions/workflows/deploy-website.yml/badge.svg)](https://microsoft.github.io/PyMarlin/)
 [![AzureML Canary](https://github.com/microsoft/PyMarlin/actions/workflows/canary.yml/badge.svg)](https://github.com/microsoft/PyMarlin/actions/workflows/canary.yml)
-[![Test PyPi](https://github.com/microsoft/PyMarlin/actions/workflows/python-publish.yml/badge.svg)](https://github.com/microsoft/PyMarlin/actions/workflows/python-publish.yml)
+[![pypi](https://img.shields.io/pypi/v/pymarlin)](https://pypi.org/project/pymarlin/)
 
 PyMarlin was developed with the goal of simplifying the E2E Deep Learning experimentation lifecycle for data scientists using PyTorch. The library enables an agile way to quickly prototype a new AI scenario on dev box and seamlessly scale it training multi-node DDP GPU training with AzureML or other cloud services.
 
