@@ -23,7 +23,7 @@ jobs:
         creds: ${{secrets.AZURE_CREDENTIALS}}
     - name: release canary
       run: |
-        cd examples/classification/azureml/
+        cd examples/covid19_text_sentiment_classification/azureml/
         python azureml_submit.py --backend ddp-amp --process_count 2 --wait \
          --subscription_id ${{secrets.SUBSCRIPTION_ID}} --resource_group ${{secrets.RESOURCE_GROUP}} \
          --workspace_name ${{secrets.WORKSPACE_NAME}}
