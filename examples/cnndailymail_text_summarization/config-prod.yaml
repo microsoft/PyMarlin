@@ -1,7 +1,4 @@
 data_path: 'D:/data/cnn_cln'
-trainer_backend_class: 'SingleProcessAmp'
-dist: True
-cuda: 0 # to use a different GPU other than default
 
 trainer:
     max_train_steps_per_epoch : null # Maximum train steps per epoch.
@@ -12,6 +9,7 @@ trainer:
     gpu_batch_size_limit : 4 # Max limit for GPU batch size during training.
     disable_tqdm : False
     writers: ["stdout", "aml", "tensorboard"]
+    backend: 'ddp-amp'
 module:
     max_length_encoder : 1024
     max_length_decoder : 128
