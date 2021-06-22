@@ -1,0 +1,10 @@
+tr:
+  epochs: 2
+  train_batch_size: 4
+  val_batch_size: 16
+  writers: ['tensorboard']
+  clip_grads: False
+  log_level :  'INFO'
+  backend : sp
+  max_train_steps_per_epoch : null
+  max_val_steps_per_epoch : null
