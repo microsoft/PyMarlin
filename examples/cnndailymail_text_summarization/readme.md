@@ -150,11 +150,11 @@ This will be really slow though. Use PyMarlin's distributed trainer to speed up 
 ## 7. Distributed Training
 Test config
 
-    python -m torch.distributed.launch --nproc_per_node 4 train.py --data_path ~/cnn_cln --dist
+    python -m torch.distributed.launch --nproc_per_node 4 train.py --data_path ~/cnn_cln --trainer.backend ddp-amp
 
 Prod config
 
-    nohup python -m torch.distributed.launch --nproc_per_node 4 train.py --config_path config-prod.yaml --data_path ~/cnn_cln --dist &> prod-logs-dist.txt
+    nohup python -m torch.distributed.launch --nproc_per_node 4 train.py --config_path config-prod.yaml --data_path ~/cnn_cln &> prod-logs-dist.txt
 
     tail -f  prod-logs-dist.txt
 
