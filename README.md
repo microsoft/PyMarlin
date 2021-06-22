@@ -34,4 +34,4 @@ Check out the [CIFAR image classification example](hhttps://microsoft.github.io/
 Explore how to use pymarlin to [benchmark your language models on GLUE tasks](https://microsoft.github.io/PyMarlin/docs/examples/glue-tasks).
 
 ## We want your feedback!
-Reach out to us with your [feedback and suggestions](https://microsoft.github.io/PyMarlin/docs/credits).
+Reach out to us with your [feedback and suggestions](https://github.com/microsoft/PyMarlin/issues).
