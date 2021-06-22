@@ -24,4 +24,4 @@ Explore how to use pymarlin to [benchmark your models on GLUE tasks](examples/gl
 
 ## We want your feedback!
 
-Reach out to us with your [feedback and suggestions](credits.md).
+Reach out to us with your [feedback and suggestions](https://github.com/microsoft/PyMarlin/issues).
