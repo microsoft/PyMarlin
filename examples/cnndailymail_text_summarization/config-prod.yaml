@@ -3,7 +3,7 @@ trainer_backend_class: 'SingleProcessAmp'
 dist: True
 cuda: 0 # to use a different GPU other than default
 
-tmgr:
+trainer:
     max_train_steps_per_epoch : null # Maximum train steps per epoch.
     max_val_steps_per_epoch : null # Maximum validation steps per epoch.
     train_batch_size: 32 # Training global batch size.
@@ -12,12 +12,11 @@ tmgr:
     gpu_batch_size_limit : 4 # Max limit for GPU batch size during training.
     disable_tqdm : False
     writers: ["stdout", "aml", "tensorboard"]
-
-wrt:
-    tb_log_dir : 'logs'
-tm:
+module:
     max_length_encoder : 1024
     max_length_decoder : 128
+wrt:
+    tb_log_dir : 'logs'
 stat:
     log_steps : 50
 chkp:
