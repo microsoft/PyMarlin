@@ -45,7 +45,7 @@ mpi = MpiConfiguration()
 mpi.process_count_per_node = 4
 mpi.node_count = 2
 
-# ds.upload_files(['local path to data'], 'datasets/preprocessed/bart')
+# ds.upload_files(['local path to preprocessed data'], 'datasets/cnn_dm/preprocessed/bart')
 
 script = "train_ortds.py"
 codepath = '..'

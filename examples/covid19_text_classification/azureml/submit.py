@@ -14,9 +14,12 @@ def prepare_env_cmd():
     env.register(ws)
 
     ds = ws.get_default_datastore()
+    # preprocessed data needs to be placed into datastore
+    # ds.upload_files([r'data\covid-19-nlp-text-classification\preprocessed\bert'], 'datasets/covid19_classification/preprocessed/bert/')
     dataset = Dataset.File.from_files((ds, 'datasets/covid19_classification/preprocessed/bert/')).as_download()
 
-    cmd = f'''python train.py --trainer.backend {args.backend} --data.preprocessed_dir {dataset}'''.split()
+    cmd = f'''python train.py --trainer.backend {args.backend} '''.split()
+    cmd.extend(['--data.preprocessed_dir', dataset])
     
     return env, cmd
     

@@ -24,6 +24,6 @@ jobs:
     - name: release canary
       run: |
         cd examples/covid19_text_classification/azureml/
-        python azureml_submit.py --backend ddp-amp --process_count 2 --wait \
+        python submit.py --backend ddp-amp --process_count 2 --wait \
          --subscription_id ${{secrets.SUBSCRIPTION_ID}} --resource_group ${{secrets.RESOURCE_GROUP}} \
          --workspace_name ${{secrets.WORKSPACE_NAME}}
