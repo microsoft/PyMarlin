@@ -1,5 +1,5 @@
 # Stats and tensorboard
-
+We have implemented a wrapper on Tensorboard's SummaryWriter for logging stats to Tensorboard which makes it easy to use the utility to save TB events and visualize on TB later for tracking the progress of your training experiment. We also have the Azure ML writer to be able to write to the AML logs.
 ```python
 import os
 os.listdir()
