@@ -1,9 +1,4 @@
 # GLUE Finetuning
-
-Krishan Subudhi
-
----
-
 This code works well in a virtual machine with GPU (preferably with nvidia V100 or A100 GPU for AMP support). More information can be found in this [blog](https://krishansubudhi.github.io/deeplearning/2020/12/09/run-ml-on-vm.html).
 
 We can train any GLUE task using this code. This blog only shows instruction for RTE. Running other tasks are relatively straight forward.

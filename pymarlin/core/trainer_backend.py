@@ -1,5 +1,16 @@
 """
-module for all trainer_backend classes.
+Trainer Backend module:
+
+Currently we support:
+    1. SingleProcess
+    2. SingleProcess Amp
+    3. SingleProcess Apex-Amp
+    4. DDP
+    5. DDP Amp
+    6. DDP Apex-Amp
+
+These are `TrainerBackends` for most common scenarios available out of the box.
+Alternatively a user can provide a custom `TrainerBackend`.
 """
 from tqdm.auto import tqdm
 from abc import ABC, abstractmethod, abstractproperty
@@ -31,7 +42,7 @@ def build_trainer_backend(trainer_backend_name, *args, **kwargs):
     """Factory for trainer_backends
 
     Args:
-        trainer_backend_name (str): TrainerBackend Name. Possible choices are currently: sp, sp-amp, ddp, ddp-amp
+        trainer_backend_name (str): TrainerBackend Name. Possible choices are currently: sp, sp-amp, sp-amp-apex, ddp, ddp-amp, ddp-amp-apex 
         args (sequence): TrainerBackend positional arguments
         kwargs (dict): TrainerBackend keyword arguments
     """
