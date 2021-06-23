@@ -42,7 +42,7 @@ def build_trainer_backend(trainer_backend_name, *args, **kwargs):
     """Factory for trainer_backends
 
     Args:
-        trainer_backend_name (str): TrainerBackend Name. Possible choices are currently: sp, sp-amp, sp-amp-apex, ddp, ddp-amp, ddp-amp-apex 
+        trainer_backend_name (str): TrainerBackend Name. Possible choices are currently: sp, sp-amp, sp-amp-apex, ddp, ddp-amp, ddp-amp-apex
         args (sequence): TrainerBackend positional arguments
         kwargs (dict): TrainerBackend keyword arguments
     """
