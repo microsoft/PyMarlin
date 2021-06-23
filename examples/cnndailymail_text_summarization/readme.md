@@ -1,9 +1,4 @@
 # Bart Summarization
-
-Krishan Subudhi
-
----
-
 This is an example explaining entire pipe line for a summarization task using pymarlin library.
 
 Dataset used: CNN Daily mail

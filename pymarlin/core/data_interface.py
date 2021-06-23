@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Data Interface module.
+Data Interface module:
 
 This module contains the abstract classes DataProcessor and
 DataInterface for data processing prior to model training. Users

@@ -1,5 +1,5 @@
 """
-Module Interface module.
+Module Interface module:
 
 This module contains the abstract classes CallbackInterface and
 ModuleInterface that can provide everything necessary for model

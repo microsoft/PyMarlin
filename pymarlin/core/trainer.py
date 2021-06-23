@@ -1,5 +1,18 @@
 """
-Trainer module.
+Trainer module:
+
+The `Trainer` is responsible for coordinating the model definition
+(`ModuleInterface`) and the `TrainerBackend` - connecting the high-level
+model recipe with the backend on which it will be trained.
+
+This accepts a `module` implementing `ModuleInterface` that contains the
+model definition, as well as the definition of train and evaluation steps,
+optimizers and schedulers and any optional callbacks.
+
+It also accepts a `TrainerBackend` defining how the training should be run
+e.g. single node vs distributed training. There are `TrainerBackends` for
+most common scenarios available out of the box - or alternatively a user can
+provide a custom `TrainerBackend`.
 """
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -77,19 +90,6 @@ class AbstractTrainer(ABC):
 
 class Trainer(AbstractTrainer):
     """Orchestrates model training.
-
-    The `Trainer` is responsible for coordinating the model definition
-    (`ModuleInterface`) and the `TrainerBackend` - connecting the high-level
-    model recipe with the backend on which it will be trained.
-
-    This accepts a `module` implementing `ModuleInterface` - it contains the
-    model definition, as well as the definition of train and evaluation steps,
-    optimizers and schedulers and any optional callbacks.
-
-    It also accepts a `TrainerBackend` defining how the training should be run
-    e.g. single node vs distributed training. There are `TrainerBackends` for
-    most common scenarios available out of the box - or alternatively a user can
-    provide a custom `TrainerBackend`.
 
     Args:
         module (ModuleInterface): Contains model definition, train and validation
