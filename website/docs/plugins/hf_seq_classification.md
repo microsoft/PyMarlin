@@ -46,8 +46,8 @@ Copy the `config.yaml` file from [here](../../pymarlin/plugins/hf_seq_classifica
 ```python
 # data related args
 data:
-    train_filepath: "./processed/train.tsv" # full path to train file
-    val_dir: "./processed/val.tsv" # full path to val file
+    train_filepath: "./processed/train.csv" # full path to train file
+    val_filepath: "./processed/val.csv" # full path to val file
     file_format: "csv"
     header: 0 # file has a header at row 0
     text_a_col: "OriginalTweet"
@@ -74,7 +74,7 @@ trainer:
 
 You can also override the default values in the config through CLI. For example:
 ```
-    $ python run.py --data.train_filepath "./processed/train.tsv" --data.val_filepath "./processed/val.tsv" --module.max_lr 0.00005
+    $ python run.py --data.train_filepath "./processed/train.csv" --data.val_filepath "./processed/val.csv" --module.max_lr 0.00005
 ```
 
 ### Training
@@ -137,7 +137,7 @@ Next, we need to edit the `config.yaml` file to point to this model file and the
 # data related args
 data:
     train_filepath: null # null in YAML config is equivalent to None
-    val_filepath: "./processed/test.tsv" # provide path to test dataset
+    val_filepath: "./processed/test.csv" # provide path to test dataset
 
 # model related args
 model:
