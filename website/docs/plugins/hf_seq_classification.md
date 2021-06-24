@@ -1,6 +1,6 @@
 # Text Sequence Classification with Huggingface models
 
-You can use `pymarlin.plugins.hf_seq_classification` for out-of-the-box training of Huggingface models on a downstream sequence classification task. The plugin comes with a golden config file (YAML based). You can simply modify a few arguments for your dataset and you're ready to go.
+You can use `pymarlin.plugins.hf_seq_classification` for out-of-the-box training of Huggingface models on a downstream sequence classification task. The plugin comes with a golden config file (YAML based). Simply modify a few arguments for your dataset and you're ready to go.
 
 ## Walk-thru with a Kaggle dataset
 
@@ -12,7 +12,7 @@ Let us walk through a sample task to better understand the usage. Download the [
         |-- Corona_NLP_test.csv
 ```
 
-The plugin uses pandas to read the file into a dataframe, however the expected encoding is utf-8. This dataset has a different encoding so we will need to do some preprocessing. After creating a train-val split, finally save the train, val, test files in separate directories.
+The plugin uses pandas to read the file into a dataframe, however the expected encoding is utf-8. This dataset has a different encoding so we will need to do some preprocessing and create a train-val split.
 
 ```python
 import pandas as pd
@@ -21,44 +21,39 @@ from sklearn.model_selection import train_test_split
 df = pd.read_csv("raw_data/Corona_NLP_train.csv", sep=",", encoding='latin-1', header=0)
 df = df[["OriginalTweet", "Sentiment"]]
 train_df, val_df = train_test_split(df, test_size=0.2)
-train_df.to_csv("train/train.csv", sep=",", index=False)
-val_df.to_csv("val/val.csv", sep=",", index=False)
+train_df.to_csv("processed/train.csv", sep=",", index=False)
+val_df.to_csv("processed/val.csv", sep=",", index=False)
 test_df = pd.read_csv("raw_data/Corona_NLP_test.csv", sep=",", encoding='latin-1', header=0)
 test_df = test_df[["OriginalTweet", "Sentiment"]]
-test_df.to_csv("test/test.csv", sep=",", index=False)
+test_df.to_csv("processed/test.csv", sep=",", index=False)
 ```
     root
     |-- raw_data
     |   |-- Corona_NLP_train.csv
     |   |-- Corona_NLP_test.csv
     |
-    |-- train
-    |   |-- train.csv
-    |
-    |-- val
-    |   |-- val.csv
-    |
-    |-- test
+    |-- processed
+        |-- train.csv
+        |-- val.csv
         |-- test.csv
 
 
 ### Set up the YAML config file
 
-The dataset contains 2 columns OriginalTweet, Sentiment. The goal is to predict the sentiment of the tweet i.e. text classification with a single sequence. We will try out Huggingface's RoBERTa model for this. For the sake of this tutorial, we will directly use OriginalTweet as the text sequence input to the model with no additional data processing steps or cleanup.
+The dataset contains 2 columns OriginalTweet, Sentiment. The goal is to predict the sentiment of the tweet i.e. text classification with a single sequence. We will try out Huggingface's RoBERTa model for this. For the sake of this tutorial, we will directly use OriginalTweet as the text sequence input to the model with no additional data processing steps.
 
-Copy the `config.yaml` file from [here](../../../pymarlin/plugins/hf_seq_classification/config.yaml) to your working directory. You can choose to either edit the config file directly, or override the arguments from commandline. Below is the list of arguments that you need to modify for this dataset.
+Copy the `config.yaml` file from [here](../../pymarlin/plugins/hf_seq_classification/config.yaml) to your working directory. You can choose to either edit the config file directly, or override the arguments from commandline. Below is the list of arguments that you need to modify for this dataset.
 ```python
 # data related args
 data:
-    train_dir: "./train" # provide path to train dir
-    val_dir: "./test" # provide path to val dir
+    train_filepath: "./processed/train.tsv" # full path to train file
+    val_dir: "./processed/val.tsv" # full path to val file
     file_format: "csv"
     header: 0 # file has a header at row 0
     text_a_col: "OriginalTweet"
     text_b_col: null # null in config file is equivalent to None
     label_col: "Sentiment"
     labels_list: ["Extremely Negative","Negative","Neutral","Positive","Extremely Positive"] # list of labels which will be mapped in order from 0 to 4 for the model
-    hf_tokenizer: "roberta-base" # Huggingface tokenizer name
 
 # model related args
 model:
@@ -79,7 +74,7 @@ trainer:
 
 You can also override the default values in the config through CLI. For example:
 ```
-    $ python run.py --data.train_dir "./train" --data.val_dir "./val" --module.max_lr 0.00005
+    $ python run.py --data.train_filepath "./processed/train.tsv" --data.val_filepath "./processed/val.tsv" --module.max_lr 0.00005
 ```
 
 ### Training
@@ -98,7 +93,7 @@ This experiment may be too slow to run on local machine (without gpu). You can s
 
 Command to run using DistributedDataParallel:
 ```
-    $ python -m torch.distributed.launch --nproc_per_node $GPUS_PER_NODE run.py --config_path='./config.yaml' --trainer.backend "ddp"
+    $ python -m torch.distributed.run --nproc_per_node $GPUS_PER_NODE run.py --config_path='./config.yaml' --trainer.backend "ddp"
 ```
 
 A `logs` folder should have been created which contains tensorboard log.
@@ -126,7 +121,7 @@ ckpt:
     file_ext: 'bin' # File extension for the checkpoint.
 ```
 
-The model state dict will contain the prefix `model` to all the keys of the Huggingface model state dict. This is because the `HfSeqClassificationModuleInterface` holds the Huggingface model in the variable `model` and the pymarling module_interface itself is a torch.nn.Module class.
+The model state dict will contain the prefix `model` to all the keys of the Huggingface model state dict. This is because the `HfSeqClassificationModuleInterface` holds the Huggingface model in the variable `model` and the pymarlin module_interface itself is a torch.nn.Module.
 
 First we will modify the state dict to remove the extra `model` prefix so it can be re-loaded into Huggingface Roberta.
 ```python
@@ -141,8 +136,8 @@ Next, we need to edit the `config.yaml` file to point to this model file and the
 ```python
 # data related args
 data:
-    train_dir: null # null in config is equivalent to None
-    val_dir: "./test" # provide path to test dataset
+    train_filepath: null # null in YAML config is equivalent to None
+    val_filepath: "./processed/test.tsv" # provide path to test dataset
 
 # model related args
 model:
@@ -152,12 +147,8 @@ model:
     encoder_key: "roberta" # model key which contains the state dict for RobertaModel
 ```
 
-Run the following lines of code to evaluate the finetuned model and compute accuracy and f1 on the test set:
+Run the following line of code to evaluate the finetuned model and compute accuracy and f1 on the test set:
 ```python
-from pymarlin.plugins import HfSeqClassificationPlugin
-
-plugin = HfSeqClassificationPlugin()
-plugin.setup()
 plugin.trainer.validate()
 ```
 
