@@ -60,13 +60,13 @@ restart shell
     $ conda activate pymarlin
     $ pip install pymarlin
     $ git clone https://github.com/microsoft/PyMarlin.git
-    $ pip install -r PyMarlin/examples/bart/requirements.txt
+    $ pip install -r PyMarlin/examples/cnndailymail_text_summarization/requirements.txt
     Make sure to separately install PyTorch with GPU or CPU: https://pytorch.org/get-started/locally/
 
 ## 3. Download data
     $ wget https://cdn-datasets.huggingface.co/summarization/cnn_dm_v2.tgz
     tar -xzvf cnn_dm_v2.tgz
-    cd PyMarlin/examples/bart
+    cd PyMarlin/examples/cnndailymail_text_summarization
 
 ## 4. Analyze Data
         python data.py  ~/cnn_cln
@@ -150,7 +150,7 @@ Prod config
 ## Start tensorboard in VM
 In a separate shell,
 
-    $ tensorboard --logdir ~/PyMarlin/examples/bart/logs.
+    $ tensorboard --logdir ~/PyMarlin/examples/cnndailymail_text_summarization/logs.
 
 Tunnel tensorboard in local machine
     # ssh -N -f -L 127.0.0.1:6006:127.0.0.1:6006  $user@${machine} -p $port
