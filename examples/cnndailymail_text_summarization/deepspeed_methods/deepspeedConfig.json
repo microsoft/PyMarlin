@@ -1,0 +1,46 @@
+{
+  "train_batch_size": 32,
+  "gradient_accumulation_steps": 1,
+  "optimizer": {
+    "type": "Adam",
+    "params": {
+      "lr": 1.875e-4,
+      "betas": [
+        0.9,
+        0.98
+      ],
+      "eps": 1e-8,
+      "weight_decay": 3e-7
+    }
+  },
+  "zero_allow_untested_optimizer": true,
+  "scheduler": {
+    "type": "OneCycle",
+    "params": {
+      "cycle_first_step_size": 256115,
+      "cycle_first_stair_count": 10000,
+      "cycle_second_step_size": 256115,
+      "cycle_second_stair_count": 10000,
+      "decay_step_size": 1000,
+      "cycle_min_lr": 1.875e-5,
+      "cycle_max_lr": 1.875e-4,
+      "decay_lr_rate": 0.001,
+      "cycle_min_mom": 0.85,
+      "cycle_max_mom": 0.99,
+      "decay_mom_rate": 0.0
+    }
+  },
+  "fp16": {
+    "enabled": true
+  },
+  "zero_optimization": {
+    "stage": 1,
+    "allgather_partitions": true,
+    "allgather_bucket_size": 5e8,
+    "overlap_comm": false,
+    "reduce_scatter": true,
+    "reduce_bucket_size": 5e8,
+    "contiguous_gradients": false,
+    "cpu_offload": false
+  }
+}

@@ -1,5 +1,7 @@
-# Stats and tensorboard
+# Stats and Tensorboard logging
+We have implemented a wrapper on Tensorboard's SummaryWriter for logging stats to Tensorboard (TB) which makes it easy to use the utility to save TB events and visualize on TB later for tracking the progress of your training experiment. We also have the Azure ML and stdout writers to be able to write out your stats to the logs.
 
+Usage is demonstrated here: 
 ```python
 import os
 os.listdir()
@@ -32,7 +34,7 @@ global_stats.rebuild(StatInitArgs(), writer_objects)
     SystemLog: 2021-01-29 16:02:21,033:INFO : pymarlin.utils.writer.tensorboard : 37 : Cleared directory ./logs (skipping azureml dirs)
     SystemLog: 2021-01-29 16:02:21,040:INFO : pymarlin.utils.writer.tensorboard : 40 : Created tensorboard folder ./logs : []
 
-## Write some stats
+## Write out stats you care about
 ```python
 for i in range(10):
     global_stats.update('loss',random.uniform(0,2), frequent = True ) # adds a new in memory stat
@@ -51,7 +53,7 @@ for i in range(10):
     SystemLog: 2021-01-29 16:06:40,297:INFO : pymarlin.utils.writer.stdout : 10 : step = 8, loss : 0.8764679987392285
     SystemLog: 2021-01-29 16:06:40,298:INFO : pymarlin.utils.writer.stdout : 10 : step = 9, loss : 0.6293567937040325
 
-## Check tensorboard logs
+## Check Tensorboard logs
 ```python
 os.listdir('logs')
 ```
