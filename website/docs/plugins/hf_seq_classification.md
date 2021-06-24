@@ -42,7 +42,7 @@ test_df.to_csv("processed/test.csv", sep=",", index=False)
 
 The dataset contains 2 columns OriginalTweet, Sentiment. The goal is to predict the sentiment of the tweet i.e. text classification with a single sequence. We will try out Huggingface's RoBERTa model for this. For the sake of this tutorial, we will directly use OriginalTweet as the text sequence input to the model with no additional data processing steps.
 
-Copy the `config.yaml` file from [here](../../pymarlin/plugins/hf_seq_classification/config.yaml) to your working directory. You can choose to either edit the config file directly, or override the arguments from commandline. Below is the list of arguments that you need to modify for this dataset.
+Copy the `config.yaml` file from [here](https://github.com/microsoft/PyMarlin/tree/main/pymarlin/plugins/hf_seq_classification/config.yaml) to your working directory. You can choose to either edit the config file directly, or override the arguments from commandline. Below is the list of arguments that you need to modify for this dataset.
 ```python
 # data related args
 data:
