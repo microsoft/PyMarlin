@@ -14,11 +14,12 @@ class Plugin:
     Derived classes should implement the methods `setup_data`,
     `setup_module`, and `setup`. These methods will execute the data processing
     pipeline and initialize the required components for training such as
-    `trainer` and `module_interface`.
+    `trainer` and `module_interface`. `setup_trainer` initializes the PyMarlin
+    trainer and backend.
 
     `plugin.setup` is provided to bootstrap the entire pipeline for a specific
     downstream task.
-    Example:
+    Example::
 
          trainer = plugin.setup()
          trainer.train()

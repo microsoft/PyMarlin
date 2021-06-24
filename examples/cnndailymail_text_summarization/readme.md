@@ -7,7 +7,7 @@ Model : [BART](https://arxiv.org/abs/1910.13461)
 
 We start with a pretrained checkpoint from huggingface and finetune on CNN dailymail data. 
 
-Huggingface Bart model documantation: https://huggingface.co/transformers/model_doc/bart.html
+Huggingface Bart model documentation: https://huggingface.co/transformers/model_doc/bart.html
 
 # Local Machine
 ## 1. Download Data
@@ -54,31 +54,21 @@ restart shell
     conda create -n pymarlin python=3.8 -y
     conda activate pymarlin
     conda install pytorch cudatoolkit=10.2 -c pytorch -y # make sure cuda version is same as nvidia-smi
-    mkdir PyMarlin
 
-## 2. Transfer code form local machine to VM
-    scp -P $port -r C:\Users\krkusuk\repos\PyMarlin\pymarlin $user@${machine}:/home/$user/PyMarlin/pymarlin
-    scp -P $port -r C:\Users\krkusuk\repos\PyMarlin\setup.py  $user@${machine}:/home/$user/PyMarlin
-    scp -P $port -r C:\Users\krkusuk\repos\PyMarlin\README.md  $user@${machine}:/home/$user/PyMarlin
-    scp -P $port -r C:\Users\krkusuk\repos\PyMarlin\examples\bart $user@${machine}:/home/$user\PyMarlin\bart 
-
-## 3. Install pymarlin and requirements
+## 2. Install pymarlin and requirements
     > ssh $user@$machine -p $port
     $ conda activate pymarlin
-    $ pip install  ./PyMarlin --force-reinstall
+    $ pip install pymarlin
+    $ git clone https://github.com/microsoft/PyMarlin.git
+    $ pip install -r PyMarlin/examples/cnndailymail_text_summarization/requirements.txt
+    Make sure to separately install PyTorch with GPU or CPU: https://pytorch.org/get-started/locally/
 
-    or
-
-    $ export PYTHONPATH=~/PyMarlin/
-
-
-
-## 4. Download data
+## 3. Download data
     $ wget https://cdn-datasets.huggingface.co/summarization/cnn_dm_v2.tgz
     tar -xzvf cnn_dm_v2.tgz
-    cd PyMarlin/bart
+    cd PyMarlin/examples/cnndailymail_text_summarization
 
-## 5. Analyze Data
+## 4. Analyze Data
         python data.py  ~/cnn_cln
         
         **** Analyzing Train ***
@@ -122,7 +112,7 @@ restart shell
         max     1917.000000   1440.000000
 
 
-## 6. Train
+## 5. Train
 
 The 75 percentile length for source text is 877 and 60 for target text. The sequence length after tokenization will also increase further. BART was pretrained with positional embedding upto 1024. We will use 1024 length for source and 128 for target. This value can be tuned further for better performance.
 
@@ -142,7 +132,7 @@ The 75 percentile length for source text is 877 and 60 for target text. The sequ
 
 This will be really slow though. Use PyMarlin's distributed trainer to speed up training
 
-## 7. Distributed Training
+## Distributed Training
 Test config
 
     python -m torch.distributed.launch --nproc_per_node 4 train.py --data_path ~/cnn_cln --trainer.backend ddp-amp
@@ -157,10 +147,10 @@ Prod config
 
     ps |grep python | awk '{print $1}' | xargs -I% kill -9 %
 
-## 8. Start tensorboard in VM
+## Start tensorboard in VM
 In a separate shell,
 
-    $ tensorboard --logdir ~/PyMarlin/bart/logs.
+    $ tensorboard --logdir ~/PyMarlin/examples/cnndailymail_text_summarization/logs.
 
 Tunnel tensorboard in local machine
     # ssh -N -f -L 127.0.0.1:6006:127.0.0.1:6006  $user@${machine} -p $port
@@ -168,5 +158,5 @@ Tunnel tensorboard in local machine
 Now open tensorboard: http://localhost:6006/#scalars
 ![tensorboard screenshot](images/tensorboard_screenshot_bart.jpg)
 
-## 9. Optimize with ORT+DeepSpeed and run in AzureML
+## Optimize with ORT+DeepSpeed and run in AzureML
 Go to [the ORT README](ORT_README.md) for more instructions.

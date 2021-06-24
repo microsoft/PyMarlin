@@ -14,13 +14,13 @@ data:
 
 # model arguments
 model:
+    tokenizer_path: null
+    hf_model: "roberta-base"
+    encoder_key: "roberta"
     model_config_path: null # provide path to model config dir
     model_config_file: "config.json"
     model_path: null # provide path to model weights dir
     model_file: "pytorch_model.bin"
-    hf_model: "roberta-base"
-    encoder_key: "roberta"
-    tokenizer_path: null
 
 # module_interface arguments
 module:
