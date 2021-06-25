@@ -78,3 +78,9 @@ class TestConfigParser(TestCase):
             args = Args(**config['test'])
             self.assertTrue(args.test_list_int == [-1, -1, -1])
             self.assertTrue(args.test_list_str == [ 'this', 'is', 'a', 'test', 'list'])
+    
+    def test_dir_configpath_nofiles(self):
+        cmdline_args = ["test", "--config_path", ".//tests//"]
+        with mock.patch('sys.argv', cmdline_args):
+            parser = CustomArgParser(log_level='DEBUG')
+            self.assertRaises(Exception, parser.parse)
