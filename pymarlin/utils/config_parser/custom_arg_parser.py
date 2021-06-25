@@ -99,8 +99,11 @@ class CustomArgParser:
     # config_path as directory, expects a directory with only one .yaml file
     def _resolve_file_from_path(self, file_or_directory: str) -> str:
         if os.path.isdir(file_or_directory):
-            single_yaml_file = [f for f in os.listdir(file_or_directory) if f.endswith('.yaml')][0]
-            return os.path.join(file_or_directory, single_yaml_file)
+            yaml_files = [f for f in os.listdir(file_or_directory) if f.endswith('.yaml')]
+            if len(yaml_files) == 0:
+                raise Exception(f'Could not find any yaml files in directory {file_or_directory}')
+            first_yaml_file = yaml_files[0]
+            return os.path.join(file_or_directory, first_yaml_file)
 
         return file_or_directory
 
