@@ -95,7 +95,7 @@ class CustomArgParser:
         self.logger.debug(f"params_dict is: {params_dict}")
         self._update_from_params_dict(params_dict)
         return self._config
-    
+
     # config_path as directory, expects a directory with only one .yaml file
     def _resolve_file_from_path(self, file_or_directory: str) -> str:
         if os.path.isdir(file_or_directory):
