@@ -4,8 +4,9 @@ This website is built using [Docusaurus 2](https://docusaurus.io/), a modern sta
 
 ## Prerequisites
 
-To build and test documentation locally, begin by downloading and installing Node.js[https://nodejs.org/en/download/], and then installing Yarn[https://classic.yarnpkg.com/en/].
+To build and test documentation locally, begin by downloading and installing [Node.js](https://nodejs.org/en/download/), and then installing [Yarn](https://classic.yarnpkg.com/en/).
 On Windows, you can install via the npm package manager (npm) which comes bundled with Node.js:
+
 ```console
 npm install --global yarn
 ```
