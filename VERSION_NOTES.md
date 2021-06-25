@@ -1,4 +1,7 @@
 # Version Notes:
+## 0.2.5
+* Adding support for directories with config path (only one file in directory)
+
 ## 0.2.4
 * Fixed bug where DDP all-reduce was not working
 
