@@ -96,15 +96,17 @@ class CustomArgParser:
         self._update_from_params_dict(params_dict)
         return self._config
     
-    def resolve_file_from_path(self, file_or_directory: str) -> str:
+    # config_path as directory, expects a directory with only one .yaml file
+    def _resolve_file_from_path(self, file_or_directory: str) -> str:
         if os.path.isdir(file_or_directory):
-            return os.path.join(file_or_directory, os.listdir(file_or_directory)[0])
+            single_yaml_file = [f for f in os.listdir(file_or_directory) if f.endswith('.yaml')][0]
+            return os.path.join(file_or_directory, single_yaml_file)
 
         return file_or_directory
 
     def _parse_config(self, config_path):
         config_path = os.path.abspath(config_path)
-        config_path = self.resolve_file_from_path(config_path)
+        config_path = self._resolve_file_from_path(config_path)
         self.logger.debug(f"absolute config_path = {config_path}")
         try:
             with open(config_path) as stream:
