@@ -46,6 +46,6 @@ def get_core_model(model, deepspeed_flag=False, ort_flag=False):
     if deepspeed_flag:
         module = module.module
     if ort_flag:
-        module = module._original_module
+        module = module._module_metadata.original_module
 
     return module
