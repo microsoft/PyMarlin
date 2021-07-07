@@ -37,6 +37,8 @@ from pymarlin.utils import stats
 from pymarlin.utils.writer import build_writer
 from pymarlin.utils.writer.base import WriterInitArguments
 
+import time
+from azureml.core import Run
 
 @dataclass
 class TrainerArguments:
@@ -53,6 +55,7 @@ class TrainerArguments:
     clip_grads: bool = True
     max_grad_norm: float = 1.0
     reset_optimizers_schedulers: bool = False
+    ort: bool = False
 
     # checkpointer args
     checkpointer_args: DefaultCheckpointerArguments = DefaultCheckpointerArguments()
@@ -140,11 +143,40 @@ class Trainer(AbstractTrainer):
         self.trainer_backend.init(self._get_trainer_backend_args())
         self.trainer_backend.update_state(self.checkpointed_states.trainer_backend_state)
 
+        if self.args.ort: 
+            print("[--- ENTERING CHANGES ---]")
+            from torch_ort import ORTModule 
+
+            assert(hasattr(self, 'model') and isinstance(self.model, torch.nn.module), "expected self.model property of type torch.nn.module")
+            
+            self.logger.info("Converting to ORTModule ....") 
+            print(ORTModule.__dict__)
+            self.module = ORTModule(self.module)
+
+            self.module.on_begin_train_epoch = self.module._module_metadata.original_module.on_begin_train_epoch
+            self.module.on_end_train_epoch = self.module._module_metadata.original_module.on_end_train_epoch
+            self.module.on_end_train = self.module._module_metadata.original_module.on_end_train
+            self.module.get_val_dataloaders = self.module._module_metadata.original_module.get_val_dataloaders
+            self.module.get_train_dataloader = self.module._module_metadata.original_module.get_train_dataloader
+            self.module.get_state = self.module._module_metadata.original_module.get_state
+            self.module.get_optimizers_schedulers = self.module._module_metadata.original_module.get_optimizers_schedulers
+            self.module.on_end_backward = self.module._module_metadata.original_module.on_end_backward
+            self.module.on_end_train_step = self.module._module_metadata.original_module.on_end_train_step
+            self.module.on_end_val_epoch = self.module._module_metadata.original_module.on_end_val_epoch
+
+
     def train(self):
-        """ Train and validate the model"""
+        """ Train and validate the model"""    
+        start_train_stable_time = 0
+        run = Run.get_context()
+        start_epoch = self.last_epoch + 1
+
         for epoch in trange(
                 self.last_epoch + 1, self.args.epochs, desc="Epochs", disable=self.args.disable_tqdm
         ):
+            if (epoch == start_epoch + 1): # Start time at second epoch since first epoch doesnt give any meaningful metric
+                start_train_stable_time = time.time()
+
             self.logger.info(f"Training epoch {epoch}")
             self.stats.update("epoch", epoch, frequent=True)
             self.module.on_begin_train_epoch(self.global_steps_finished, epoch)
@@ -157,7 +189,12 @@ class Trainer(AbstractTrainer):
             self.module.on_end_train_epoch(self.global_steps_finished, *all_outputs)
             self.stats.log_long_stats(self.global_steps_finished)
             self.last_epoch = epoch
-            self.save_checkpoint()
+            self.save_checkpoint() 
+
+        throughput =  (self.args.train_batch_size * (self.global_steps_finished - self.estimated_global_steps_per_epoch)) / (time.time() - start_train_stable_time)
+        self.stats.update("throughput", throughput, frequent=True)
+        self.stats.log_long_stats(throughput)
+        run.log("throughput", throughput)
 
         # Checkpoint one final time at the end of training and save model
         self.save_checkpoint(force=True)
@@ -165,7 +202,8 @@ class Trainer(AbstractTrainer):
 
         self.module.on_end_train(self.global_steps_finished)
         self.stats.log_long_stats(self.global_steps_finished)
-        self.logger.info("Finished training .. ")
+        self.logger.info("Throughput for the run is: {} samples/s".format(round(throughput, 3)))
+        self.logger.info("Finished training ... ")
 
     def train_epoch(self):
         all_outputs = []
