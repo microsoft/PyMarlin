@@ -144,7 +144,6 @@ class Trainer(AbstractTrainer):
         self.trainer_backend.update_state(self.checkpointed_states.trainer_backend_state)
 
         if self.args.ort: 
-            print("[--- ENTERING CHANGES ---]")
             from torch_ort import ORTModule 
 
             assert(hasattr(self, 'model') and isinstance(self.model, torch.nn.module), "expected self.model property of type torch.nn.module")
