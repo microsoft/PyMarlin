@@ -13,6 +13,11 @@ print(gpu_compute_target.status.serialize())
 from azureml.core import Dataset
 from azureml.data import OutputFileDatasetConfig
 
+# If you have any local and sensitive data files, include them
+# in this directory under a folder that includes "_env" at the end.
+# Import from there if needed and if it is more convenient.
+# Comment this line if you don't need it or use another method yourself.
+from local_envs.local_env import USERNAME, PASSWORD, REGISTRY_ADDRESS
 
 # create input/output datasets
 def get_input_dataset(datastore, path_on_datastore, dataset_name):
@@ -25,7 +30,7 @@ def get_output_dataset(datastore, path_on_datastore, dataset_name):
 def get_args(outputSuffix="deepspeed_ort_amp_nopadding_v100_8"):
     all_params_default = [
         '--data_path', get_input_dataset(ds, f'datasets/cnn_dm/preprocessed/bart/', "data_path"),
-        '--config_path', 'config-ortds.yaml',
+        '--config_path', 'config-ort.yaml',
     ]
 
     return all_params_default
@@ -36,8 +41,12 @@ from azureml.core import Environment
 pytorch_env = Environment(name='myEnv')
 pytorch_env.docker.enabled = True
 # docker file in this directory built for your convenience
-pytorch_env.docker.base_image = "pymarlin/base-gpu:cuda11.1.cudnn8.ds.ort"
+
+pytorch_env.docker.base_image = "felix_amltests:v1"
 pytorch_env.python.user_managed_dependencies = True
+pytorch_env.docker.base_image_registry.address = REGISTRY_ADDRESS
+pytorch_env.docker.base_image_registry.username = USERNAME
+pytorch_env.docker.base_image_registry.password =  PASSWORD
 pytorch_env.python.interpreter_path = '/opt/miniconda/bin/python'
 
 mpi = MpiConfiguration()
@@ -57,7 +66,7 @@ config = ScriptRunConfig(source_directory=codepath,
                          environment=pytorch_env,
                          distributed_job_config=mpi)
 
-experiment_name = 'pymarlin_summarization_bart_ortds'
+experiment_name = 'internfelix_summarization_bart_ortds'
 experiment = Experiment(ws, name=experiment_name)
 
 run = experiment.submit(config)
