@@ -13,12 +13,6 @@ print(gpu_compute_target.status.serialize())
 from azureml.core import Dataset
 from azureml.data import OutputFileDatasetConfig
 
-# If you have any local and sensitive data files, include them
-# in this directory under a folder that includes "_env" at the end.
-# Import from there if needed and if it is more convenient.
-# Comment this line if you don't need it or use another method yourself.
-from local_envs.local_env import USERNAME, PASSWORD, REGISTRY_ADDRESS
-
 # create input/output datasets
 def get_input_dataset(datastore, path_on_datastore, dataset_name):
     dataset = Dataset.File.from_files(path=[(datastore, path_on_datastore)])
@@ -42,11 +36,8 @@ pytorch_env = Environment(name='myEnv')
 pytorch_env.docker.enabled = True
 # docker file in this directory built for your convenience
 
-pytorch_env.docker.base_image = "felix_amltests:v1"
+pytorch_env.docker.base_image = "pymarlin/base-gpu:cuda11.1.cudnn8.ds.ort"
 pytorch_env.python.user_managed_dependencies = True
-pytorch_env.docker.base_image_registry.address = REGISTRY_ADDRESS
-pytorch_env.docker.base_image_registry.username = USERNAME
-pytorch_env.docker.base_image_registry.password =  PASSWORD
 pytorch_env.python.interpreter_path = '/opt/miniconda/bin/python'
 
 mpi = MpiConfiguration()
