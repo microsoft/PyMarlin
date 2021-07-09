@@ -191,7 +191,6 @@ class Trainer(AbstractTrainer):
 
         throughput =  (self.args.train_batch_size * (self.global_steps_finished - self.estimated_global_steps_per_epoch)) / (time.time() - start_train_stable_time)
         self.stats.update("throughput", throughput, frequent=True)
-        self.stats.log_long_stats(throughput)
         run.log("throughput", throughput)
 
         # Checkpoint one final time at the end of training and save model
