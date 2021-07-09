@@ -149,7 +149,6 @@ class Trainer(AbstractTrainer):
             assert(hasattr(self, 'model') and isinstance(self.model, torch.nn.module), "expected self.model property of type torch.nn.module")
             
             self.logger.info("Converting to ORTModule ....") 
-            print(ORTModule.__dict__)
             self.module = ORTModule(self.module)
 
             self.module.on_begin_train_epoch = self.module._module_metadata.original_module.on_begin_train_epoch
