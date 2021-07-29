@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from dataclasses import dataclass
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -11,9 +12,9 @@ from pymarlin import CustomArgParser
 
 @dataclass
 class DataInterfaceArguments:
-    filepath_train: str = 'data\covid-19-nlp-text-classification\Corona_NLP_train.csv'
-    filepath_test: str = 'data\covid-19-nlp-text-classification\Corona_NLP_test.csv'
-    preprocessed_dir: str = 'data\covid-19-nlp-text-classification\preprocessed'
+    filepath_train: str = 'data/covid-19-nlp-text-classification/Corona_NLP_train.csv'
+    filepath_test: str = 'data/covid-19-nlp-text-classification/Corona_NLP_test.csv'
+    preprocessed_dir: str = 'data/covid-19-nlp-text-classification/preprocessed'
     encoding: str = 'ISO-8859-1'
     text_field: str = 'OriginalTweet'
     label_field: str = 'Sentiment'
@@ -54,7 +55,7 @@ class Stage1(DataProcessor):
         self.logger.info('Stage 1 preprocessing successful')
 
     def _read_and_save(self, filepath):
-        df = pd.read_csv(filepath,
+        df = pd.read_csv(Path(filepath),
                          encoding=self.args.encoding)
 
         #Remove unnecessary columns (dummy preprocessing)
@@ -63,9 +64,9 @@ class Stage1(DataProcessor):
         self.logger.debug(df.head())
 
         # Save
-        filename = filepath.split('\\')[-1].split('.')[0]
-        os.makedirs(self.args.preprocessed_dir, exist_ok=True)
-        df.to_csv(os.path.join(self.args.preprocessed_dir, filename+'_stage1.csv'))
+        filename = Path(filepath).stem
+        os.makedirs(Path(self.args.preprocessed_dir), exist_ok=True)
+        df.to_csv(os.path.join(Path(self.args.preprocessed_dir), filename+'_stage1.csv'))
 
 
 class Stage2(DataProcessor):
@@ -82,12 +83,12 @@ class Stage2(DataProcessor):
 
     # This function doesnt need any inputs other than those from DataInterfaceArguments
     def process(self):
-        train_filename = self.args.filepath_train.split('\\')[-1].split('.')[0]
-        test_filename = self.args.filepath_test.split('\\')[-1].split('.')[0]
-        self.train = pd.read_csv(os.path.join(self.args.preprocessed_dir,
+        train_filename = Path(self.args.filepath_train).stem
+        test_filename = Path(self.args.filepath_test).stem
+        self.train = pd.read_csv(os.path.join(Path(self.args.preprocessed_dir),
                                               train_filename+'_stage1.csv'),
                                  encoding=self.args.encoding)
-        test = pd.read_csv(os.path.join(self.args.preprocessed_dir,
+        test = pd.read_csv(os.path.join(Path(self.args.preprocessed_dir),
                                         test_filename+'_stage1.csv'),
                            encoding=self.args.encoding)
 
@@ -117,12 +118,12 @@ class Stage2(DataProcessor):
         self.logger.info(self.train.head())
 
         plt.style.use('ggplot')
-        _ = plt.hist([len(t.split(' ')) for t in self.train[self.args.text_field]])
+        _ = plt.hist([len(str(t).split(' ')) for t in self.train[self.args.text_field]])
         plt.title('words in tweet')
         plt.show(block = False)
 
         plt.figure()
-        _ = plt.hist(self.train[self.args.label_field])
+        _ = plt.hist(self.train[self.args.label_field].astype(str))
         plt.title('Sentiments')
         plt.show(block = False)
 
