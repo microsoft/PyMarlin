@@ -106,11 +106,13 @@ class TrainerBackend(ABC):
     def get_global_steps_completed(self):
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def train_sampler(self):
         return RandomSampler
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def val_sampler(self):
         return SequentialSampler
 
