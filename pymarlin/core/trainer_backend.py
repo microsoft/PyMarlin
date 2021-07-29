@@ -13,7 +13,7 @@ These are `TrainerBackends` for most common scenarios available out of the box.
 Alternatively a user can provide a custom `TrainerBackend`.
 """
 from tqdm.auto import tqdm
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
 import dataclasses
 from typing import Iterable, Optional, Union
 import warnings
@@ -106,11 +106,13 @@ class TrainerBackend(ABC):
     def get_global_steps_completed(self):
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def train_sampler(self):
         return RandomSampler
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def val_sampler(self):
         return SequentialSampler
 
