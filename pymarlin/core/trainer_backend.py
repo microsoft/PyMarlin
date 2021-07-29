@@ -13,7 +13,7 @@ These are `TrainerBackends` for most common scenarios available out of the box.
 Alternatively a user can provide a custom `TrainerBackend`.
 """
 from tqdm.auto import tqdm
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
 import dataclasses
 from typing import Iterable, Optional, Union
 import warnings
