@@ -78,14 +78,16 @@ class CallbackInterface(ABC):
 class ModuleInterface(torch.nn.Module, CallbackInterface):
     """Interface for PyTorch modules.
 
-    This interface contains model architecture in the form of a PyTorch
-    `nn.Module` together with optimizers and schedules, train and validation
-    step recipes and any callbacks.
+    This is where scientists and researchers write their training code. 
+    This module can be thought of as the implementation of the training recipe. 
+    ModuleInterface inherits from nn.Module and hence can be treated like any Pytorch module.
+    Scientists need to implement the abstract functions to create a training recipe. 
 
-    Note: The forward function is overridden.
-
-    Note: Users are encouraged to override the `train_step` and `val_step`
-    methods.
+    Note: The forward function is overridden and replaced with two functions train_step and val_step 
+    to differentiate training and validation loop code. 
+    
+    ModuleInterface also inherits from CallBackInterface. 
+    Users can optionally override callbacks like on_end_val_epoch() to calculate metrics. 
     """
     @abstractmethod
     def get_optimizers_schedulers(

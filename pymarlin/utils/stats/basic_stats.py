@@ -18,6 +18,12 @@ except ImportError:
 class StatInitArguments:
     """
     Stats Arguments.
+    Args:
+        log_steps(int): Interval of logging. If log_steps is 50 and metric X is updated every step, then only 50th step value will be logged. Defaults to 1
+        update_system_stats(bool): Logs system stats like CPU, RAM, GPU usage when enabled. Defaults to False
+        log_model_steps(int): Interval to log model weight norm and grad norm. Defaults to 1000
+        exclude_list(str): Regular expression which when matched with parameter name, won't print weight norm and grad norms for that parameter.
+            Defaults to r"bias|LayerNorm|layer\.[3-9]|layer\.1(?!1)|layer\.2(?!3)"
     """
     log_steps: int = 1
     update_system_stats: bool = False

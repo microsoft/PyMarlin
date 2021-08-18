@@ -8,6 +8,12 @@ import dataclasses
 class WriterInitArguments:
     """
     Writer Arguments.
+    Args:
+        tb_log_dir(str): Defaults to 'logs'
+        tb_logpath_parent_env(str): Defaults to None
+        tb_log_multi(bool): Defaults to False
+        tb_log_hist_steps(int): Defaults to 20000
+        model_log_level(str): Defaults to 'INFO'
     """
     tb_log_dir: str = 'logs'
     tb_logpath_parent_env: str = None
