@@ -1,4 +1,7 @@
 # Version Notes:
+## 0.2.6
+* Adding support for parsing multi-level args from commandline and params
+
 ## 0.2.5
 * Adding support for directories with config path (only one file in directory)
 
