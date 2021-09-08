@@ -112,7 +112,7 @@ class CustomArgParser:
         config_path = self._resolve_file_from_path(config_path)
         self.logger.debug(f"absolute config_path = {config_path}")
         try:
-            with open(config_path) as stream:
+            with open(config_path, 'r', encoding='utf-8') as stream:
                 try:
                     self._config = yaml.safe_load(stream)
                 except Exception as ex:
