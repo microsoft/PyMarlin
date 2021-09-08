@@ -13,4 +13,8 @@ test:
     test_str: null
     test_true: False
     test_false: True
+    test_two_levels:
+        test_int: -1
+        test_three_levels:
+            test_list_str: [ 'this', 'is', 'a', 'test', 'list']
     

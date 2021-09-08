@@ -132,7 +132,12 @@ class CustomArgParser:
     def _parse_arg_and_update_config(self, arg, arg_dict):
         if '.' in arg:
             arglist = arg.split('.')
-            self._config[arglist[0].strip('-')][arglist[1].strip('-')] = arg_dict[arg]
+            iter = self._config[arglist[0].strip('-')]
+            idx = 1
+            while idx < len(arglist) - 1:
+                iter = iter[arglist[idx]]
+                idx = idx + 1
+            iter[arglist[idx]] = arg_dict[arg]
         else:
             self._config[arg] = arg_dict[arg]
 
@@ -143,7 +148,11 @@ class CustomArgParser:
                     yaml_arg_value = self._config[cmd_arg.strip('-')]
                 else:
                     arglist = cmd_arg.split('.')
-                    yaml_arg_value = self._config[arglist[0].strip('-')][arglist[1]]
+                    yaml_arg_value = self._config[arglist[0].strip('-')]
+                    idx = 1
+                    while idx < len(arglist):
+                        yaml_arg_value = yaml_arg_value[arglist[idx]]
+                        idx = idx + 1
             except Exception as ex: # pylint: disable=broad-except
                 self.logger.warning(f"cmd_line arg {cmd_arg} not found in YAML file. Ignoring ex:{ex}")
                 continue
