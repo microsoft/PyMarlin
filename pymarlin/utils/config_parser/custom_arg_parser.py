@@ -132,12 +132,12 @@ class CustomArgParser:
     def _parse_arg_and_update_config(self, arg, arg_dict):
         if '.' in arg:
             arglist = arg.split('.')
-            iter = self._config[arglist[0].strip('-')]
+            config_iter = self._config[arglist[0].strip('-')]
             idx = 1
             while idx < len(arglist) - 1:
-                iter = iter[arglist[idx]]
+                config_iter = config_iter[arglist[idx]]
                 idx = idx + 1
-            iter[arglist[idx]] = arg_dict[arg]
+            config_iter[arglist[idx]] = arg_dict[arg]
         else:
             self._config[arg] = arg_dict[arg]
 
