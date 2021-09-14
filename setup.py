@@ -11,7 +11,7 @@ extras = {
 
 setup(
     name="pymarlin",
-    version="0.2.6",
+    version="0.2.7",
     author="ELR Team",
     author_email="elrcore@microsoft.com",
     description="Lightweight Deeplearning Library",

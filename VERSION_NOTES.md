@@ -1,4 +1,7 @@
 # Version Notes:
+## 0.2.7
+* Adding torch<=1.9 as required dependency
+
 ## 0.2.6
 * Adding support for parsing multi-level args from commandline and params
 
