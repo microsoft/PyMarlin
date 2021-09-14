@@ -3,8 +3,7 @@ from setuptools import setup, find_packages
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-# please install torch separately
-required = ['tqdm','tensorboard', 'Pillow','azureml-core','pyyaml','pandas']
+required = ['torch<=1.9','tqdm','tensorboard', 'Pillow','azureml-core','pyyaml','pandas']
 extras = {
     'dev': ['pylint', 'pytest', 'pytest-cov'],
     'plugins': ['transformers','pandas','matplotlib','sklearn','scipy','rouge-score']
