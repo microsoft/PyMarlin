@@ -1,4 +1,7 @@
 # Version Notes:
+## 0.2.8
+* Incremented the dependency to torch<=1.9.1
+
 ## 0.2.7
 * Adding torch<=1.9 as required dependency
 
