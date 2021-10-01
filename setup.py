@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-required = ['torch<=1.9','tqdm','tensorboard', 'Pillow','azureml-core','pyyaml','pandas']
+required = ['torch<=1.9.1','tqdm','tensorboard', 'Pillow','azureml-core','pyyaml','pandas']
 extras = {
     'dev': ['pylint', 'pytest', 'pytest-cov'],
     'plugins': ['transformers','pandas','matplotlib','sklearn','scipy','rouge-score']
@@ -11,7 +11,7 @@ extras = {
 
 setup(
     name="pymarlin",
-    version="0.2.7",
+    version="0.2.8",
     author="ELR Team",
     author_email="elrcore@microsoft.com",
     description="Lightweight Deeplearning Library",
