@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-required = ['torch<=1.9.1','tqdm','tensorboard', 'Pillow','azureml-core','pyyaml','pandas']
+required = ['torch<=1.9.1','tqdm','tensorboard', 'Pillow','azureml-core','pyyaml','pandas','opacus']
 extras = {
     'dev': ['pylint', 'pytest', 'pytest-cov'],
     'plugins': ['transformers','pandas','matplotlib','sklearn','scipy','rouge-score']

@@ -24,6 +24,8 @@ from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.sampler import RandomSampler, SequentialSampler
 from torch.cuda.amp import autocast, GradScaler
 
+from opacus.privacy_engine import PrivacyEngine
+
 from pymarlin.core import module_interface
 from pymarlin.utils import stats
 from pymarlin.utils.distributed import (
@@ -352,6 +354,29 @@ class SingleProcess(TrainerBackend):
         if state:
             self.global_step_completed = state["global_step_completed"]
             self.batches_completed = state["batches_completed"]
+
+
+class SingleProcessDpSgd(SingleProcess):
+    '''
+    Backend which supports Differential Privacy. We are using Opacus library.
+    https://opacus.ai/api/privacy_engine.html
+    '''
+    def __init__(self, pe_init_args :dict = {} , **superclass_kwargs):
+        super().__init__(**superclass_kwargs)
+        self.pe_init_args = pe_init_args
+    
+    def init(self,args : TrainerBackendArguments):
+        super().init()
+        self.privacy_engine = PrivacyEngine(self.model, **self.pe_init_args)
+        for optimizer in self.args.optimizers:
+            self.privacy_engine.attach(optimizer)
+    
+    def _forward_backward(self, callback, batch):
+        outputs = super()._forward_backward(callback, batch)
+        if (self.batches_completed + 1) % self.args.gradient_accumulation != 0:
+            for optimizer in self.args.optimizers:
+                optimizer.virtual_step()
+        return outputs
 
 
 # TODO: Merge SingleProcess and SingleProcessAmp after convergence test
