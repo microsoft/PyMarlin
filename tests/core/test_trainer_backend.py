@@ -1,5 +1,6 @@
 """Test module for trainer_backend"""
 
+from re import S
 import unittest
 from unittest import mock
 import torch
@@ -144,3 +145,90 @@ class TestSingleProcessAmp(TestSingleProcess):
         super().setUp()
         self.trainer_backend = trainer_backend.SingleProcessAmp()
         self.trainer_backend.init(self.trainer_backendArgs)
+
+import numpy as np
+class LinearModule(module_interface.ModuleInterface):
+    
+    def __init__(self):
+        super().__init__()
+        self.net = torch.nn.Linear(in_features = 1, out_features = 1, bias = False)
+        inp = torch.tensor([10]*10).view(-1,1)*1.0
+        label = inp*2
+        self.data = list(zip(inp,label)) # multiplication table of 2
+        print(list(self.data))
+        self.original_weight = self.net.weight.item()
+
+    def get_optimizers_schedulers(
+        self, estimated_global_steps_per_epoch: int, epochs: int
+        ):
+        optimizer = torch.optim.SGD(self.net.parameters(), lr = 1)
+        return [optimizer], []
+        
+    def get_train_dataloader(
+        self, sampler:type, batch_size:int
+        ):
+        return torch.utils.data.DataLoader(self.data,batch_size = batch_size)
+    
+    def get_val_dataloaders(
+        self, sampler:torch.utils.data.Sampler, batch_size : int
+    ):
+        return torch.utils.data.DataLoader(self.data,batch_size = batch_size)
+
+    def train_step(
+        self, global_step: int, batch, device 
+        ):
+        inp, label = batch
+        print(inp,label)
+        pred = self.net(inp)
+        print(pred, label)
+        loss = (pred-label).sum()
+        return loss
+        
+        
+    def on_end_backward(self, global_step_completed, loss):
+        print(f'global_step_completed = {global_step_completed}, \
+            grad before virtual step= {self.net.weight.grad}' )
+
+    def on_end_train_step(self, global_step_completed, loss):
+        print(f'global_step_completed = {global_step_completed}, \
+        original weight = {self.original_weight}, current weight = {self.net.weight.item()}')
+
+    def val_step(self, global_step: int, batch, device):
+        inp, label = batch
+        pred = self.net(inp)
+        print(pred, label)
+import random
+# not working
+torch.manual_seed(40)
+random.seed(40)
+np.random.seed(40)
+class TestSingleProcessDpSgd(unittest.TestCase):
+    
+    def setUp(self):
+        
+        self.trainer_backend = trainer_backend.SingleProcessDpSgd()
+        self.model = LinearModule()
+        self.trainer_backendArgs = trainer_backend.TrainerBackendArguments(
+            model = self.model,
+            device = 'cpu',
+            max_train_steps_per_epoch= 3,
+            max_val_steps_per_epoch = 1,
+            distributed_training_args = DistributedTrainingArguments(),
+            optimizers = self.model.get_optimizers_schedulers(1,1)[0],
+            schedulers = [],
+            gradient_accumulation=1,
+            clip_grads=False,
+        )
+        self.trainer_backend.init(self.trainer_backendArgs)
+        
+    # def test_init(self):
+    #     assert self.trainer_backend.privacy_engine
+    #     assert hasattr(self.trainer_backend.args.optimizers[0], "privacy_engine")
+    #     assert hasattr(self.trainer_backend.args.optimizers[0], "virtual_step")
+    
+    def test_train_dl(self):
+        self.trainer_backend.train_dl(self.model.get_train_dataloader(sampler = None, batch_size = 1), self.model)
+        diff_delta = self.model.net.weight - self.model.original_weight
+        #check clipping
+        # print(self.trainer_backend.pe_init_args['max_grad_norm'])
+        # assert diff_delta <= self.trainer_backend.global_step_completed * self.trainer_backend.pe_init_args['max_grad_norm']

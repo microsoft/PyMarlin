@@ -361,12 +361,32 @@ class SingleProcessDpSgd(SingleProcess):
     Backend which supports Differential Privacy. We are using Opacus library.
     https://opacus.ai/api/privacy_engine.html
     '''
-    def __init__(self, pe_init_args :dict = {} , **superclass_kwargs):
+    def __init__(
+        self,
+        pe_init_args :dict = {
+            'max_grad_norm':1.0, 
+            'sample_rate':0.01, 
+            'noise_multiplier':1.3
+            } ,
+        **superclass_kwargs):
+        '''
+        Update the trainer_backend from a checkpointed state.
+
+        Args:
+            pe_init_args (dict) : Privacy Engine init arguments. Documentation available at
+                https://opacus.ai/api/privacy_engine.html#opacus.privacy_engine.PrivacyEngine
+                Default value 
+                {
+                    'max_grad_norm':1.0, 
+                    'sample_rate':0.01, 
+                    'noise_multiplier':1.3
+                }
+        '''
         super().__init__(**superclass_kwargs)
         self.pe_init_args = pe_init_args
     
     def init(self,args : TrainerBackendArguments):
-        super().init()
+        super().init(args)
         self.privacy_engine = PrivacyEngine(self.model, **self.pe_init_args)
         for optimizer in self.args.optimizers:
             self.privacy_engine.attach(optimizer)
