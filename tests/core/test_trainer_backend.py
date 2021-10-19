@@ -229,6 +229,7 @@ class TestSingleProcessDpSgd(unittest.TestCase):
     def test_train_dl(self):
         self.trainer_backend.train_dl(self.model.get_train_dataloader(sampler = None, batch_size = 1), self.model)
         diff_delta = self.model.net.weight - self.model.original_weight
+        print("The delta in weight after Dp training: ", diff_delta)
         #check clipping
         # print(self.trainer_backend.pe_init_args['max_grad_norm'])
         # assert diff_delta <= self.trainer_backend.global_step_completed * self.trainer_backend.pe_init_args['max_grad_norm']

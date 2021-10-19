@@ -359,7 +359,7 @@ class SingleProcess(TrainerBackend):
 class SingleProcessDpSgd(SingleProcess):
     '''
     Backend which supports Differential Privacy. We are using Opacus library.
-    https://opacus.ai/api/privacy_engine.html
+    https://opacus.ai/api/privacy_engine.html.
     '''
     def __init__(
         self,
