@@ -40,8 +40,8 @@ class SummarizationBartModule(module_interface.ModuleInterface):
         generate_kwargs = {}
     ):
         super().__init__()
-        self.model = BartForConditionalGeneration.from_pretrained("facebook/bart-base")
-        self.tokenizer = BartTokenizerFast.from_pretrained("facebook/bart-base")
+        self.model = BartForConditionalGeneration.from_pretrained("facebook/bart-large")
+        self.tokenizer = BartTokenizerFast.from_pretrained("facebook/bart-large")
         self.max_lr = max_lr
         self.max_length_encoder = max_length_encoder
         self.max_length_decoder = max_length_decoder

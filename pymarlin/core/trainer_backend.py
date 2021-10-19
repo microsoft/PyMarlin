@@ -13,7 +13,7 @@ These are `TrainerBackends` for most common scenarios available out of the box.
 Alternatively a user can provide a custom `TrainerBackend`.
 """
 from tqdm.auto import tqdm
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, abstractproperty
 import dataclasses
 from typing import Iterable, Optional, Union
 import warnings
@@ -31,31 +31,11 @@ from pymarlin.utils.distributed import (
     SequentialDistributedSampler,
 )
 
-
 try:
     from apex import amp
 except ImportError:
     amp = None
 from functools import wraps
-
-def build_trainer_backend(trainer_backend_name, *args, **kwargs):
-    """Factory for trainer_backends
-
-    Args:
-        trainer_backend_name (str): TrainerBackend Name. Possible choices are currently: sp, sp-amp, sp-amp-apex, ddp, ddp-amp, ddp-amp-apex
-        args (sequence): TrainerBackend positional arguments
-        kwargs (dict): TrainerBackend keyword arguments
-    """
-    factory_dict = {
-        "sp": SingleProcess,
-        "sp-amp": SingleProcessAmp,
-        "sp-amp-apex": SingleProcessApexAmp,
-        "ddp": DDPTrainerBackendFactory(SingleProcess),
-        "ddp-amp": DDPTrainerBackendFactory(SingleProcessAmp),
-        "ddp-amp-apex": DDPTrainerBackendFactory(SingleProcessApexAmp),
-    }
-    return factory_dict[trainer_backend_name](*args, **kwargs)
-
 
 @dataclasses.dataclass
 class TrainerBackendArguments:
@@ -106,13 +86,11 @@ class TrainerBackend(ABC):
     def get_global_steps_completed(self):
         pass
 
-    @property
-    @abstractmethod
+    @abstractproperty
     def train_sampler(self):
         return RandomSampler
 
-    @property
-    @abstractmethod
+    @abstractproperty
     def val_sampler(self):
         return SequentialSampler
 
@@ -712,10 +690,3 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
     @property
     def val_sampler(self):
         return SequentialDistributedSampler
-
-def DDPTrainerBackendFactory(trainer_backend_cls): # pylint: disable=invalid-name
-    def create(*args, gather_frequency: Optional[int] = None, **kwargs):
-        # pull out args to DDPTrainerBackend if needed here.
-        return DDPTrainerBackend(trainer_backend_cls(*args, **kwargs), gather_frequency=gather_frequency)
-
-    return create
