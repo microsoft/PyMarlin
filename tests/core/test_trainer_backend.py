@@ -161,7 +161,7 @@ class LinearModule(module_interface.ModuleInterface):
     def get_optimizers_schedulers(
         self, estimated_global_steps_per_epoch: int, epochs: int
         ):
-        optimizer = torch.optim.SGD(self.net.parameters(), lr = 1)
+        optimizer = torch.optim.SGD(self.net.parameters(), lr = 0.1)
         return [optimizer], []
         
     def get_train_dataloader(
@@ -208,11 +208,11 @@ class TestSingleProcessDpSgdWithSingleWeight(unittest.TestCase):
         
         self.trainer_backend = trainer_backend.SingleProcessDpSgd()
         self.model = LinearModule()
-        self.model2=LinearModule()
+        
         self.trainer_backendArgs = trainer_backend.TrainerBackendArguments(
             model = self.model,
             device = 'cpu',
-            max_train_steps_per_epoch= 4,
+            max_train_steps_per_epoch= 8,
             max_val_steps_per_epoch = 1,
             distributed_training_args = DistributedTrainingArguments(),
             optimizers = self.model.get_optimizers_schedulers(1,1)[0],
@@ -222,29 +222,13 @@ class TestSingleProcessDpSgdWithSingleWeight(unittest.TestCase):
         )
         self.trainer_backend.init(self.trainer_backendArgs)
         self.trainer_backend.privacy_engine._set_seed(40)
-        
-    # def test_init(self):
-    #     assert self.trainer_backend.privacy_engine
-    #     assert hasattr(self.trainer_backend.args.optimizers[0], "privacy_engine")
-    #     assert hasattr(self.trainer_backend.args.optimizers[0], "virtual_step")
     
-    def test_train_dl_novirtual(self):
-        self.trainer_backend.train_dl(self.model.get_train_dataloader(sampler = None, batch_size = 1), self.model)
-        diff_delta = self.model.net.weight - self.model.original_weight
-        print("The delta in weight after Dp training with no virtual: ", diff_delta)
-        print("Original model weight: ", self.model.original_weight)
-        print("modified model weight: ", self.model.net.weight.item())
-        assert diff_delta.item() == -5.177492618560791 ## after 4 steps of training with no virtual
-        self.no_virtual_weight = self.model.net.weight.item()
-        #check clipping
-        # print(self.trainer_backend.pe_init_args['max_grad_norm'])
-        # assert diff_delta <= self.trainer_backend.global_step_completed * self.trainer_backend.pe_init_args['max_grad_norm']
-        
-        # resetting model --- will trainer state cause issue?
-        print("----------- First model training done, initialize second model")
+    def setUp_dpVirtual(self):
+        self.model2=LinearModule()
         self.model2.net.weight = torch.nn.Parameter(torch.Tensor([[self.model.original_weight]])) #gymnastics
         # new model required as PrivacyEngine detects duplicate wrapping
         print("----------- Initiating second model with virtual step")
+        self.trainer_backend = trainer_backend.SingleProcessDpSgd()
         self.trainer_backendArgs = trainer_backend.TrainerBackendArguments(
             model = self.model2,
             device = 'cpu',
@@ -253,21 +237,65 @@ class TestSingleProcessDpSgdWithSingleWeight(unittest.TestCase):
             distributed_training_args = DistributedTrainingArguments(),
             optimizers = self.model2.get_optimizers_schedulers(1,1)[0],
             schedulers = [],
-            gradient_accumulation=2,
+            gradient_accumulation=2,# To force virtual steps
             clip_grads=False,
         )
         self.trainer_backend.init(self.trainer_backendArgs)
         self.trainer_backend.privacy_engine._set_seed(40)
+    
+    def setUp_vanillaSP(self):
+        self.model_simple = LinearModule()
+        print("----------- Initiating third model with vanilla SP")
+        self.trainer_backend = trainer_backend.SingleProcess()
+        self.model_simple.net.weight = torch.nn.Parameter(torch.Tensor([[self.model.original_weight]]))
+        self.trainer_backendArgs = trainer_backend.TrainerBackendArguments(
+            model = self.model_simple,
+            device = 'cpu',
+            max_train_steps_per_epoch= 8,
+            max_val_steps_per_epoch = 1,
+            distributed_training_args = DistributedTrainingArguments(),
+            optimizers = self.model_simple.get_optimizers_schedulers(1,1)[0],
+            schedulers = [],
+            gradient_accumulation=1,
+            clip_grads=False,
+        )
+        self.trainer_backend.init(self.trainer_backendArgs)
+    
+    def test_train_dl_novirtual(self):
+        #DP model with no virtual steps
+        self.trainer_backend.train_dl(self.model.get_train_dataloader(sampler = None, batch_size = 1), self.model)
+        diff_delta = self.model.net.weight - self.model.original_weight
+        print("The delta in weight after Dp training with no virtual: ", diff_delta)
+        #print("Original model weight: ", self.model.original_weight)
+        #print("modified model weight: ", self.model.net.weight.item())
+        assert diff_delta.item() == -1.0931241512298584 ## after 8 steps and 8 batches of training with no virtual
+        self.no_virtual_weight = self.model.net.weight.item()
+        
+        #DP model with virtual steps
+        self.setUp_dpVirtual()
         self.trainer_backend.train_dl(self.model2.get_train_dataloader(sampler = None, batch_size = 1), self.model2)
         diff_delta = self.model2.net.weight - self.model.original_weight
         print("The delta in weight after Dp training WITH virtual: ", diff_delta)
-        print("Original model weight: ", self.model.original_weight)
-        print("modified model weight: ", self.model2.net.weight.item())
-        assert diff_delta.item() == -4.588745594024658
+        #print("Original model weight: ", self.model.original_weight)
+        #print("modified model weight: ", self.model2.net.weight.item())
+        assert diff_delta.item() == -0.45887458324432373
         self.virtual_weight = self.model2.net.weight.item()
         
-        Training_weight_diff = (self.no_virtual_weight- self.virtual_weight)
-        assert  Training_weight_diff == -0.5887470245361328
+        #Regular SP training
+        self.setUp_vanillaSP()
+        self.trainer_backend.train_dl(self.model_simple.get_train_dataloader(sampler = None, batch_size = 1), self.model_simple)
+        diff_delta = self.model_simple.net.weight - self.model.original_weight
+        print("The delta in weight after SP training: ", diff_delta)
+        #print("Original model weight: ", self.model.original_weight)
+        #print("modified model weight: ", self.model_simple.net.weight.item())
+        assert diff_delta.item() == -8.0
+        self.sp_weight = self.model_simple.net.weight.item()
+
+        Vanilla_training_diff = (self.sp_weight - self.no_virtual_weight)
+        assert  Vanilla_training_diff == -6.90687620639801 # asserts delta with and without DP ( no virtual)
+
+        DP_Training_weight_diff = (self.no_virtual_weight- self.virtual_weight)
+        assert  DP_Training_weight_diff == -0.6342495679855347 # asserts delta with and without virtual step
 
         #check clipping
         # print(self.trainer_backend.pe_init_args['max_grad_norm'])
