@@ -3,6 +3,7 @@
 from re import S
 import unittest
 from unittest import mock
+from numpy.testing._private.utils import assert_almost_equal
 import torch
 import pytest
 from pymarlin.core import module_interface, trainer_backend
@@ -197,6 +198,7 @@ class LinearModule(module_interface.ModuleInterface):
         inp, label = batch
         pred = self.net(inp)
         #print(pred, label)
+
 import random
 # not working
 # Number batches seen = max_train_steps_per epoch * gradient_accumulation ( 4*2 == 8*1)
@@ -264,7 +266,7 @@ class TestSingleProcessDpSgdWithSingleWeight(unittest.TestCase):
     
     def setUp_vanillaSP_virtual(self):
         self.model_simple_virtual = LinearModule()
-        print("----------- Initiating third model with vanilla SP + virtual")
+        print("----------- Initiating fourth model with vanilla SP + virtual")
         self.trainer_backend = trainer_backend.SingleProcess()
         self.model_simple_virtual.net.weight = torch.nn.Parameter(torch.Tensor([[self.model.original_weight]]))
         self.trainer_backendArgs = trainer_backend.TrainerBackendArguments(
@@ -332,3 +334,141 @@ class TestSingleProcessDpSgdWithSingleWeight(unittest.TestCase):
         #check clipping
         # print(self.trainer_backend.pe_init_args['max_grad_norm'])
         # assert diff_delta <= self.trainer_backend.global_step_completed * self.trainer_backend.pe_init_args['max_grad_norm']
+
+class ToyModel(torch.nn.Module):
+    '''A simple model we will be using for the tests below'''
+
+    def __init__(self):
+        super(ToyModel, self).__init__()
+        self.net1 = torch.nn.Linear(10, 10)
+        self.relu = torch.nn.ReLU()
+        self.net2 = torch.nn.Linear(10, 5)
+
+    def forward(self, x):
+        return self.net2(self.relu(self.net1(x)))
+
+class NonLinearModule(module_interface.ModuleInterface):
+    
+    def __init__(self):
+        super().__init__()
+        self.net = ToyModel()
+        inp = torch.randn(20, 10, device='cpu') # hardcode to 20 to match Andre, in the model call we vary batch size 20(0 virtual) and 4(5 virtual)
+        label = torch.randn(20, 5, device='cpu')
+        self.data = list(zip(inp,label)) # random data
+        self.lossfn = torch.nn.MSELoss()
+        self.original_state_dict = self.net.state_dict()
+
+    def get_optimizers_schedulers(
+        self, estimated_global_steps_per_epoch: int, epochs: int
+        ):
+        optimizer = torch.optim.SGD(self.net.parameters(), lr = 0.01)
+        return [optimizer], []
+        
+    def get_train_dataloader(
+        self, sampler:type, batch_size:int
+        ):
+        return torch.utils.data.DataLoader(self.data,batch_size = batch_size)
+    
+    def get_val_dataloaders(
+        self, sampler:torch.utils.data.Sampler, batch_size : int
+    ):
+        return torch.utils.data.DataLoader(self.data,batch_size = batch_size)
+
+    def train_step(
+        self, global_step: int, batch, device 
+        ):
+        inp, label = batch
+        pred = self.net(inp)
+        print("---------pred shape", pred.shape)
+        print("---------label shape", label.shape)
+        loss = self.lossfn(pred,label)
+        return loss
+        
+    def on_end_backward(self, global_step_completed, loss):
+        print(f'global_step_completed = {global_step_completed}')
+
+    def on_end_train_step(self, global_step_completed, loss):
+        print(f'global_step_completed = {global_step_completed}')
+
+    def val_step(self, global_step: int, batch, device):
+        inp, label = batch
+        pred = self.net(inp)
+        #print(pred, label)
+
+torch.manual_seed(40)
+random.seed(40)
+np.random.seed(40)
+class TestSingleProcessDpSgdWithNonLinear(unittest.TestCase):
+    
+    def setUp(self):
+        
+        self.trainer_backend = trainer_backend.SingleProcessDpSgd()
+        self.model = NonLinearModule()
+        
+        self.trainer_backendArgs = trainer_backend.TrainerBackendArguments(
+            model = self.model,
+            device = 'cpu',
+            max_train_steps_per_epoch= 1,
+            max_val_steps_per_epoch = 1,
+            distributed_training_args = DistributedTrainingArguments(),
+            optimizers = self.model.get_optimizers_schedulers(1,1)[0],
+            schedulers = [],
+            gradient_accumulation=1,
+            clip_grads=False,
+        )
+        self.trainer_backend.init(self.trainer_backendArgs)
+        self.trainer_backend.privacy_engine._set_seed(40)
+    
+    def setUp_dpVirtual(self):
+        self.model2=NonLinearModule()
+        self.model2.net.load_state_dict(self.model.original_state_dict) # load same starting point, Andre needs to do the same??
+        # new model required as PrivacyEngine detects duplicate wrapping
+        print("----------- Initiating second model with virtual step")
+        self.trainer_backend = trainer_backend.SingleProcessDpSgd()
+        self.trainer_backendArgs = trainer_backend.TrainerBackendArguments(
+            model = self.model2,
+            device = 'cpu',
+            max_train_steps_per_epoch= 1,
+            max_val_steps_per_epoch = 1,
+            distributed_training_args = DistributedTrainingArguments(),
+            optimizers = self.model2.get_optimizers_schedulers(1,1)[0],
+            schedulers = [],
+            gradient_accumulation=5,# To force virtual steps, effective batch size = batch_size * grad_acc
+            clip_grads=False,
+        )
+        self.trainer_backend.init(self.trainer_backendArgs)
+        self.trainer_backend.privacy_engine._set_seed(40)
+    
+    def setUp_vanillaSP(self):
+        self.model_simple = LinearModule()
+        print("----------- Initiating third model with vanilla SP")
+        self.trainer_backend = trainer_backend.SingleProcess()
+        self.model_simple.net.weight = torch.nn.Parameter(torch.Tensor([[self.model.original_weight]]))
+        self.trainer_backendArgs = trainer_backend.TrainerBackendArguments(
+            model = self.model_simple,
+            device = 'cpu',
+            max_train_steps_per_epoch= 1,
+            max_val_steps_per_epoch = 1,
+            distributed_training_args = DistributedTrainingArguments(),
+            optimizers = self.model_simple.get_optimizers_schedulers(1,1)[0],
+            schedulers = [],
+            gradient_accumulation=1,
+            clip_grads=False,
+        )
+        self.trainer_backend.init(self.trainer_backendArgs)
+
+    def test_train_dl_novirtual(self):
+        #DP model with no virtual steps
+        self.trainer_backend.train_dl(self.model.get_train_dataloader(sampler = None, batch_size = 20), self.model)
+        no_virtualfirst_layer_params = next(self.model.parameters())
+        no_virtualfirst_layer_weights = no_virtualfirst_layer_params.detach().cpu().numpy()
+
+        #DP model with 5 virtual steps
+        self.setUp_dpVirtual()
+        self.trainer_backend.train_dl(self.model2.get_train_dataloader(sampler = None, batch_size = 4), self.model)
+        virtualfirst_layer_params = next(self.model2.parameters())
+        virtualfirst_layer_weights = virtualfirst_layer_params.detach().cpu().numpy()
+        
+        first_layer_weight_diff = np.mean((no_virtualfirst_layer_weights - virtualfirst_layer_weights)**2)
+        print("DP 0 vs 4 virtual steps ", first_layer_weight_diff)
+        assert_almost_equal(first_layer_weight_diff,4.0406016e-07)
