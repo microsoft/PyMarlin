@@ -155,7 +155,7 @@ class LinearModule(module_interface.ModuleInterface):
         inp = torch.tensor([10]*10).view(-1,1)*1.0
         label = inp*2
         self.data = list(zip(inp,label)) # multiplication table of 2
-        print(list(self.data))
+        #print(list(self.data))
         self.original_weight = self.net.weight.item()
 
     def get_optimizers_schedulers(
@@ -202,16 +202,17 @@ import random
 torch.manual_seed(40)
 random.seed(40)
 np.random.seed(40)
-class TestSingleProcessDpSgd(unittest.TestCase):
+class TestSingleProcessDpSgdWithSingleWeight(unittest.TestCase):
     
     def setUp(self):
         
         self.trainer_backend = trainer_backend.SingleProcessDpSgd()
         self.model = LinearModule()
+        self.model2=LinearModule()
         self.trainer_backendArgs = trainer_backend.TrainerBackendArguments(
             model = self.model,
             device = 'cpu',
-            max_train_steps_per_epoch= 3,
+            max_train_steps_per_epoch= 4,
             max_val_steps_per_epoch = 1,
             distributed_training_args = DistributedTrainingArguments(),
             optimizers = self.model.get_optimizers_schedulers(1,1)[0],
@@ -227,13 +228,47 @@ class TestSingleProcessDpSgd(unittest.TestCase):
     #     assert hasattr(self.trainer_backend.args.optimizers[0], "privacy_engine")
     #     assert hasattr(self.trainer_backend.args.optimizers[0], "virtual_step")
     
-    def test_train_dl(self):
+    def test_train_dl_novirtual(self):
         self.trainer_backend.train_dl(self.model.get_train_dataloader(sampler = None, batch_size = 1), self.model)
         diff_delta = self.model.net.weight - self.model.original_weight
-        print("The delta in weight after Dp training: ", diff_delta)
+        print("The delta in weight after Dp training with no virtual: ", diff_delta)
         print("Original model weight: ", self.model.original_weight)
         print("modified model weight: ", self.model.net.weight.item())
-        assert diff_delta.item() == -2.957396984100342
+        assert diff_delta.item() == -5.177492618560791 ## after 4 steps of training with no virtual
+        self.no_virtual_weight = self.model.net.weight.item()
+        #check clipping
+        # print(self.trainer_backend.pe_init_args['max_grad_norm'])
+        # assert diff_delta <= self.trainer_backend.global_step_completed * self.trainer_backend.pe_init_args['max_grad_norm']
+        
+        # resetting model --- will trainer state cause issue?
+        print("----------- First model training done, initialize second model")
+        self.model2.net.weight = torch.nn.Parameter(torch.Tensor([[self.model.original_weight]])) #gymnastics
+        # new model required as PrivacyEngine detects duplicate wrapping
+        print("----------- Initiating second model with virtual step")
+        self.trainer_backendArgs = trainer_backend.TrainerBackendArguments(
+            model = self.model2,
+            device = 'cpu',
+            max_train_steps_per_epoch= 4,
+            max_val_steps_per_epoch = 1,
+            distributed_training_args = DistributedTrainingArguments(),
+            optimizers = self.model2.get_optimizers_schedulers(1,1)[0],
+            schedulers = [],
+            gradient_accumulation=2,
+            clip_grads=False,
+        )
+        self.trainer_backend.init(self.trainer_backendArgs)
+        self.trainer_backend.privacy_engine._set_seed(40)
+        self.trainer_backend.train_dl(self.model2.get_train_dataloader(sampler = None, batch_size = 1), self.model2)
+        diff_delta = self.model2.net.weight - self.model.original_weight
+        print("The delta in weight after Dp training WITH virtual: ", diff_delta)
+        print("Original model weight: ", self.model.original_weight)
+        print("modified model weight: ", self.model2.net.weight.item())
+        assert diff_delta.item() == -4.588745594024658
+        self.virtual_weight = self.model2.net.weight.item()
+        
+        Training_weight_diff = (self.no_virtual_weight- self.virtual_weight)
+        assert  Training_weight_diff == -0.5887470245361328
+
         #check clipping
         # print(self.trainer_backend.pe_init_args['max_grad_norm'])
         # assert diff_delta <= self.trainer_backend.global_step_completed * self.trainer_backend.pe_init_args['max_grad_norm']

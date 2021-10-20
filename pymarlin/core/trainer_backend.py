@@ -246,6 +246,7 @@ class SingleProcess(TrainerBackend):
 
                 if self.batches_completed % self.args.gradient_accumulation == 0:
                     # write global step mean loss to stats
+                    print("Regular step condition met") # Remove after testing
                     self.process_global_step(global_step_collector, callback)
 
         return epoch_collector.all_outputs
@@ -394,6 +395,7 @@ class SingleProcessDpSgd(SingleProcess):
     def _forward_backward(self, callback, batch):
         outputs = super()._forward_backward(callback, batch)
         if (self.batches_completed + 1) % self.args.gradient_accumulation != 0:
+            print("Virtual step condition met") # Remove after testing
             for optimizer in self.args.optimizers:
                 optimizer.virtual_step()
         return outputs
