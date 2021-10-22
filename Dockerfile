@@ -1,17 +1,18 @@
-FROM mcr.microsoft.com/azureml/base:openmpi3.1.2-ubuntu18.04
-RUN apt-get update
+FROM mcr.microsoft.com/azureml/openmpi4.1.0-cuda11.1-cudnn8-ubuntu18.04
 
+# install torch latest
+RUN conda install pytorch=1.9.1 cudatoolkit=11.1 -c pytorch -c nvidia
 
-# create conda environment
-RUN conda update -n base -c defaults conda -y
-RUN conda create -n marlin python=3.8 -y
-RUN echo ". /opt/miniconda/etc/profile.d/conda.sh" >> ~/.bashrc
+# install latest pymarlin published to pip with extra plugin dependencies like transformers (check setup.py)
+RUN pip install pymarlin[plugins] --ignore-installed
 
-#install torch latest
-# Cuda toolkit other than 1.2 makes GPUs invisible. Base image issue
-RUN conda install pytorch cudatoolkit=10.2 -c pytorch -y -n marlin
+# install opacus
+RUN pip install opacus
 
-ADD . /workdir
-WORKDIR /workdir
+# install deepspeed
+RUN pip install deepspeed
 
-RUN /opt/miniconda/envs/marlin/bin/pip install -U -e .
+# install ORT
+RUN pip install onnxruntime-training -f https://download.onnxruntime.ai/onnxruntime_stable_cu111.html
+RUN pip install torch-ort --ignore-installed
+RUN python -m torch_ort.configure
