@@ -23,7 +23,7 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.sampler import RandomSampler, SequentialSampler
 from torch.cuda.amp import autocast, GradScaler
-
+from opacus.layers import DifferentiallyPrivateDistributedDataParallel as DPDDP
 from opacus.privacy_engine import PrivacyEngine
 
 from pymarlin.core import module_interface
@@ -33,7 +33,8 @@ from pymarlin.utils.distributed import (
     SequentialDistributedSampler,
 )
 
-
+from opacus.per_sample_gradient_clip import PerSampleGradientClipper
+from opacus.utils import clipping
 try:
     from apex import amp
 except ImportError:
@@ -50,11 +51,13 @@ def build_trainer_backend(trainer_backend_name, *args, **kwargs):
     """
     factory_dict = {
         "sp": SingleProcess,
+        "sp-dp": SingleProcessDpSgd,
         "sp-amp": SingleProcessAmp,
         "sp-amp-apex": SingleProcessApexAmp,
         "ddp": DDPTrainerBackendFactory(SingleProcess),
         "ddp-amp": DDPTrainerBackendFactory(SingleProcessAmp),
         "ddp-amp-apex": DDPTrainerBackendFactory(SingleProcessApexAmp),
+        "ddp-dp": DDPTrainerBackendFactory(SingleProcessDpSgd)
     }
     return factory_dict[trainer_backend_name](*args, **kwargs)
 
@@ -79,6 +82,7 @@ class TrainerBackendArguments:
     amp_backend_native: bool = False
     amp_backend_apex: bool = False
     amp_level_apex: str = 'O1'
+    opacus_params: Optional[dict] = dataclasses.field(default_factory=dict)   
 
 
 class TrainerBackend(ABC):
@@ -246,7 +250,6 @@ class SingleProcess(TrainerBackend):
 
                 if self.batches_completed % self.args.gradient_accumulation == 0:
                     # write global step mean loss to stats
-                    print("Regular step condition met") # Remove after testing
                     self.process_global_step(global_step_collector, callback)
 
         return epoch_collector.all_outputs
@@ -362,44 +365,21 @@ class SingleProcessDpSgd(SingleProcess):
     Backend which supports Differential Privacy. We are using Opacus library.
     https://opacus.ai/api/privacy_engine.html
     '''
-    def __init__(
-        self,
-        pe_init_args :dict = {
-            'max_grad_norm':1.0, 
-            'sample_rate':0.01, 
-            'noise_multiplier':1.3
-            } ,
-        **superclass_kwargs):
-        '''
-        Update the trainer_backend from a checkpointed state.
 
-        Args:
-            pe_init_args (dict) : Privacy Engine init arguments. Documentation available at
-                https://opacus.ai/api/privacy_engine.html#opacus.privacy_engine.PrivacyEngine
-                Default value 
-                {
-                    'max_grad_norm':1.0, 
-                    'sample_rate':0.01, 
-                    'noise_multiplier':1.3
-                }
-        '''
-        super().__init__(**superclass_kwargs)
-        self.pe_init_args = pe_init_args
-    
     def init(self,args : TrainerBackendArguments):
         super().init(args)
-        self.privacy_engine = PrivacyEngine(self.model, **self.pe_init_args)
-        for optimizer in self.args.optimizers:
+        self.privacy_engine = PrivacyEngine(self.model, **self.args.opacus_params)#self.pe_init_args)
+        
+        self.model.train() # privacy engine does validation when attaching optimizer. Requires model in train mode
+        for optimizer in self.args.optimizers: # Modify here for partial
             self.privacy_engine.attach(optimizer)
     
     def _forward_backward(self, callback, batch):
         outputs = super()._forward_backward(callback, batch)
         if (self.batches_completed + 1) % self.args.gradient_accumulation != 0:
-            print("Virtual step condition met") # Remove after testing
             for optimizer in self.args.optimizers:
                 optimizer.virtual_step()
         return outputs
-
 
 # TODO: Merge SingleProcess and SingleProcessAmp after convergence test
 # jsleep: was this convergence test run and should this be merged?
@@ -759,6 +739,35 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
     @property
     def val_sampler(self):
         return SequentialDistributedSampler
+
+class DPDDPTrainerBackend(DDPTrainerBackend):
+    """Distributed Data Parallel TrainerBackend with Differential Privacy.
+
+    Wraps ModuleInterface model with DifferentiallyPrivateDistributedDataParallel which handles
+    gradient averaging across processes, along with virtual stepping.
+
+    .. note: Assumes initiailized model parameters are consistent across
+        processes - e.g. by using same random seed in each process at
+        point of model initialization.
+    """
+
+    def init(self, args: TrainerBackendArguments):
+        # unpack trainer_backend arguments
+        self.args = args
+        self.distributed_training_args = args.distributed_training_args
+
+        # Need to initiate the distributed env and set default devices before initializing APEX AMP, otherwise may hit CUDA memory error
+        self.setup_distributed_env()
+
+        super().init(args)
+
+        # wrapping up model
+        self.trainer_backend.model = DPDDP(
+            self.args.model  # DPDDP doesn't seem to take any other input
+            #device_ids=[self.args.device],
+            #output_device=self.args.device,
+            #find_unused_parameters=True,
+        )
 
 def DDPTrainerBackendFactory(trainer_backend_cls): # pylint: disable=invalid-name
     def create(*args, gather_frequency: Optional[int] = None, **kwargs):

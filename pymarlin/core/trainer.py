@@ -72,7 +72,7 @@ class TrainerArguments:
     amp_backend_native: bool = False
     amp_backend_apex: bool = False
     amp_level_apex: str = 'O1'
-
+    opacus_args: dict = field(default_factory=dict)
 
 class AbstractTrainer(ABC):
     """
@@ -116,6 +116,7 @@ class Trainer(AbstractTrainer):
         """
         self.module = module
         self.args = args
+        print("---------", self.args.opacus_args)
         assert not (self.args.amp_backend_native and self.args.amp_backend_apex), "Can only choose one AMP backend (native or apex), not both"
         self.trainer_backend = self._init_backend(trainer_backend)
         self.logger = getlogger(__name__, self.args.log_level)
@@ -457,5 +458,5 @@ class Trainer(AbstractTrainer):
             amp_backend_native=self.args.amp_backend_native,
             amp_backend_apex=self.args.amp_backend_apex,
             amp_level_apex=self.args.amp_level_apex,
-
+            opacus_params = self.args.opacus_args
         )

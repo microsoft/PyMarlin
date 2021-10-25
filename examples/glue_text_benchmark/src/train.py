@@ -1,3 +1,4 @@
+import opacus
 from pymarlin.core.module_interface import ModuleInterface
 from pymarlin.core.trainer import Trainer, TrainerArguments, WriterInitArguments,DistributedTrainingArguments,DefaultCheckpointerArguments
 from pymarlin.utils.stats.basic_stats import StatInitArguments
@@ -146,6 +147,8 @@ class SentenceClassifier(ModuleInterface):
             padding=True,
             truncation=True,
         )
+        position_tensor = torch.ones(input['input_ids'].shape)
+        input['position_ids'] = torch.cumsum(position_tensor, dim = 1).long()
         return input, torch.LongTensor(labels)
 
     def get_val_dataloaders(self, sampler: torch.utils.data.Sampler, batch_size: int):
@@ -343,7 +346,8 @@ def run_glue_finetune(config):
             **config["tr"], 
             writer_args=WriterInitArguments(**config["wrt"]), 
             stats_args = StatInitArguments(**config["stat"]),
-            checkpointer_args= DefaultCheckpointerArguments(**config["ckp"]) if 'ckp' in config else DefaultCheckpointerArguments()
+            checkpointer_args= DefaultCheckpointerArguments(**config["ckp"]) if 'ckp' in config else DefaultCheckpointerArguments(),
+            opacus_args=config["opacus"]
         ),
     )
     trainer.validate()
