@@ -222,6 +222,7 @@ class TestSingleProcessDpSgdWithSingleWeight(unittest.TestCase):
             schedulers = [],
             gradient_accumulation=1,
             clip_grads=False,
+            opacus_params={'max_grad_norm': 1.0, 'sample_rate': 0.01, 'noise_multiplier':1.3}
         )
         self.trainer_backend.init(self.trainer_backendArgs)
         self.trainer_backend.privacy_engine._set_seed(40)
@@ -242,6 +243,7 @@ class TestSingleProcessDpSgdWithSingleWeight(unittest.TestCase):
             schedulers = [],
             gradient_accumulation=2,# To force virtual steps
             clip_grads=False,
+            opacus_params={'max_grad_norm': 1.0, 'sample_rate': 0.01, 'noise_multiplier':1.3}
         )
         self.trainer_backend.init(self.trainer_backendArgs)
         self.trainer_backend.privacy_engine._set_seed(40)
@@ -415,6 +417,7 @@ class TestSingleProcessDpSgdWithNonLinear(unittest.TestCase):
             schedulers = [],
             gradient_accumulation=1,
             clip_grads=False,
+            opacus_params={'max_grad_norm': 1.0, 'sample_rate': 0.01, 'noise_multiplier':1.3}
         )
         self.trainer_backend.init(self.trainer_backendArgs)
         self.trainer_backend.privacy_engine._set_seed(40)
@@ -435,6 +438,7 @@ class TestSingleProcessDpSgdWithNonLinear(unittest.TestCase):
             schedulers = [],
             gradient_accumulation=5,# To force virtual steps, effective batch size = batch_size * grad_acc
             clip_grads=False,
+            opacus_params={'max_grad_norm': 1.0, 'sample_rate': 0.01, 'noise_multiplier':1.3}
         )
         self.trainer_backend.init(self.trainer_backendArgs)
         self.trainer_backend.privacy_engine._set_seed(40)
@@ -454,6 +458,7 @@ class TestSingleProcessDpSgdWithNonLinear(unittest.TestCase):
             schedulers = [],
             gradient_accumulation=1,
             clip_grads=False,
+            opacus_params={'max_grad_norm': 1.0, 'sample_rate': 0.01, 'noise_multiplier':1.3}
         )
         self.trainer_backend.init(self.trainer_backendArgs)
 
