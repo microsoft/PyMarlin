@@ -97,7 +97,7 @@ class HfSeqClassificationModule(PluginModuleInterface):
             return_token_type_ids=True,
             return_tensors="pt",
         )
-        tokens['labels'] = torch.tensor(label)        
+        tokens['labels'] = torch.tensor(label)
         return tokens
 
     def get_optimizers_schedulers(

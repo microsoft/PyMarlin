@@ -1,0 +1,47 @@
+glue_task : 'rte'
+
+mi:
+    encoder : "bert-base-cased"
+    tokenizer: "bert-base-cased"
+    num_labels : 3
+    max_lr : 0.0005
+    s1_key : 'premise'
+    s2_key : 'hypothesis'
+    max_length : 128
+    warmup : 0.06
+tr:
+    max_train_steps_per_epoch : null # Maximum train steps per epoch.
+    max_val_steps_per_epoch : null # Maximum validation steps per epoch.
+    train_batch_size: 32 # Training global batch size.
+    val_batch_size: 64 # Validation global batch size.
+    epochs: 3 # Total epochs to run.
+    gpu_batch_size_limit : 8 # Max limit for GPU batch size during training.
+    disable_tqdm : False
+    writers: ['stdout', 'aml', 'tensorboard']
+    backend: 'sp-dp'
+
+opacus:
+    sample_rate: 0.0000581 #0.0004 #snli: 32/550000
+    batch_size: null
+    sample_size: null
+    max_grad_norm: 1.0
+    noise_multiplier: 0.4
+    #alphas: List[float] = DEFAULT_ALPHAS,  Removed since default lies in Privacy engine
+    secure_rng: False
+    batch_first: True
+    target_delta: 0.000001818 #( 1/550000)
+    target_epsilon: 7.5 #Float
+    epochs: 3 #int
+    loss_reduction: "mean" #Indicates if the loss reduction (for aggregating the gradients) is a sum or a mean operation. Can take values "sum" or "mean"
+    poisson: False
+
+wrt:
+    tb_log_dir : 'logs_roberta_base/rte/from_pretrained'
+
+stat:
+    log_steps : 20
+dist:
+    local_rank : 1
+ckp:
+    checkpoint : True
+    period: 5

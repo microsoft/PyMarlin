@@ -91,7 +91,7 @@ class SentenceClassifier(ModuleInterface):
         self.max_length = max_length
         self.num_labels = num_labels
         self.warmup = warmup
-        self.glue_task = self.data_interface.glue_task
+        self.glue_task = self.data_interface.task
         
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer) if type(tokenizer) == str else tokenizer 
 
@@ -106,7 +106,22 @@ class SentenceClassifier(ModuleInterface):
         
         self.net = Classifier(encoder, self.num_labels)
         
-        self.optimizer = optim.Adam(self.parameters(), lr=max_lr)
+        trainable_layers = [self.encoder.encoder.layer[-1], self.encoder.pooler, self.net]
+        total_params = 0
+        trainable_params = 0
+
+        for n,p in self.named_parameters():
+                p.requires_grad = False
+                total_params += p.numel()
+
+        for layer in trainable_layers:            
+            for p in layer.parameters():
+                p.requires_grad = True
+                trainable_params += p.numel()
+
+        print(f"Total parameters count: {total_params}") # ~108M
+        print(f"Trainable parameters count: {trainable_params}") # ~7M"""
+        self.optimizer = optim.AdamW(self.parameters(), lr=max_lr)
 
 
     def get_optimizers_schedulers(
@@ -191,6 +206,9 @@ class SentenceClassifier(ModuleInterface):
         outputs = self.net(encoder(**inputs))
         if self.num_labels ==1:
             outputs.logits = outputs.logits.squeeze()
+        #print("logits shape: ", outputs.logits.shape)
+        #print("logits: ", outputs.logits)
+        #print("labels: ", labels)
         loss = self.criterion(outputs.logits, labels)
         if self.num_labels ==1:
             predicted = outputs.logits.data
@@ -209,13 +227,13 @@ class SentenceClassifier(ModuleInterface):
         loss = loss.mean().item()
         acc = accuracy_score(labels, predicted)
         mcc = matthews_corrcoef(labels, predicted)
-        f1 = f1_score(labels,predicted)
+        #f1 = f1_score(labels,predicted)
         global_stats.update(f"{self.glue_task}/val/loss", loss)
         global_stats.update(f"{self.glue_task}/val/acc", acc)
         global_stats.update(f"{self.glue_task}/val/mcc", mcc)
-        global_stats.update(f"{self.glue_task}/val/f1", f1)
-        if hasattr(self.optimizer, "get_privacy_spent"):
-            eps, alpha = self.optimizer.privacy_engine.get_privacy_spent(0.003212)
+        #global_stats.update(f"{self.glue_task}/val/f1", f1)
+        if hasattr(self.optimizer, "virtual_step"):
+            eps, alpha = self.optimizer.privacy_engine.get_privacy_spent()
             global_stats.update(f"{self.glue_task}/val/epsilon", eps)
         global_stats.update
         # global_stats.log_model(global_step, self, force = True, grad_scale=1)
@@ -240,107 +258,18 @@ class SentencePairClassifier(SentenceClassifier):
             truncation=True,
         )
         # print(input, input['input_ids'].shape)
+        position_tensor = torch.ones(input['input_ids'].shape)
+        input['position_ids'] = torch.cumsum(position_tensor, dim = 1).long()
         return input, torch.LongTensor(labels)
-
-class STSBPairClassifier(SentencePairClassifier):
-    def __init__(self, *args, s1_key = 'sentence1', s2_key = 'sentence2', **kwargs,):
-        super().__init__(*args,s1_key=s1_key,s2_key=s2_key, **kwargs)
-        self.criterion = nn.MSELoss()
-        self.num_labels = 1
-        # print(self.net.state_dict())
     
-    def collate_fun(self, batch):
-        # print(batch)
-        batch = torch.utils.data._utils.collate.default_collate(batch)
-        labels = batch["label"]
-        input = self.tokenizer(
-            text = batch[self.s1_key],
-            text_pair = batch[self.s2_key],
-            max_length=self.max_length,
-            return_tensors="pt",
-            padding=True,
-            truncation=True,
-        )
-        # print(input, input['input_ids'].shape)
-        return input, labels.float()
-    
-    def pearson_and_spearman(self, labels, preds):
-        pearson_corr = pearsonr(preds, labels)[0]
-        spearman_corr = spearmanr(preds, labels)[0]
-        return {
-            "pearson": pearson_corr,
-            "spearmanr": spearman_corr,
-            "corr": (pearson_corr + spearman_corr) / 2,
-        }
-        
-    def on_end_val_epoch(
-        self, global_step: int, *val_step_collated_outputs, key="default"
-    ):
-        """
-        callback after validation loop ends
-        """
-        loss, predicted, labels = val_step_collated_outputs
-        # print(labels, predicted)
-        loss = loss.mean().item()
-        correlations = self.pearson_and_spearman(labels, predicted)
-        #https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.stats.spearmanr.html
-        global_stats.update(f"{self.glue_task}/val_{key}/loss", loss)
-        global_stats.update_multi(f"{self.glue_task}/val_{key}", correlations)
-    
-class MNLIClassifier(SentencePairClassifier):
-    def __init__(self, *args, max_batches_per_epoch = 500 , **kwargs):
-        super().__init__(*args,**kwargs)
-        self.max_batches_per_epoch = max_batches_per_epoch
-        self.dl = None
-
-    
-    def get_val_dataloaders(self, sampler: torch.utils.data.Sampler, batch_size: int):
-        return {key:torch.utils.data.DataLoader(
-                ds,
-                sampler = sampler(ds),
-                batch_size=batch_size,
-                collate_fn=self.collate_fun,
-            ) for key,ds in self.data_interface.get_val_dataset().items()}
-
-    def on_end_val_epoch(
-        self, global_step: int, *val_step_collated_outputs, key="default"
-    ):
-        """
-        callback after validation loop ends
-        """
-        loss, predicted, labels = val_step_collated_outputs
-        # print(labels, predicted)
-        loss = loss.mean().item()
-        acc = accuracy_score(labels, predicted)
-        global_stats.update(f"{self.glue_task}/val_{key}/loss", loss)
-        global_stats.update(f"{self.glue_task}/val_{key}/acc", acc)
-        # global_stats.log_model(global_step, self, force = True, grad_scale=1)
-
-def recipe_factory(glue_task, *args, **kwargs):
-    factory = {
-        'cola':SentenceClassifier,
-        'qqp':SentencePairClassifier,
-        'rte':SentencePairClassifier,
-        'qnli':SentencePairClassifier,
-        'mnli':MNLIClassifier,
-        'sst2':SentenceClassifier,
-        'stsb':STSBPairClassifier,
-        'wnli':SentencePairClassifier,
-        'mrpc':SentencePairClassifier,
-    }
-    return factory[glue_task](*args, **kwargs)
-    
-from data import GlueData
+from data import SnliData
 
 def run_glue_finetune(config):
-
-    glue_task = config['glue_task']
-    print(glue_task)
-    data = GlueData()
-    data.setup_datasets(glue_task)
+    data = SnliData()
+    data.setup_datasets("snli")
     print(data.get_train_dataset()[:5])
 
-    recipe = recipe_factory(glue_task, data_interface = data, **config['mi'])
+    recipe = SentencePairClassifier(data_interface = data, **config['mi'])
 
     # Training code
     print(recipe)

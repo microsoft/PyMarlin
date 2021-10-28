@@ -47,10 +47,10 @@ distill:
 # trainer arguments
 trainer:
     backend: "sp"
-    train_batch_size: 32 # Training global batch size.
-    val_batch_size: 16 # Validation global batch size.
+    train_batch_size: 4 # Training global batch size.
+    val_batch_size: 4 # Validation global batch size.
     epochs: 5 # Total epochs to run.
-    gpu_batch_size_limit : 8 # Max limit for GPU batch size during training.
+    gpu_batch_size_limit : 4 # Max limit for GPU batch size during training.
     clip_grads : True # Enable or disable clipping of gradients.
     use_gpu: True # Enable or disable use of GPU.
     max_grad_norm: 1.0 # Maximum value for gradient norm.

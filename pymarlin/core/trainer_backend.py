@@ -368,7 +368,7 @@ class SingleProcessDpSgd(SingleProcess):
 
     def init(self,args : TrainerBackendArguments):
         super().init(args)
-        self.privacy_engine = PrivacyEngine(self.model, **self.args.opacus_params)#self.pe_init_args)
+        self.privacy_engine = PrivacyEngine(self.model, **self.args.opacus_params)
         
         self.model.train() # privacy engine does validation when attaching optimizer. Requires model in train mode
         for optimizer in self.args.optimizers: # Modify here for partial
