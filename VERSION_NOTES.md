@@ -1,6 +1,6 @@
 # Version Notes:
 ## 0.3.1
-* Version parity for Pypi and Polymer.
+* Version parity for Pypi.
 
 ## 0.2.8
 * Incremented the dependency to torch<=1.9.1
