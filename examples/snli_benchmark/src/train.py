@@ -1,3 +1,5 @@
+import sys
+
 import opacus
 from pymarlin.core.module_interface import ModuleInterface
 from pymarlin.core.trainer import Trainer, TrainerArguments, WriterInitArguments,DistributedTrainingArguments,DefaultCheckpointerArguments
@@ -280,7 +282,8 @@ def run_glue_finetune(config):
             writer_args=WriterInitArguments(**config["wrt"]), 
             stats_args = StatInitArguments(**config["stat"]),
             checkpointer_args= DefaultCheckpointerArguments(**config["ckp"]) if 'ckp' in config else DefaultCheckpointerArguments(),
-            opacus_args=config["opacus"]
+            opacus_args=config["opacus"],
+            # dp_optimizer_ids=config["dp_optimizer_ids"]
         ),
     )
 

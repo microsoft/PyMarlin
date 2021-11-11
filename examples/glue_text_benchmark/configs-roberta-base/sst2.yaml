@@ -4,18 +4,18 @@ mi:
     encoder : "bert-base-uncased"
     tokenizer: "bert-base-uncased"
     num_labels : 2
-    max_lr : 0.0002
+    max_lr : 0.00002
     max_length : 128
 tr:
-    max_train_steps_per_epoch : 100 # Maximum train steps per epoch.
+    max_train_steps_per_epoch : null # Maximum train steps per epoch.
     max_val_steps_per_epoch : null # Maximum validation steps per epoch.
     train_batch_size: 32 # Training global batch size.
-    val_batch_size: 4 # Validation global batch size.
-    epochs: 10 # Total epochs to run.
-    gpu_batch_size_limit : 4 # Max limit for GPU batch size during training.
+    val_batch_size: 64 # Validation global batch size.
+    epochs: 3 # Total epochs to run.
+    gpu_batch_size_limit : 8 # Max limit for GPU batch size during training.
     disable_tqdm : False
     writers: ['stdout', 'aml', 'tensorboard']
-    backend: 'ddp-dp'
+    backend: 'sp'
 
 opacus:
     sample_rate: 0.0001 #0.0004

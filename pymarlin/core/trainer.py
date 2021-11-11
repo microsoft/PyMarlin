@@ -16,6 +16,7 @@ provide a custom `TrainerBackend`.
 """
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+import dataclasses
 from typing import List, Optional
 from tqdm.auto import trange
 import torch
@@ -73,6 +74,7 @@ class TrainerArguments:
     amp_backend_apex: bool = False
     amp_level_apex: str = 'O1'
     opacus_args: dict = field(default_factory=dict)
+    # dp_optimizer_ids: List = dataclasses.field(default_factory=list)   
 
 class AbstractTrainer(ABC):
     """
@@ -116,7 +118,7 @@ class Trainer(AbstractTrainer):
         """
         self.module = module
         self.args = args
-        print("---------", self.args.opacus_args)
+        print("--------- OPACUS ARGS ------", self.args.opacus_args)
         assert not (self.args.amp_backend_native and self.args.amp_backend_apex), "Can only choose one AMP backend (native or apex), not both"
         self.trainer_backend = self._init_backend(trainer_backend)
         self.logger = getlogger(__name__, self.args.log_level)
@@ -379,6 +381,7 @@ class Trainer(AbstractTrainer):
         assert (
                 batch_size <= self.args.gpu_batch_size_limit
         ), "Train step batch size calculated too high. fix calculation logic"
+        # print("TRAIN STEP BS ", batch_size)
         return batch_size
 
     @property
@@ -458,5 +461,6 @@ class Trainer(AbstractTrainer):
             amp_backend_native=self.args.amp_backend_native,
             amp_backend_apex=self.args.amp_backend_apex,
             amp_level_apex=self.args.amp_level_apex,
-            opacus_params = self.args.opacus_args
+            opacus_params = self.args.opacus_args,
+            # opacus_optimizer_ids = self.args.dp_optimizer_ids
         )

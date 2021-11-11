@@ -1,8 +1,8 @@
 glue_task: 'mnli'
 
 mi:
-    encoder : "roberta-base"
-    tokenizer: "roberta-base"
+    encoder : "bert-base-uncased" #"roberta-base"
+    tokenizer: "bert-base-uncased" #"roberta-base"
     num_labels : 3
     max_lr : 0.00002
     s1_key : 'premise'
@@ -13,10 +13,25 @@ tr:
     train_batch_size: 32 # Training global batch size.
     val_batch_size: 64 # Validation global batch size.
     epochs: 3 # Total epochs to run.
-    gpu_batch_size_limit : 16 # Max limit for GPU batch size during training.
+    gpu_batch_size_limit : 8 # Max limit for GPU batch size during training.
     disable_tqdm : False
-    writers: ["tensorboard"]
+    writers: ['stdout', 'aml', 'tensorboard']
     backend: 'sp'
+
+opacus:
+    sample_rate: 0.0001 #0.0004
+    batch_size: null
+    sample_size: null
+    max_grad_norm: 1.0
+    noise_multiplier: 0.8
+    #alphas: List[float] = DEFAULT_ALPHAS,  Removed since default lies in Privacy engine
+    secure_rng: False
+    batch_first: True
+    target_delta: 0.000006
+    target_epsilon: null #Float
+    epochs: null #int
+    loss_reduction: "mean" #Indicates if the loss reduction (for aggregating the gradients) is a sum or a mean operation. Can take values "sum" or "mean"
+    poisson: False
 
 wrt:
     tb_log_dir : 'logs_roberta_base/mnli/from_pretrained'

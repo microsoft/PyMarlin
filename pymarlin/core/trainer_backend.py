@@ -15,7 +15,7 @@ Alternatively a user can provide a custom `TrainerBackend`.
 from tqdm.auto import tqdm
 from abc import ABC, abstractmethod
 import dataclasses
-from typing import Iterable, Optional, Union
+from typing import Iterable, Optional, Union, List
 import warnings
 
 import torch
@@ -83,6 +83,7 @@ class TrainerBackendArguments:
     amp_backend_apex: bool = False
     amp_level_apex: str = 'O1'
     opacus_params: Optional[dict] = dataclasses.field(default_factory=dict)   
+    # opacus_optimizer_ids: List = dataclasses.field(default_factory=list)   
 
 
 class TrainerBackend(ABC):
@@ -227,6 +228,7 @@ class SingleProcess(TrainerBackend):
         # But will this hinder inheritence as different trainer_backends will need different stuff from train module
         with tqdm(dataloader, unit="batch", disable=self.args.disable_tqdm) as tbatch:
             for _, batch in enumerate(tbatch):
+                print("BATCH = ", batch)
                 if (
                         self.args.max_train_steps_per_epoch
                         and self.global_step_this_epoch
@@ -371,15 +373,60 @@ class SingleProcessDpSgd(SingleProcess):
         self.privacy_engine = PrivacyEngine(self.model, **self.args.opacus_params)
         
         self.model.train() # privacy engine does validation when attaching optimizer. Requires model in train mode
-        for optimizer in self.args.optimizers: # Modify here for partial
+        
+        # # DESIGN CHOICE: How does user convey which one is DP opt?
+        # assert isinstance(self.args.opacus_optimizer_ids, list), \
+        #     "Pass list of indices indicating which optimizers are DP"
+        # self.dp_optimizers, self.nodp_optimizers, self.nodp_params = [], [], []
+        # for i in range(len(self.args.optimizers)):
+        #     if i in self.args.opacus_optimizer_ids:
+        #         self.dp_optimizers.append(self.args.optimizers[i])
+        #     else:
+        #         self.nodp_optimizers.append(self.args.optimizers[i])
+        #         for param_group in self.args.optimizers[i].param_groups:
+        #             self.nodp_params.extend(param_group['params'])
+        # print("DP OPTs = ", self.dp_optimizers)
+        # print("NoDP OPTs = ", self.nodp_optimizers)
+
+        for optimizer in self.args.optimizers:
             self.privacy_engine.attach(optimizer)
+             
     
     def _forward_backward(self, callback, batch):
         outputs = super()._forward_backward(callback, batch)
         if (self.batches_completed + 1) % self.args.gradient_accumulation != 0:
             for optimizer in self.args.optimizers:
+                # toggle no dp params (set to False)
+                # self._toggle_requires_grad(self.nodp_params, False)
                 optimizer.virtual_step()
+                # toggle no dp params (set to True)
+                # self._toggle_requires_grad(self.nodp_params, True)
         return outputs
+
+    def optimize(self, optimizers, schedulers):
+        # # first step all no dp opts, then toggle (set no dp params to False)
+        # # then step all dp opts, then toggle (set no dp params to True again)   
+        # for optimizer in self.nodp_optimizers:
+        #     optimizer.step()
+        # # # grab all the no dp params and toggle
+        # self._toggle_requires_grad(self.nodp_params, False) # False
+
+        for optimizer in self.args.optimizers:
+            optimizer.step()
+        # grab all the no dp params and toggle
+        # self._toggle_requires_grad(self.nodp_params, True) # True
+
+        for optimizer in optimizers:
+            optimizer.zero_grad()
+
+        if schedulers:
+            for scheduler in schedulers:
+                scheduler.step()
+
+    # def _toggle_requires_grad(self, params, bool_param):
+    #     for p in params:
+    #         # p.requires_grad = not p.requires_grad
+    #         p.requires_grad = bool_param
 
 # TODO: Merge SingleProcess and SingleProcessAmp after convergence test
 # jsleep: was this convergence test run and should this be merged?
@@ -750,6 +797,10 @@ class DPDDPTrainerBackend(DDPTrainerBackend):
         processes - e.g. by using same random seed in each process at
         point of model initialization.
     """
+    def __init__(self, trainer_backend, gather_frequency: Optional[int] = None):
+        self.trainer_backend = trainer_backend
+        self.gather_frequency = gather_frequency
+        self.trainer_backend.distributed = True
 
     def init(self, args: TrainerBackendArguments):
         # unpack trainer_backend arguments
@@ -764,9 +815,6 @@ class DPDDPTrainerBackend(DDPTrainerBackend):
         # wrapping up model
         self.trainer_backend.model = DPDDP(
             self.args.model  # DPDDP doesn't seem to take any other input
-            #device_ids=[self.args.device],
-            #output_device=self.args.device,
-            #find_unused_parameters=True,
         )
 
 def DDPTrainerBackendFactory(trainer_backend_cls): # pylint: disable=invalid-name
