@@ -57,7 +57,7 @@ def build_trainer_backend(trainer_backend_name, *args, **kwargs):
         "ddp": DDPTrainerBackendFactory(SingleProcess),
         "ddp-amp": DDPTrainerBackendFactory(SingleProcessAmp),
         "ddp-amp-apex": DDPTrainerBackendFactory(SingleProcessApexAmp),
-        "ddp-dp": DDPTrainerBackendFactory(SingleProcessDpSgd)
+        "ddp-dp": DPDDPTrainerBackendFactory(SingleProcessDpSgd)
     }
     return factory_dict[trainer_backend_name](*args, **kwargs)
 
@@ -391,9 +391,21 @@ class SingleProcessDpSgd(SingleProcess):
         for optimizer in self.args.optimizers:
             self.privacy_engine.attach(optimizer)
              
-    
     def _forward_backward(self, callback, batch):
-        outputs = super()._forward_backward(callback, batch)
+        # forward
+        outputs = self.model.forward(
+            stage=module_interface.Stage.TRAIN,
+            batch=batch,
+            device=self.args.device,
+            global_step=self.global_step_completed + 1,
+        )
+        # assume iterable if first return type is not a list
+        outputs = [outputs] if isinstance(outputs, torch.Tensor) else outputs
+        loss = outputs[0]
+        # backward. This will keep on accumulating gradients
+        loss.backward()
+        callback.on_end_backward(self.global_step_completed, loss)
+
         if (self.batches_completed + 1) % self.args.gradient_accumulation != 0:
             for optimizer in self.args.optimizers:
                 # toggle no dp params (set to False)
@@ -654,6 +666,7 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
         # unpack trainer_backend arguments
         self.args = args
         self.distributed_training_args = args.distributed_training_args
+        print("USING REGULAR DDP TRAINER")
 
         # Need to initiate the distributed env and set default devices before initializing APEX AMP, otherwise may hit CUDA memory error
         self.setup_distributed_env()
@@ -803,6 +816,8 @@ class DPDDPTrainerBackend(DDPTrainerBackend):
         self.trainer_backend.distributed = True
 
     def init(self, args: TrainerBackendArguments):
+        print("USING DPDDP TRAINER")
+
         # unpack trainer_backend arguments
         self.args = args
         self.distributed_training_args = args.distributed_training_args
@@ -810,7 +825,7 @@ class DPDDPTrainerBackend(DDPTrainerBackend):
         # Need to initiate the distributed env and set default devices before initializing APEX AMP, otherwise may hit CUDA memory error
         self.setup_distributed_env()
 
-        super().init(args)
+        self.trainer_backend.init(args)
 
         # wrapping up model
         self.trainer_backend.model = DPDDP(
@@ -821,5 +836,12 @@ def DDPTrainerBackendFactory(trainer_backend_cls): # pylint: disable=invalid-nam
     def create(*args, gather_frequency: Optional[int] = None, **kwargs):
         # pull out args to DDPTrainerBackend if needed here.
         return DDPTrainerBackend(trainer_backend_cls(*args, **kwargs), gather_frequency=gather_frequency)
+
+    return create
+
+def DPDDPTrainerBackendFactory(trainer_backend_cls): # pylint: disable=invalid-name
+    def create(*args, gather_frequency: Optional[int] = None, **kwargs):
+        # pull out args to DDPTrainerBackend if needed here.
+        return DPDDPTrainerBackend(trainer_backend_cls(*args, **kwargs), gather_frequency=gather_frequency)
 
     return create
