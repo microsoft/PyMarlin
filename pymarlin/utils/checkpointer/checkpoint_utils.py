@@ -4,7 +4,7 @@ Checkpointer class and utility functions.
 
 import os
 import re
-from typing import Optional, Dict
+from typing import Optional, Dict, Tuple, Callable
 from abc import ABC, abstractmethod
 from operator import itemgetter
 from dataclasses import dataclass
@@ -302,9 +302,10 @@ class BestCheckpointerArguments(DefaultCheckpointerArguments):
     load_best: whether to load best or latest checkpoint. Default behavior is to load latest.
     """
     metric_name: str = "val_perplexity"
+    init_metric_val: Optional[float] = None
+    criteria: Optional[Tuple[str, Callable]] = "min"
     save_every_epoch: bool = False  # not usually necessary in practice
     load_best: bool = False  # default to load latest
-    criteria: str = "min"
 
 
 class BestCheckpointer(DefaultCheckpointer):
@@ -318,14 +319,18 @@ class BestCheckpointer(DefaultCheckpointer):
         super().__init__(args)
         self.best_checkpoint_name = f"{self.args.file_prefix}_best_checkpoint.{self.args.file_ext}"
         self.latest_checkpoint_name = f"{self.args.file_prefix}_latest_checkpoint.{self.args.file_ext}"
-        self.best_model_name = f"{self.args.file_prefix}_best_model.{self.args.file_ext}"
-        self.latest_model_name = f"{self.args.file_prefix}_latest_model.{self.args.file_ext}"
         if self.args.criteria == 'min':
+            self.criteria_func = lambda new, old: new < old
             self.best_metric = float('inf')
         elif self.args.criteria == 'max':
+            self.criteria_func = lambda new, old: new > old
             self.best_metric = -float('inf')
         else:
-            raise ValueError(f"Metric criteria {self.args.criteria} is not min or max.")
+            self.criteria_func = self.args.criteria
+            self.best_metric = self.args.init_metric_value
+
+        if self.args.init_metric_value is not None:
+            self.best_metric = self.args.init_metric_value
 
     def save(self, checkpoint_state: Checkpoint, index: int, force=False) -> str:
         """
@@ -347,8 +352,7 @@ class BestCheckpointer(DefaultCheckpointer):
             metric = float(checkpoint_state.module_interface_state[self.args.metric_name])
 
             # optiionally save best
-            if (self.args.criteria == 'min' and metric <= self.best_metric) or \
-                    (self.args.criteria == 'max' and metric >= self.best_metric):
+            if self.criteria_func(metric, self.best_metric):
                 self.best_metric = metric
                 best_path = os.path.join(self.args.save_dir, self.best_checkpoint_name)
                 torch.save(checkpoint_state.__dict__, best_path)
