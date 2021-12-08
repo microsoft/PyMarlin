@@ -824,11 +824,9 @@ class DPDDPTrainerBackend(DDPTrainerBackend):
         # Need to initiate the distributed env and set default devices before initializing APEX AMP, otherwise may hit CUDA memory error
         self.setup_distributed_env()
 
-        # wrapping up model
-        self.trainer_backend.model = DPDDP(
-            self.args.model  # DPDDP doesn't seem to take any other input
-        )
-
+        # need to wrap model with DPDDP before initializing Privacy Engine
+        self.args.model = DPDDP(self.args.model)
+        
         self.trainer_backend.init(args)
 
 def DDPTrainerBackendFactory(trainer_backend_cls): # pylint: disable=invalid-name
