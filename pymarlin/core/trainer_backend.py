@@ -228,7 +228,6 @@ class SingleProcess(TrainerBackend):
         # But will this hinder inheritence as different trainer_backends will need different stuff from train module
         with tqdm(dataloader, unit="batch", disable=self.args.disable_tqdm) as tbatch:
             for _, batch in enumerate(tbatch):
-                print("BATCH = ", batch)
                 if (
                         self.args.max_train_steps_per_epoch
                         and self.global_step_this_epoch
