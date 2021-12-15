@@ -298,13 +298,13 @@ class BestCheckpointerArguments(DefaultCheckpointerArguments):
     """Additional arguments for checkpointer
 
     metric_name: name of metric where minimal is defined as best. Must be a registered buffer in module interface
-    save_every_epoch: whether to produce a checkpointer every epoch in addition to latest and best.
+    save_intermediate_checkpoints: whether to produce a checkpointer every epoch in addition to latest and best.
     load_best: whether to load best or latest checkpoint. Default behavior is to load latest.
     """
     metric_name: str = "val_perplexity"
     init_metric_val: Optional[float] = None
     criteria: Optional[Tuple[str, Callable]] = "min"
-    save_every_epoch: bool = False  # not usually necessary in practice
+    save_intermediate_checkpoints: bool = False  # not usually necessary in practice
     load_best: bool = False  # default to load latest
 
 
@@ -345,11 +345,13 @@ class BestCheckpointer(DefaultCheckpointer):
             list of paths checkpoint state was saved to
         """
         paths = []
-        if self.args.save_every_epoch:
+        if self.args.save_intermediate_checkpoints:
             paths.append(super().save(checkpoint_state, index, force))
-        if self.args.checkpoint and ((index % self.args.period == 0) or force):
-            # TODO grab this from logged metrics instead
+        if self.args.checkpoint:
+            # TODO grab this from logged metrics instead, checkpoint state is hacky
+            self.logger.debug(f"Available metrics {checkpoint_state.module_interface_state.keys()}")
             metric = float(checkpoint_state.module_interface_state[self.args.metric_name])
+            self.logger.info(f"epoch {index}: metric {self.args.metric_name}={metric}, best score={self.best_metric}")
 
             # optiionally save best
             if self.criteria_func(metric, self.best_metric):
