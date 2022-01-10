@@ -288,8 +288,8 @@ def run_glue_finetune(config):
     )
 
     #self.trainer_type = config["tr"]["backend"]
-    trainer.validate()
     trainer.train()
+    trainer.validate()
 
 if __name__ == "__main__":
     # torch.manual_seed(0)
