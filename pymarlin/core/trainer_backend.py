@@ -23,8 +23,7 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.sampler import RandomSampler, SequentialSampler
 from torch.cuda.amp import autocast, GradScaler
-from opacus.layers import DifferentiallyPrivateDistributedDataParallel as DPDDP
-from opacus.privacy_engine import PrivacyEngine
+from opacus.distributed import DifferentiallyPrivateDistributedDataParallel as DPDDP
 
 from pymarlin.core import module_interface
 from pymarlin.utils import stats
@@ -33,8 +32,6 @@ from pymarlin.utils.distributed import (
     SequentialDistributedSampler,
 )
 
-from opacus.per_sample_gradient_clip import PerSampleGradientClipper
-from opacus.utils import clipping
 try:
     from apex import amp
 except ImportError:
@@ -367,9 +364,12 @@ class SingleProcessDpSgd(SingleProcess):
     https://opacus.ai/api/privacy_engine.html
     '''
 
-    def init(self,args : TrainerBackendArguments):
+    def init(self, args : TrainerBackendArguments):
         super().init(args)
-        self.privacy_engine = PrivacyEngine(self.model, **self.args.opacus_params)
+
+        # wrap model
+        from opacus import GradSampleModule
+        self.model = GradSampleModule(self.model)
         
         self.model.train() # privacy engine does validation when attaching optimizer. Requires model in train mode
         
@@ -387,8 +387,39 @@ class SingleProcessDpSgd(SingleProcess):
         # print("DP OPTs = ", self.dp_optimizers)
         # print("NoDP OPTs = ", self.nodp_optimizers)
 
-        for optimizer in self.args.optimizers:
-            self.privacy_engine.attach(optimizer)
+        # initialize privacy accountant
+        from opacus.accountants import RDPAccountant
+        self.accountant = RDPAccountant()
+
+        optimizer = self.args.optimizers[0]
+        # wrap optimizer
+        world_size = self.args.distributed_training_args.world_size
+        if world_size > 1:
+            from opacus.optimizers import DistributedDPOptimizer
+            self.args.opacus_params["batch_size"] = self.args.opacus_params["batch_size"]//world_size
+            optimizer = DistributedDPOptimizer(
+                optimizer=optimizer,
+                noise_multiplier=self.args.opacus_params["noise_multiplier"], # same as make_private arguments
+                max_grad_norm=self.args.opacus_params["max_grad_norm"], # same as make_private arguments
+                expected_batch_size=self.args.opacus_params["batch_size"] # if you're averaging your gradients, you need to know the denominator
+            )
+        else:
+            from opacus.optimizers import DPOptimizer
+            optimizer = DPOptimizer(
+                optimizer=optimizer,
+                noise_multiplier=self.args.opacus_params["noise_multiplier"], # same as make_private arguments
+                max_grad_norm=self.args.opacus_params["max_grad_norm"], # same as make_private arguments
+                expected_batch_size=self.args.opacus_params["batch_size"] # if you're averaging your gradients, you need to know the denominator
+            )
+
+        # attach accountant to track privacy for an optimizer
+        optimizer.attach_step_hook(
+            self.accountant.get_optimizer_hook_fn(
+            # this is an important parameter for privacy accounting. Should be equal to batch_size / len(dataset)
+            sample_rate=self.args.opacus_params["sample_rate"]
+            )
+        )
+        self.args.optimizers = [optimizer]
              
     def _forward_backward(self, callback, batch):
         # forward
@@ -405,13 +436,20 @@ class SingleProcessDpSgd(SingleProcess):
         loss.backward()
         callback.on_end_backward(self.global_step_completed, loss)
 
+        # if (self.batches_completed + 1) % self.args.gradient_accumulation != 0:
+        #     for optimizer in self.args.optimizers:
+        #         # toggle no dp params (set to False)
+        #         # self._toggle_requires_grad(self.nodp_params, False)
+        #         optimizer.virtual_step()
+        #         # toggle no dp params (set to True)
+        #         # self._toggle_requires_grad(self.nodp_params, True)
         if (self.batches_completed + 1) % self.args.gradient_accumulation != 0:
             for optimizer in self.args.optimizers:
-                # toggle no dp params (set to False)
-                # self._toggle_requires_grad(self.nodp_params, False)
-                optimizer.virtual_step()
-                # toggle no dp params (set to True)
-                # self._toggle_requires_grad(self.nodp_params, True)
+                optimizer.signal_skip_step(do_skip=True)
+            self.optimize(self.args.optimizers, self.args.schedulers)
+        else:
+            for optimizer in self.args.optimizers:
+                optimizer.signal_skip_step(do_skip=False)
         return outputs
 
     def optimize(self, optimizers, schedulers):
