@@ -79,8 +79,7 @@ class TrainerBackendArguments:
     amp_backend_native: bool = False
     amp_backend_apex: bool = False
     amp_level_apex: str = 'O1'
-    opacus_params: Optional[dict] = dataclasses.field(default_factory=dict)   
-    # opacus_optimizer_ids: List = dataclasses.field(default_factory=list)   
+    opacus_params: Optional[dict] = dataclasses.field(default_factory=dict)   # (effective) batch_size, sample_rate, noise_multiplier, max_grad_norm, target_delta
 
 
 class TrainerBackend(ABC):
@@ -367,31 +366,19 @@ class SingleProcessDpSgd(SingleProcess):
     def init(self, args : TrainerBackendArguments):
         super().init(args)
 
+        self.model.train()
+
         # wrap model
         from opacus import GradSampleModule
         self.model = GradSampleModule(self.model)
-        
-        self.model.train() # privacy engine does validation when attaching optimizer. Requires model in train mode
-        
-        # # DESIGN CHOICE: How does user convey which one is DP opt?
-        # assert isinstance(self.args.opacus_optimizer_ids, list), \
-        #     "Pass list of indices indicating which optimizers are DP"
-        # self.dp_optimizers, self.nodp_optimizers, self.nodp_params = [], [], []
-        # for i in range(len(self.args.optimizers)):
-        #     if i in self.args.opacus_optimizer_ids:
-        #         self.dp_optimizers.append(self.args.optimizers[i])
-        #     else:
-        #         self.nodp_optimizers.append(self.args.optimizers[i])
-        #         for param_group in self.args.optimizers[i].param_groups:
-        #             self.nodp_params.extend(param_group['params'])
-        # print("DP OPTs = ", self.dp_optimizers)
-        # print("NoDP OPTs = ", self.nodp_optimizers)
 
         # initialize privacy accountant
         from opacus.accountants import RDPAccountant
         self.accountant = RDPAccountant()
 
-        optimizer = self.args.optimizers[0]
+        # # DESIGN CHOICE: How does user convey which one is DP opt?
+        # We assume the last optimizer is the DP optimizer
+        optimizer = self.args.optimizers[-1]
         # wrap optimizer
         world_size = self.args.distributed_training_args.world_size
         if world_size > 1:
@@ -419,7 +406,7 @@ class SingleProcessDpSgd(SingleProcess):
             sample_rate=self.args.opacus_params["sample_rate"]
             )
         )
-        self.args.optimizers = [optimizer]
+        self.args.optimizers[-1] = optimizer
              
     def _forward_backward(self, callback, batch):
         # forward
@@ -436,46 +423,22 @@ class SingleProcessDpSgd(SingleProcess):
         loss.backward()
         callback.on_end_backward(self.global_step_completed, loss)
 
-        # if (self.batches_completed + 1) % self.args.gradient_accumulation != 0:
-        #     for optimizer in self.args.optimizers:
-        #         # toggle no dp params (set to False)
-        #         # self._toggle_requires_grad(self.nodp_params, False)
-        #         optimizer.virtual_step()
-        #         # toggle no dp params (set to True)
-        #         # self._toggle_requires_grad(self.nodp_params, True)
         if (self.batches_completed + 1) % self.args.gradient_accumulation != 0:
-            for optimizer in self.args.optimizers:
-                optimizer.signal_skip_step(do_skip=True)
-            self.optimize(self.args.optimizers, self.args.schedulers)
+            self.args.optimizers[-1].signal_skip_step(do_skip=True)
+            self.args.optimizers[-1].step()
+            self.args.optimizers[-1].zero_grad()
         else:
-            for optimizer in self.args.optimizers:
-                optimizer.signal_skip_step(do_skip=False)
+            self.args.optimizers[-1].signal_skip_step(do_skip=False)
         return outputs
 
     def optimize(self, optimizers, schedulers):
-        # # first step all no dp opts, then toggle (set no dp params to False)
-        # # then step all dp opts, then toggle (set no dp params to True again)   
-        # for optimizer in self.nodp_optimizers:
-        #     optimizer.step()
-        # # # grab all the no dp params and toggle
-        # self._toggle_requires_grad(self.nodp_params, False) # False
-
-        for optimizer in self.args.optimizers:
-            optimizer.step()
-        # grab all the no dp params and toggle
-        # self._toggle_requires_grad(self.nodp_params, True) # True
-
         for optimizer in optimizers:
+            optimizer.step()
             optimizer.zero_grad()
 
         if schedulers:
             for scheduler in schedulers:
                 scheduler.step()
-
-    # def _toggle_requires_grad(self, params, bool_param):
-    #     for p in params:
-    #         # p.requires_grad = not p.requires_grad
-    #         p.requires_grad = bool_param
 
 # TODO: Merge SingleProcess and SingleProcessAmp after convergence test
 # jsleep: was this convergence test run and should this be merged?
