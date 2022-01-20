@@ -23,7 +23,6 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data.distributed import DistributedSampler
 from torch.utils.data.sampler import RandomSampler, SequentialSampler
 from torch.cuda.amp import autocast, GradScaler
-from opacus.distributed import DifferentiallyPrivateDistributedDataParallel as DPDDP
 
 from pymarlin.core import module_interface
 from pymarlin.utils import stats
@@ -826,6 +825,7 @@ class DPDDPTrainerBackend(DDPTrainerBackend):
         self.setup_distributed_env()
 
         # need to wrap model with DPDDP before initializing Privacy Engine
+        from opacus.distributed import DifferentiallyPrivateDistributedDataParallel as DPDDP
         self.args.model = DPDDP(self.args.model)
         
         self.trainer_backend.init(args)
