@@ -410,6 +410,9 @@ class SingleProcessDpSgd(SingleProcess):
                     )
                 )
                 self.args.optimizers[index] = optimizer
+            else:
+                # unwrap any No-DP-optimizer
+                self.args.optimizers[index] = optimizer.optimizer
              
     def _forward_backward(self, callback, batch):
         # forward
@@ -429,13 +432,13 @@ class SingleProcessDpSgd(SingleProcess):
         # clipping is needed during gradient accumulation for DP
         if (self.batches_completed + 1) % self.args.gradient_accumulation != 0:
             for optimizer in self.args.optimizers:
-                if not isinstance(optimizer, NoDPWrap):
+                if hasattr(optimizer, 'signal_skip_step'):
                     optimizer.signal_skip_step(do_skip=True)
                     optimizer.step()
                     optimizer.zero_grad()
         else:
             for optimizer in self.args.optimizers:
-                if not isinstance(optimizer, NoDPWrap):
+                if hasattr(optimizer, 'signal_skip_step'):
                     optimizer.signal_skip_step(do_skip=False)
         return outputs
 
