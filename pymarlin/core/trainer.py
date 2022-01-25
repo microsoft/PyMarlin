@@ -27,6 +27,7 @@ from pymarlin.core import module_interface
 from pymarlin.utils import fabrics
 from pymarlin.utils import distributed
 from pymarlin.utils.distributed import DistributedTrainingArguments, rank_zero_only
+from pymarlin.utils.differential_privacy import DifferentialPrivacyArguments
 
 from pymarlin.utils.checkpointer.checkpoint_utils import AbstractCheckpointer
 from pymarlin.utils.checkpointer.checkpoint_utils import DefaultCheckpointer
@@ -73,8 +74,9 @@ class TrainerArguments:
     amp_backend_native: bool = False
     amp_backend_apex: bool = False
     amp_level_apex: str = 'O1'
-    opacus_args: dict = field(default_factory=dict)
-    # dp_optimizer_ids: List = dataclasses.field(default_factory=list)   
+
+    # differential privacy arguments
+    differential_privacy_args: DifferentialPrivacyArguments = None
 
 class AbstractTrainer(ABC):
     """
@@ -118,7 +120,6 @@ class Trainer(AbstractTrainer):
         """
         self.module = module
         self.args = args
-        print("--------- OPACUS ARGS ------", self.args.opacus_args)
         assert not (self.args.amp_backend_native and self.args.amp_backend_apex), "Can only choose one AMP backend (native or apex), not both"
         self.trainer_backend = self._init_backend(trainer_backend)
         self.logger = getlogger(__name__, self.args.log_level)
@@ -452,6 +453,7 @@ class Trainer(AbstractTrainer):
             schedulers=self.schedulers,
             gradient_accumulation=self.gradient_accumulation,
             device=self.device,
+            train_batch_size=self.args.train_batch_size,
             max_train_steps_per_epoch=self.args.max_train_steps_per_epoch,
             max_val_steps_per_epoch=self.args.max_val_steps_per_epoch,
             clip_grads=self.args.clip_grads,
@@ -461,6 +463,5 @@ class Trainer(AbstractTrainer):
             amp_backend_native=self.args.amp_backend_native,
             amp_backend_apex=self.args.amp_backend_apex,
             amp_level_apex=self.args.amp_level_apex,
-            opacus_params = self.args.opacus_args,
-            # opacus_optimizer_ids = self.args.dp_optimizer_ids
+            differential_privacy_args = self.args.differential_privacy_args,
         )

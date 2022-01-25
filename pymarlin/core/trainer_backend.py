@@ -30,6 +30,7 @@ from pymarlin.utils.distributed import (
     DistributedTrainingArguments,
     SequentialDistributedSampler,
 )
+from pymarlin.utils.differential_privacy import DifferentialPrivacyArguments, NoDPWrap
 
 try:
     from apex import amp
@@ -65,6 +66,7 @@ class TrainerBackendArguments:
     """
     model: module_interface.ModuleInterface
     device: Union[torch.device, str, int]
+    train_batch_size: int
     max_train_steps_per_epoch: Optional[int]
     max_val_steps_per_epoch: Optional[int]
     distributed_training_args: DistributedTrainingArguments
@@ -78,8 +80,7 @@ class TrainerBackendArguments:
     amp_backend_native: bool = False
     amp_backend_apex: bool = False
     amp_level_apex: str = 'O1'
-    opacus_params: Optional[dict] = dataclasses.field(default_factory=dict)   # (effective) batch_size, sample_rate, noise_multiplier, max_grad_norm, target_delta
-
+    differential_privacy_args: Optional[DifferentialPrivacyArguments] = None
 
 class TrainerBackend(ABC):
     """
@@ -365,6 +366,10 @@ class SingleProcessDpSgd(SingleProcess):
     def init(self, args : TrainerBackendArguments):
         super().init(args)
 
+        # No global clipping needed to be performed in DP training 
+        if self.args.clip_grads:
+            raise Exception("No global clipping needed to be performed in DP training!")
+
         self.model.train()
 
         # wrap model
@@ -375,37 +380,36 @@ class SingleProcessDpSgd(SingleProcess):
         from opacus.accountants import RDPAccountant
         self.accountant = RDPAccountant()
 
-        # # DESIGN CHOICE: How does user convey which one is DP opt?
-        # We assume the last optimizer is the DP optimizer
-        optimizer = self.args.optimizers[-1]
-        # wrap optimizer
-        world_size = self.args.distributed_training_args.world_size
-        if world_size > 1:
-            from opacus.optimizers import DistributedDPOptimizer
-            self.args.opacus_params["batch_size"] = self.args.opacus_params["batch_size"]//world_size
-            optimizer = DistributedDPOptimizer(
-                optimizer=optimizer,
-                noise_multiplier=self.args.opacus_params["noise_multiplier"], # same as make_private arguments
-                max_grad_norm=self.args.opacus_params["max_grad_norm"], # same as make_private arguments
-                expected_batch_size=self.args.opacus_params["batch_size"] # if you're averaging your gradients, you need to know the denominator
-            )
-        else:
-            from opacus.optimizers import DPOptimizer
-            optimizer = DPOptimizer(
-                optimizer=optimizer,
-                noise_multiplier=self.args.opacus_params["noise_multiplier"], # same as make_private arguments
-                max_grad_norm=self.args.opacus_params["max_grad_norm"], # same as make_private arguments
-                expected_batch_size=self.args.opacus_params["batch_size"] # if you're averaging your gradients, you need to know the denominator
-            )
+        for index, optimizer in enumerate(self.args.optimizers):
+            # wrap the DP-optimizer
+            if not isinstance(optimizer, NoDPWrap):
+                world_size = self.args.distributed_training_args.world_size
+                if world_size > 1:
+                    from opacus.optimizers import DistributedDPOptimizer
+                    pergpu_global_batch_size = self.args.train_batch_size//world_size
+                    optimizer = DistributedDPOptimizer(
+                        optimizer=optimizer,
+                        noise_multiplier=self.args.differential_privacy_args.noise_multiplier, # same as make_private arguments
+                        max_grad_norm=self.args.differential_privacy_args.per_sample_max_grad_norm, # same as make_private arguments
+                        expected_batch_size=pergpu_global_batch_size # if you're averaging your gradients, you need to know the denominator
+                    )
+                else:
+                    from opacus.optimizers import DPOptimizer
+                    optimizer = DPOptimizer(
+                        optimizer=optimizer,
+                        noise_multiplier=self.args.differential_privacy_args.noise_multiplier, # same as make_private arguments
+                        max_grad_norm=self.args.differential_privacy_args.per_sample_max_grad_norm, # same as make_private arguments
+                        expected_batch_size=self.args.train_batch_size # if you're averaging your gradients, you need to know the denominator
+                    )
 
-        # attach accountant to track privacy for an optimizer
-        optimizer.attach_step_hook(
-            self.accountant.get_optimizer_hook_fn(
-            # this is an important parameter for privacy accounting. Should be equal to batch_size / len(dataset)
-            sample_rate=self.args.opacus_params["sample_rate"]
-            )
-        )
-        self.args.optimizers[-1] = optimizer
+                # attach accountant to track privacy for an optimizer
+                optimizer.attach_step_hook(
+                    self.accountant.get_optimizer_hook_fn(
+                    # this is an important parameter for privacy accounting. Should be equal to batch_size / len(dataset)
+                    sample_rate=self.args.differential_privacy_args.sample_rate
+                    )
+                )
+                self.args.optimizers[index] = optimizer
              
     def _forward_backward(self, callback, batch):
         # forward
@@ -422,12 +426,17 @@ class SingleProcessDpSgd(SingleProcess):
         loss.backward()
         callback.on_end_backward(self.global_step_completed, loss)
 
+        # clipping is needed during gradient accumulation for DP
         if (self.batches_completed + 1) % self.args.gradient_accumulation != 0:
-            self.args.optimizers[-1].signal_skip_step(do_skip=True)
-            self.args.optimizers[-1].step()
-            self.args.optimizers[-1].zero_grad()
+            for optimizer in self.args.optimizers:
+                if not isinstance(optimizer, NoDPWrap):
+                    optimizer.signal_skip_step(do_skip=True)
+                    optimizer.step()
+                    optimizer.zero_grad()
         else:
-            self.args.optimizers[-1].signal_skip_step(do_skip=False)
+            for optimizer in self.args.optimizers:
+                if not isinstance(optimizer, NoDPWrap):
+                    optimizer.signal_skip_step(do_skip=False)
         return outputs
 
     def optimize(self, optimizers, schedulers):
