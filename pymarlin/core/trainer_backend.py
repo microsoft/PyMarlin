@@ -368,7 +368,7 @@ class SingleProcessDpSgd(SingleProcess):
 
         # No global clipping needed to be performed in DP training 
         if self.args.clip_grads:
-            raise Exception("No global clipping needed to be performed in DP training!")
+            raise ValueError("No global clipping needed to be performed in DP training!")
 
         self.model.train()
 

@@ -2,7 +2,7 @@ import sys
 
 import opacus
 from pymarlin.core.module_interface import ModuleInterface
-from pymarlin.core.trainer import Trainer, TrainerArguments, WriterInitArguments,DistributedTrainingArguments,DefaultCheckpointerArguments
+from pymarlin.core.trainer import Trainer, TrainerArguments, WriterInitArguments, DistributedTrainingArguments, DefaultCheckpointerArguments, DifferentialPrivacyArguments
 from pymarlin.utils.stats.basic_stats import StatInitArguments
 from pymarlin.core.trainer_backend import SingleProcess,SingleProcessAmp, DDPTrainerBackend, SingleProcessApexAmp
 
@@ -234,9 +234,6 @@ class SentenceClassifier(ModuleInterface):
         global_stats.update(f"{self.glue_task}/val/acc", acc)
         global_stats.update(f"{self.glue_task}/val/mcc", mcc)
         #global_stats.update(f"{self.glue_task}/val/f1", f1)
-        if hasattr(self.optimizer, "virtual_step"):
-            eps, alpha = self.optimizer.privacy_engine.get_privacy_spent()
-            global_stats.update(f"{self.glue_task}/val/epsilon", eps)
         global_stats.update
         # global_stats.log_model(global_step, self, force = True, grad_scale=1)
 
@@ -269,27 +266,51 @@ from data import SnliData
 def run_glue_finetune(config):
     data = SnliData()
     data.setup_datasets("snli")
-    print(data.get_train_dataset()[:5])
 
-    recipe = SentencePairClassifier(data_interface = data, **config['mi'])
+    recipe = SentencePairClassifier(data_interface=data, **config['mi'])
 
-    # Training code
-    print(recipe)
-    trainer = Trainer(
-        recipe,
-        TrainerArguments(
-            **config["tr"], 
-            writer_args=WriterInitArguments(**config["wrt"]), 
-            stats_args = StatInitArguments(**config["stat"]),
-            checkpointer_args= DefaultCheckpointerArguments(**config["ckp"]) if 'ckp' in config else DefaultCheckpointerArguments(),
-            opacus_args=config["opacus"],
-            # dp_optimizer_ids=config["dp_optimizer_ids"]
-        ),
-    )
+    if config["tr"]["backend"] == 'ddp-dp' or config["tr"]["backend"] == 'sp-dp':
+        # Sample rate and delta can be set in config or computed in the script
+        sample_rate = config["tr"]["train_batch_size"]/len(data.get_train_dataset())
+        delta = 1.0/len(data.get_train_dataset())
+        differential_privacy_args = DifferentialPrivacyArguments(noise_multiplier=config["dp"]["noise_multiplier"],
+                                                                per_sample_max_grad_norm=config["dp"]["per_sample_max_grad_norm"],
+                                                                sample_rate=sample_rate,
+                                                                delta=delta)
+        print(differential_privacy_args)
 
-    #self.trainer_type = config["tr"]["backend"]
+        trainer = Trainer(
+            recipe,
+            TrainerArguments(
+                **config["tr"], 
+                writer_args=WriterInitArguments(**config["wrt"]), 
+                stats_args = StatInitArguments(**config["stat"]),
+                checkpointer_args= DefaultCheckpointerArguments(**config["ckp"]) if 'ckp' in config else DefaultCheckpointerArguments(),
+                differential_privacy_args=differential_privacy_args,
+            ),
+        )
+    else:
+        trainer = Trainer(
+            recipe,
+            TrainerArguments(
+                **config["tr"], 
+                writer_args=WriterInitArguments(**config["wrt"]), 
+                stats_args = StatInitArguments(**config["stat"]),
+                checkpointer_args= DefaultCheckpointerArguments(**config["ckp"]) if 'ckp' in config else DefaultCheckpointerArguments(),
+            ),
+        )
+
     trainer.train()
     trainer.validate()
+
+    if config["tr"]["backend"] == 'ddp-dp' or config["tr"]["backend"] == 'sp-dp':
+        if config['tr']['backend'] == 'ddp-dp':
+            accountant = trainer.trainer_backend.trainer_backend.accountant
+        else:
+            accountant = trainer.trainer_backend.accountant
+
+        eps_rdp = accountant.get_epsilon(delta=1.0/len(data.train_ds))
+        print(f"final_epsilon_rdp: {eps_rdp}")
 
 if __name__ == "__main__":
     # torch.manual_seed(0)

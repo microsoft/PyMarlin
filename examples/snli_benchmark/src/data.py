@@ -1,7 +1,5 @@
 from pymarlin.core.data_interface import DataInterface
 from datasets import load_dataset
-import matplotlib.pyplot as plt
-import pandas as pd
 
 class SnliData(DataInterface):
     def setup_datasets(self, task):
