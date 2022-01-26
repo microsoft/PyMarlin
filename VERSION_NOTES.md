@@ -1,11 +1,6 @@
 # Version Notes:
-<<<<<<< HEAD
-## 0.3.0
-* Added DpSgd backend support
-=======
 ## 0.3.1
 * Version parity for Pypi.
->>>>>>> main
 
 ## 0.2.8
 * Incremented the dependency to torch<=1.9.1
