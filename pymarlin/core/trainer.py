@@ -16,7 +16,6 @@ provide a custom `TrainerBackend`.
 """
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-import dataclasses
 from typing import List, Optional
 from tqdm.auto import trange
 import torch

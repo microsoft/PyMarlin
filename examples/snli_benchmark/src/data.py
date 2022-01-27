@@ -13,7 +13,7 @@ class SnliData(DataInterface):
 
         self.test_ds = datasets['test']
         self.test_ds = self.test_ds.filter(lambda x: x["label"] != -1)
-  
+
     def get_train_dataset(self):
         return self.train_ds
 

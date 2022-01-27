@@ -15,7 +15,7 @@ Alternatively a user can provide a custom `TrainerBackend`.
 from tqdm.auto import tqdm
 from abc import ABC, abstractmethod
 import dataclasses
-from typing import Iterable, Optional, Union, List
+from typing import Iterable, Optional, Union
 import warnings
 
 import torch
@@ -366,7 +366,7 @@ class SingleProcessDpSgd(SingleProcess):
     def init(self, args : TrainerBackendArguments):
         super().init(args)
 
-        # No global clipping needed to be performed in DP training 
+        # No global clipping needed to be performed in DP training
         if self.args.clip_grads:
             raise ValueError("No global clipping needed to be performed in DP training!")
 
@@ -413,7 +413,7 @@ class SingleProcessDpSgd(SingleProcess):
             else:
                 # unwrap any No-DP-optimizer
                 self.args.optimizers[index] = optimizer.optimizer
-             
+
     def _forward_backward(self, callback, batch):
         # forward
         outputs = self.model.forward(
@@ -838,7 +838,7 @@ class DPDDPTrainerBackend(DDPTrainerBackend):
         # need to wrap model with DPDDP before initializing Privacy Engine
         from opacus.distributed import DifferentiallyPrivateDistributedDataParallel as DPDDP
         self.args.model = DPDDP(self.args.model)
-        
+
         self.trainer_backend.init(args)
 
 def DDPTrainerBackendFactory(trainer_backend_cls): # pylint: disable=invalid-name
