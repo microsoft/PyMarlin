@@ -1,4 +1,4 @@
-glue_task : 'rte'
+glue_task : 'snli'
 
 mi:
     encoder : "bert-base-cased"
@@ -28,12 +28,14 @@ dp:
     target_delta: 0.000001818 #snli: 1/550000
 
 wrt:
-    tb_log_dir : 'logs_roberta_base/rte/from_pretrained'
+    tb_log_dir : 'logs_bert_base/snli/from_pretrained'
 
 stat:
     log_steps : 20
+
 dist:
     local_rank : 1
+
 ckp:
-    checkpoint : True
+    checkpoint : False
     period: 5

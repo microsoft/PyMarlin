@@ -820,6 +820,7 @@ class DPDDPTrainerBackend(DDPTrainerBackend):
         processes - e.g. by using same random seed in each process at
         point of model initialization.
     """
+    # pylint: disable=super-init-not-called
     def __init__(self, trainer_backend, gather_frequency: Optional[int] = None):
         self.trainer_backend = trainer_backend
         self.gather_frequency = gather_frequency
