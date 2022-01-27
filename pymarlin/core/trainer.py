@@ -382,7 +382,6 @@ class Trainer(AbstractTrainer):
         assert (
                 batch_size <= self.args.gpu_batch_size_limit
         ), "Train step batch size calculated too high. fix calculation logic"
-        # print("TRAIN STEP BS ", batch_size)
         return batch_size
 
     @property

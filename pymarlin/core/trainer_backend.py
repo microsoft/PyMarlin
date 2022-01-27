@@ -677,7 +677,6 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
         # unpack trainer_backend arguments
         self.args = args
         self.distributed_training_args = args.distributed_training_args
-        print("USING REGULAR DDP TRAINER")
 
         # Need to initiate the distributed env and set default devices before initializing APEX AMP, otherwise may hit CUDA memory error
         self.setup_distributed_env()

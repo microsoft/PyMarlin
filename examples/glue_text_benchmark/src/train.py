@@ -1,4 +1,3 @@
-import opacus
 from pymarlin.core.module_interface import ModuleInterface
 from pymarlin.core.trainer import Trainer, TrainerArguments, WriterInitArguments,DistributedTrainingArguments,DefaultCheckpointerArguments
 from pymarlin.utils.stats.basic_stats import StatInitArguments
@@ -81,7 +80,7 @@ class SentenceClassifier(ModuleInterface):
     warmup = 0.1,
     head_only = False):
         '''
-            Classifier for single sentence.
+            Calssifier for single sentence.
             Assumes data_interface dataset to return label and sentence.
 
         '''
@@ -147,8 +146,6 @@ class SentenceClassifier(ModuleInterface):
             padding=True,
             truncation=True,
         )
-        position_tensor = torch.ones(input['input_ids'].shape)
-        input['position_ids'] = torch.cumsum(position_tensor, dim = 1).long()
         return input, torch.LongTensor(labels)
 
     def get_val_dataloaders(self, sampler: torch.utils.data.Sampler, batch_size: int):
@@ -166,7 +163,7 @@ class SentenceClassifier(ModuleInterface):
         """
         global_stats.update(f"lr/{self.glue_task}", self.scheduler.get_last_lr()[0], frequent=True)
 
-        encoder = encoder if encoder else self.encoder # encoder never passed in from trainer?
+        encoder = encoder if encoder else self.encoder
         inputs, labels = batch  # output of dataloader will be input of train_step
         inputs = inputs.to(device)
         labels = labels.to(device)
@@ -214,10 +211,6 @@ class SentenceClassifier(ModuleInterface):
         global_stats.update(f"{self.glue_task}/val/acc", acc)
         global_stats.update(f"{self.glue_task}/val/mcc", mcc)
         global_stats.update(f"{self.glue_task}/val/f1", f1)
-        if hasattr(self.optimizer, "get_privacy_spent"):
-            eps, alpha = self.optimizer.privacy_engine.get_privacy_spent(0.003212)
-            global_stats.update(f"{self.glue_task}/val/epsilon", eps)
-        global_stats.update
         # global_stats.log_model(global_step, self, force = True, grad_scale=1)
 
 class SentencePairClassifier(SentenceClassifier):
@@ -350,12 +343,9 @@ def run_glue_finetune(config):
             **config["tr"], 
             writer_args=WriterInitArguments(**config["wrt"]), 
             stats_args = StatInitArguments(**config["stat"]),
-            checkpointer_args= DefaultCheckpointerArguments(**config["ckp"]) if 'ckp' in config else DefaultCheckpointerArguments(),
-            opacus_args=config["opacus"]
+            checkpointer_args= DefaultCheckpointerArguments(**config["ckp"]) if 'ckp' in config else DefaultCheckpointerArguments()
         ),
     )
-
-    #self.trainer_type = config["tr"]["backend"]
     trainer.validate()
     trainer.train()
 
