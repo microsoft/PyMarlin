@@ -4,7 +4,7 @@ mi:
     encoder : "bert-base-cased"
     tokenizer: "bert-base-cased"
     num_labels : 3
-    max_lr : 0.0005
+    lr : 0.0005
     s1_key : 'premise'
     s2_key : 'hypothesis'
     max_length : 128

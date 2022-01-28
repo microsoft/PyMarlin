@@ -9,7 +9,7 @@ from pymarlin.core.trainer_backend import SingleProcess,SingleProcessAmp, DDPTra
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.optim.lr_scheduler import OneCycleLR
+from torch.optim.lr_scheduler import MultiplicativeLR
 
 from transformers import AutoModel, AutoTokenizer
 from transformers.modeling_outputs import SequenceClassifierOutput
@@ -75,7 +75,7 @@ class Classifier(nn.Module):
 class SentenceClassifier(ModuleInterface):
     def __init__(self, 
     data_interface, 
-    max_lr = 2e-5, 
+    lr = 2e-5, 
     num_labels = 2, 
     encoder:Union[nn.Module, str] = "bert-base-uncased", 
     tokenizer = "bert-base-uncased", 
@@ -89,7 +89,7 @@ class SentenceClassifier(ModuleInterface):
         '''
         super().__init__()  # always initialize superclass first
         self.data_interface = data_interface
-        self.max_lr = max_lr
+        self.lr = lr
         self.max_length = max_length
         self.num_labels = num_labels
         self.warmup = warmup
@@ -123,23 +123,14 @@ class SentenceClassifier(ModuleInterface):
 
         print(f"Total parameters count: {total_params}") # ~108M
         print(f"Trainable parameters count: {trainable_params}") # ~7M"""
-        self.optimizer = optim.AdamW(self.parameters(), lr=max_lr)
+        self.optimizer = optim.AdamW(self.parameters(), lr=lr)
 
 
     def get_optimizers_schedulers(
         self, estimated_global_steps_per_epoch: int, epochs: int
     ):
-        # print('\n\n\nestimated_global_steps_per_epoch',estimated_global_steps_per_epoch)
-        self.scheduler = OneCycleLR(
-            self.optimizer,
-            max_lr=self.max_lr,
-            steps_per_epoch=estimated_global_steps_per_epoch,
-            epochs=epochs,
-            anneal_strategy="linear",
-            pct_start = self.warmup,
-            div_factor=1e7,# initial lr ~0
-            final_div_factor=1e10 # final lr ~0
-        )
+        # constant LR throughout the training
+        self.scheduler = MultiplicativeLR(self.optimizer, [lambda x : 1])
         return [self.optimizer], [self.scheduler]
 
     def get_train_dataloader(self, sampler: type, batch_size: int):
@@ -190,7 +181,7 @@ class SentenceClassifier(ModuleInterface):
         outputs = self.net(encoder(**inputs))
 
         # print(outputs)
-        if self.num_labels ==1:
+        if self.num_labels == 1:
             outputs.logits = outputs.logits.squeeze()
         loss = self.criterion(outputs.logits, labels)
         global_stats.update(f"loss/{self.glue_task}", loss.item(), frequent = True)
