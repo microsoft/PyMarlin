@@ -827,8 +827,6 @@ class DPDDPTrainerBackend(DDPTrainerBackend):
         self.trainer_backend.distributed = True
 
     def init(self, args: TrainerBackendArguments):
-        print("USING DPDDP TRAINER")
-
         # unpack trainer_backend arguments
         self.args = args
         self.distributed_training_args = args.distributed_training_args
