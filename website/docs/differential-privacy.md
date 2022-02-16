@@ -97,40 +97,36 @@ This can be done easily by wrapping such optimizers with NoDPWrap class introduc
 ### Appendix A - Introduction to Differential Privacy (DP)
 
 Differential Privacy is a property of a stochastic algorithm <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}"> (in our case SGD).
-In short, it quantifies how similar the distributions of the output of the algorithm $\mathcal{A}$ are when they are trained on any two adjacent datasets $D$ and $D'$.
-Two datasets $D$ and $D'$ are defined to be adjacent if they differ in not more than one participant's data.
+In short, it quantifies how similar the distributions of the output of the algorithm <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}"> are when they are trained on any two adjacent datasets <img src="https://render.githubusercontent.com/render/math?math=D"> and <img src="https://render.githubusercontent.com/render/math?math=D'">.
+Two datasets <img src="https://render.githubusercontent.com/render/math?math=D"> and <img src="https://render.githubusercontent.com/render/math?math=D'"> are defined to be adjacent if they differ in not more than one participant's data.
 
-If this is the case, we call $\mathcal{A}(D)$ and $\mathcal{A}(D')$ $(\varepsilon, \delta)$-indistinguishable and write
-$$
-\mathcal{A}(D) \approx_{\varepsilon, \delta} \mathcal{A}(D') \; ,
-$$
-where $\varepsilon > 0$ and $\delta \in [0,1]$.
-In general the smaller $\varepsilon$ and $\delta$ are the more similar the distributions are.
+If this is the case, we call <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}(D)"> and <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}(D')"> that <img src="https://render.githubusercontent.com/render/math?math=(\varepsilon, \delta)">-indistinguishable and write  
+<img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}(D) \approx_{\varepsilon, \delta} \mathcal{A}(D')">  
+where <img src="https://render.githubusercontent.com/render/math?math=\varepsilon > 0"> and <img src="https://render.githubusercontent.com/render/math?math=\delta \in [0,1]">.
+In general the smaller <img src="https://render.githubusercontent.com/render/math?math=\varepsilon"> and <img src="https://render.githubusercontent.com/render/math?math=\delta"> are the more similar the distributions are.
 
 This is a nice concept for privacy since it gives rise to the notion of plausible deniability.
-Let's assume a participant is unsure about their data being part of a dataset $D$.
-In this case, they can be assured as there always is a dataset $D'$ to which they didn't contribute and training algorithm would have produced a very similar result.
+Let's assume a participant is unsure about their data being part of a dataset <img src="https://render.githubusercontent.com/render/math?math=D">.
+In this case, they can be assured as there always is a dataset <img src="https://render.githubusercontent.com/render/math?math=D'"> to which they didn't contribute and training algorithm would have produced a very similar result.
 
-This notion of plausible deniability is contingent on a suitable choice of $\varepsilon$ and $\delta$.
-In order to interpret these variables better, let's look at the definition of $(\varepsilon, \delta)$-indistinguishability.
-We can define $(\varepsilon, \delta)$-indistinguishability as the following.
-For any subset $S \subseteq O$ where $O$ is the set of all possible outputs of $\mathcal{A}$ we require
-
-$$
-\text{Pr}[\mathcal{A}(D) \in S] \leq \text{e}^{\varepsilon} \text{Pr}[\mathcal{A}(D') \in S] + \delta \; .
-$$
-
-Here $\delta$ represents the probability of failure.
-We therefore typically require that $\delta \ll |D|^{-1}$.
-Choosing a suitable $\varepsilon$ is harder and should be chosen on a case by case basis.
-As a rough rule of thumb we can consider $\varepsilon < 4$ to provide adequate privacy for deep neural network training.
+This notion of plausible deniability is contingent on a suitable choice of <img src="https://render.githubusercontent.com/render/math?math=\varepsilon"> and <img src="https://render.githubusercontent.com/render/math?math=\delta">.
+In order to interpret these variables better, let's look at the definition of <img src="https://render.githubusercontent.com/render/math?math=(\varepsilon, \delta)">-indistinguishability.
+We can define <img src="https://render.githubusercontent.com/render/math?math=(\varepsilon, \delta)">-indistinguishability as the following.
+For any subset $S \subseteq O$ where $O$ is the set of all possible outputs of <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}"> we require  
+  
+<img src="https://render.githubusercontent.com/render/math?math=\text{Pr}(\mathcal{A}(D) \in S) \leq \text{e}^{\varepsilon} \text{Pr}(\mathcal{A}(D') \in S) + \delta">  
+  
+Here <img src="https://render.githubusercontent.com/render/math?math=\delta"> represents the probability of failure.
+We therefore typically require that <img src="https://render.githubusercontent.com/render/math?math=\delta \ll |D|^{-1}">.
+Choosing a suitable <img src="https://render.githubusercontent.com/render/math?math=\varepsilon"> is harder and should be chosen on a case by case basis.
+As a rough rule of thumb we can consider <img src="https://render.githubusercontent.com/render/math?math=\varepsilon < 4"> to provide adequate privacy for deep neural network training.
 
 ### Appendix B - Introduction to Differentially Private Stochastic Gradient Decent (DP-SGD)
 
 In order to make deep neural network training Differentially Private, two modifications to the standard Stochastic Gradient Decent algorithm are required.
 
-1. Sample gradients need to be clipped to a hyper-parameter $C$
-2. Batch gradients are noised with $C \sigma \mathcal{N}(0,1)$
+1. Sample gradients need to be clipped to a hyper-parameter <img src="https://render.githubusercontent.com/render/math?math=C">
+2. Batch gradients are noised with <img src="https://render.githubusercontent.com/render/math?math=C \sigma \mathcal{N}(0,1)">
 
 The resulting algorithm is often referred to [DP-SGD](https://arxiv.org/pdf/1607.00133.pdf).
 However, the same modifications make Adam, Adagrad, etc. differentially private as well.
