@@ -100,9 +100,7 @@ Differential Privacy is a property of a stochastic algorithm <img src="https://r
 In short, it quantifies how similar the distributions of the output of the algorithm <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}"> are when they are trained on any two adjacent datasets <img src="https://render.githubusercontent.com/render/math?math=D"> and <img src="https://render.githubusercontent.com/render/math?math=\bar{D}">.
 Two datasets <img src="https://render.githubusercontent.com/render/math?math=D"> and <img src="https://render.githubusercontent.com/render/math?math=\bar{D}"> are defined to be adjacent if they differ in not more than one participant's data.
 
-If this is the case, we call <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}(D)"> and <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}(\bar{D})"> that <img src="https://render.githubusercontent.com/render/math?math=(\varepsilon, \delta)">-indistinguishable and write  
-<img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}(D) \approx_{\varepsilon, \delta} \mathcal{A}(\bar{D})">  
-where <img src="https://render.githubusercontent.com/render/math?math=\varepsilon > 0"> and <img src="https://render.githubusercontent.com/render/math?math=\delta \in [0,1]">.
+If this is the case, we call <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}(D)"> and <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}(\bar{D})"> that <img src="https://render.githubusercontent.com/render/math?math=(\varepsilon, \delta)">-indistinguishable and write <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}(D) \approx_{\varepsilon, \delta} \mathcal{A}(\bar{D})"> where <img src="https://render.githubusercontent.com/render/math?math=\varepsilon > 0"> and <img src="https://render.githubusercontent.com/render/math?math=\delta \in [0,1]">.
 In general the smaller <img src="https://render.githubusercontent.com/render/math?math=\varepsilon"> and <img src="https://render.githubusercontent.com/render/math?math=\delta"> are the more similar the distributions are.
 
 This is a nice concept for privacy since it gives rise to the notion of plausible deniability.
@@ -112,7 +110,7 @@ In this case, they can be assured as there always is a dataset <img src="https:/
 This notion of plausible deniability is contingent on a suitable choice of <img src="https://render.githubusercontent.com/render/math?math=\varepsilon"> and <img src="https://render.githubusercontent.com/render/math?math=\delta">.
 In order to interpret these variables better, let's look at the definition of <img src="https://render.githubusercontent.com/render/math?math=(\varepsilon, \delta)">-indistinguishability.
 We can define <img src="https://render.githubusercontent.com/render/math?math=(\varepsilon, \delta)">-indistinguishability as the following.
-For any subset $S \subseteq O$ where $O$ is the set of all possible outputs of <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}"> we require  
+For any subset <img src="https://render.githubusercontent.com/render/math?math=S \subseteq O"> where <img src="https://render.githubusercontent.com/render/math?math=O"> is the set of all possible outputs of <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}"> we require  
   
 <img src="https://render.githubusercontent.com/render/math?math=\text{Pr}(\mathcal{A}(D) \in S) \leq \text{e}^{\varepsilon} \text{Pr}(\mathcal{A}(\bar{D}) \in S) %2b \delta">  
   
