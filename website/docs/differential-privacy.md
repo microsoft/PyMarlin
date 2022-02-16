@@ -96,7 +96,7 @@ This can be done easily by wrapping such optimizers with NoDPWrap class introduc
 
 ### Appendix A - Introduction to Differential Privacy (DP)
 
-Differential Privacy is a property of a stochastic algorithm $\mathcal{A}$ (in our case SGD).
+Differential Privacy is a property of a stochastic algorithm <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}"> (in our case SGD).
 In short, it quantifies how similar the distributions of the output of the algorithm $\mathcal{A}$ are when they are trained on any two adjacent datasets $D$ and $D'$.
 Two datasets $D$ and $D'$ are defined to be adjacent if they differ in not more than one participant's data.
 
