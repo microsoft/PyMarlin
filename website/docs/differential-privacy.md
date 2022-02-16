@@ -97,24 +97,24 @@ This can be done easily by wrapping such optimizers with NoDPWrap class introduc
 ### Appendix A - Introduction to Differential Privacy (DP)
 
 Differential Privacy is a property of a stochastic algorithm <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}"> (in our case SGD).
-In short, it quantifies how similar the distributions of the output of the algorithm <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}"> are when they are trained on any two adjacent datasets <img src="https://render.githubusercontent.com/render/math?math=D"> and <img src="https://render.githubusercontent.com/render/math?math=D'">.
-Two datasets <img src="https://render.githubusercontent.com/render/math?math=D"> and <img src="https://render.githubusercontent.com/render/math?math=D'"> are defined to be adjacent if they differ in not more than one participant's data.
+In short, it quantifies how similar the distributions of the output of the algorithm <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}"> are when they are trained on any two adjacent datasets <img src="https://render.githubusercontent.com/render/math?math=D"> and <img src="https://render.githubusercontent.com/render/math?math=\bar{D}">.
+Two datasets <img src="https://render.githubusercontent.com/render/math?math=D"> and <img src="https://render.githubusercontent.com/render/math?math=\bar{D}"> are defined to be adjacent if they differ in not more than one participant's data.
 
-If this is the case, we call <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}(D)"> and <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}(D')"> that <img src="https://render.githubusercontent.com/render/math?math=(\varepsilon, \delta)">-indistinguishable and write  
-<img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}(D) \approx_{\varepsilon, \delta} \mathcal{A}(D')">  
+If this is the case, we call <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}(D)"> and <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}(\bar{D})"> that <img src="https://render.githubusercontent.com/render/math?math=(\varepsilon, \delta)">-indistinguishable and write  
+<img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}(D) \approx_{\varepsilon, \delta} \mathcal{A}(\bar{D})">  
 where <img src="https://render.githubusercontent.com/render/math?math=\varepsilon > 0"> and <img src="https://render.githubusercontent.com/render/math?math=\delta \in [0,1]">.
 In general the smaller <img src="https://render.githubusercontent.com/render/math?math=\varepsilon"> and <img src="https://render.githubusercontent.com/render/math?math=\delta"> are the more similar the distributions are.
 
 This is a nice concept for privacy since it gives rise to the notion of plausible deniability.
 Let's assume a participant is unsure about their data being part of a dataset <img src="https://render.githubusercontent.com/render/math?math=D">.
-In this case, they can be assured as there always is a dataset <img src="https://render.githubusercontent.com/render/math?math=D'"> to which they didn't contribute and training algorithm would have produced a very similar result.
+In this case, they can be assured as there always is a dataset <img src="https://render.githubusercontent.com/render/math?math=\bar{D}"> to which they didn't contribute and training algorithm would have produced a very similar result.
 
 This notion of plausible deniability is contingent on a suitable choice of <img src="https://render.githubusercontent.com/render/math?math=\varepsilon"> and <img src="https://render.githubusercontent.com/render/math?math=\delta">.
 In order to interpret these variables better, let's look at the definition of <img src="https://render.githubusercontent.com/render/math?math=(\varepsilon, \delta)">-indistinguishability.
 We can define <img src="https://render.githubusercontent.com/render/math?math=(\varepsilon, \delta)">-indistinguishability as the following.
 For any subset $S \subseteq O$ where $O$ is the set of all possible outputs of <img src="https://render.githubusercontent.com/render/math?math=\mathcal{A}"> we require  
   
-<img src="https://render.githubusercontent.com/render/math?math=\text{Pr}(\mathcal{A}(D) \in S) \leq \text{e}^{\varepsilon} \text{Pr}(\mathcal{A}(D') \in S) + \delta">  
+<img src="https://render.githubusercontent.com/render/math?math=\text{Pr}(\mathcal{A}(D) \in S) \leq \text{e}^{\varepsilon} \text{Pr}(\mathcal{A}(\bar{D}) \in S) %2b \delta">  
   
 Here <img src="https://render.githubusercontent.com/render/math?math=\delta"> represents the probability of failure.
 We therefore typically require that <img src="https://render.githubusercontent.com/render/math?math=\delta \ll |D|^{-1}">.
