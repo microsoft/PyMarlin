@@ -17,11 +17,11 @@ There are four parameters to be passed regarding DP:
     Typically, this parameter would be around 1.0 (it might differ for different scenarios).
     - **per_sample_max_grad_norm**: This parameter clips the per sample gradients.
     It has been observed that small values around (0.1-1) work well in practice and the performance does not depend much on this parameter unless picked somewhere high.
-    - **sample_rate**: For sample-level DP, let effective batch size be B and the total number of samples in the training set be N.
-    This should be set as B/N.
+    - **sample_rate**: For sample-level DP, let effective batch size be <img src="https://render.githubusercontent.com/render/math?math=B"> and the total number of samples in the training set be <img src="https://render.githubusercontent.com/render/math?math=N">.
+    This should be set as <img src="https://render.githubusercontent.com/render/math?math=B/N">.
     For user-level DP and beyond, please see the related section below.
     - **delta**:
-    This parameter represents the probability of failure for DP guarantees, typically set as o(1/number_of_samples).
+    This parameter represents the probability of failure for DP guarantees, typically set as <img src="https://render.githubusercontent.com/render/math?math=\ll N^{-1}"> where <img src="https://render.githubusercontent.com/render/math?math=N"> is the number of samples in the training set.
     This parameter is not required for training, only used to calculate the privacy budget (i.e., epsilon).
 
 ## Tips for hyperparameter selection 
@@ -72,19 +72,19 @@ If your module has these basic modules in its forward function, you should be go
 
 DP training can be performed to protect any entity: sample, user, group, tenant etc.
 It all depends on how we form a batch during training.
-Let N be the number of entities in the training set.
-Basically, we form a batch of size B by going over B entities and obtaining one data sample from each entity.
-This means that one epoch will go over N entities and each entity will be seen only at once during the epoch and there will be N/B optimization steps.
+Let <img src="https://render.githubusercontent.com/render/math?math=N"> be the number of entities in the training set.
+Basically, we form a batch of size <img src="https://render.githubusercontent.com/render/math?math=B"> by going over <img src="https://render.githubusercontent.com/render/math?math=B"> entities and obtaining one data sample from each entity.
+This means that one epoch will go over <img src="https://render.githubusercontent.com/render/math?math=N"> entities and each entity will be seen only at once during the epoch and there will be <img src="https://render.githubusercontent.com/render/math?math=N/B"> optimization steps.
 The data sample taken from each entity across different epochs do not matter (could be the same sample repeatedly, the next sample from its queue, a random sample etc.).
-The “sample_rate” will continue to be B/N and it will satisfy entity-level DP.
-Note that N decreases as the entity becomes larger (e.g., number of samples >> number of tenants), therefore, privacy/utility trade-off becomes more challenging accordingly.
+The “sample_rate” will continue to be <img src="https://render.githubusercontent.com/render/math?math=B/N"> and it will satisfy entity-level DP.
+Note that <img src="https://render.githubusercontent.com/render/math?math=N"> decreases as the entity becomes larger (e.g., number of samples >> number of tenants), therefore, privacy/utility trade-off becomes more challenging accordingly.
 
 We note that the procedure above provides a “global” model training, treating each entity equivalently even if the data distributions differ substantially (some users having ~1k samples whereas others having only ~10).
-Another way to achieve entity-level DP is to cap the number of contributions per entity by some constant K and continue the training just like sample-level DP.
-In this case, the total number of samples in the training set will depend on both the number of entities and the cap K; let it be N and batch size be B.
-The “sample_rate” in this case will be equal to (K * B)/N and this procedure will also provide entity-level DP.
-Note that here entities that have contributions close to K might enjoy better performance than the ones that have contributions << K.
-On the other hand, privacy is calculated as a worst-case guarantee, therefore, we will calculate the privacy budget with “sample_rate” as (K * B)/N although entities that have contributions << K will enjoy better privacy guarantees essentially. 
+Another way to achieve entity-level DP is to cap the number of contributions per entity by some constant <img src="https://render.githubusercontent.com/render/math?math=K"> and continue the training just like sample-level DP.
+In this case, the total number of samples in the training set will depend on both the number of entities and the cap <img src="https://render.githubusercontent.com/render/math?math=K">; let it be <img src="https://render.githubusercontent.com/render/math?math=N"> and batch size be <img src="https://render.githubusercontent.com/render/math?math=B">.
+The “sample_rate” in this case will be equal to <img src="https://render.githubusercontent.com/render/math?math=K*B/N"> and this procedure will also provide entity-level DP.
+Note that here entities that have contributions close to <img src="https://render.githubusercontent.com/render/math?math=K"> might enjoy better performance than the ones that have contributions <img src="https://render.githubusercontent.com/render/math?math=\ll K">.
+On the other hand, privacy is calculated as a worst-case guarantee, therefore, we will calculate the privacy budget with “sample_rate” as <img src="https://render.githubusercontent.com/render/math?math=K*B/N"> although entities that have contributions <img src="https://render.githubusercontent.com/render/math?math=\ll K"> will enjoy better privacy guarantees essentially. 
 
 *Internal only: For a more formal treatment, see the following [document](https://microsoft-my.sharepoint.com/:b:/p/sigopi/EVDYL97UflFIgq2VlvC414UBhj3MBBSm1n40EcCE78PByw?e=tHnbrH).* 
 
