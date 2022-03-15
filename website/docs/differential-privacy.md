@@ -19,7 +19,6 @@ There are four parameters to be passed regarding DP:
     It has been observed that small values around (0.1-1) work well in practice and the performance does not depend much on this parameter unless picked larger than the most/average/median gradients.
     - **sample_rate**: For sample-level DP, let effective batch size be <img src="https://render.githubusercontent.com/render/math?math=B"> and the total number of samples in the training set be <img src="https://render.githubusercontent.com/render/math?math=N">.
     This should be set as <img src="https://render.githubusercontent.com/render/math?math=B/N">[^1].
-    [^1]: To be precise, this is only an approximation to the sample rate when we shuffle and form batches of size <img src="https://render.githubusercontent.com/render/math?math=B">. The actual accountant assumes Poisson sampling where each parameter is included in the batch with probability <img src="https://render.githubusercontent.com/render/math?math=p">, hence the sample rate. In general we might want to highlight that shuffling is technically not the right way of going over your dataset. However, Poisson sampling is computationally expensive, therefore, this approximation is widely used in general.
     For user-level DP and beyond, please see the related section below.
     - **delta**:
     This parameter represents the probability of failure for DP guarantees, typically set as <img src="https://render.githubusercontent.com/render/math?math=\ll N^{-1}"> where <img src="https://render.githubusercontent.com/render/math?math=N"> is the number of samples in the training set.
@@ -83,11 +82,9 @@ Note that <img src="https://render.githubusercontent.com/render/math?math=N"> de
 We note that the procedure above provides a “global” model training, treating each entity equivalently even if the data distributions differ substantially (some users having ~1k samples whereas others having only ~10).
 Another way to achieve entity-level DP is to cap the number of contributions per entity by some constant <img src="https://render.githubusercontent.com/render/math?math=K"> and continue the training just like sample-level DP.
 In this case, the total number of samples in the training set will depend on both the number of entities and the cap <img src="https://render.githubusercontent.com/render/math?math=K">; let it be <img src="https://render.githubusercontent.com/render/math?math=N"> and batch size be <img src="https://render.githubusercontent.com/render/math?math=B">.
-The `sample_rate` in this case will be equal to <img src="https://render.githubusercontent.com/render/math?math=K*B/N"> and this procedure will also provide entity-level DP.
+The `sample_rate` in this case will be equal to <img src="https://render.githubusercontent.com/render/math?math=K*B/N"> and this procedure will also provide entity-level DP[^2].
 Note that here entities that have contributions close to <img src="https://render.githubusercontent.com/render/math?math=K"> might enjoy better performance than the ones that have contributions <img src="https://render.githubusercontent.com/render/math?math=\ll K">.
 On the other hand, privacy is calculated as a worst-case guarantee, therefore, we will calculate the privacy budget with `sample_rate` as <img src="https://render.githubusercontent.com/render/math?math=K*B/N"> although entities that have contributions <img src="https://render.githubusercontent.com/render/math?math=\ll K"> will enjoy better privacy guarantees essentially. 
-
-*Internal only: For a more formal treatment, see the following [document](https://microsoft-my.sharepoint.com/:b:/p/sigopi/EVDYL97UflFIgq2VlvC414UBhj3MBBSm1n40EcCE78PByw?e=tHnbrH).* 
 
 ## Using more than one optimizer in DP training 
 
@@ -128,3 +125,6 @@ In order to make deep neural network training Differentially Private, two modifi
 
 The resulting algorithm is often referred to [DP-SGD](https://arxiv.org/pdf/1607.00133.pdf).
 However, the same modifications make Adam, Adagrad, etc. differentially private as well.
+
+[^1]: To be precise, this is only an approximation to the sample rate when we shuffle and form batches of size <img src="https://render.githubusercontent.com/render/math?math=B">. The actual accountant assumes Poisson sampling where each parameter is included in the batch with probability <img src="https://render.githubusercontent.com/render/math?math=p">, hence the sample rate. In general we might want to highlight that shuffling is technically not the right way of going over your dataset. However, Poisson sampling is computationally expensive, therefore, this approximation is widely used in general.
+[^2]: There is `sample_rate`^2 error in this procedure.
