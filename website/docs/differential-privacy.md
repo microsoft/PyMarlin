@@ -127,4 +127,4 @@ The resulting algorithm is often referred to [DP-SGD](https://arxiv.org/pdf/1607
 However, the same modifications make Adam, Adagrad, etc. differentially private as well.
 
 [^1]: To be precise, this is only an approximation to the sample rate when we shuffle and form batches of size <img src="https://render.githubusercontent.com/render/math?math=B">. The actual accountant assumes Poisson sampling where each parameter is included in the batch with probability <img src="https://render.githubusercontent.com/render/math?math=p">, hence the sample rate. In general we might want to highlight that shuffling is technically not the right way of going over your dataset. However, Poisson sampling is computationally expensive, therefore, this approximation is widely used in general.
-[^2]: There is `sample_rate`^2 error in this procedure.
+[^2]: There is a O(`sample_rate`^2) term ignored in this procedure.
