@@ -2,7 +2,6 @@
 Logging util module
 """
 import logging
-import sys
 
 formatter = logging.Formatter('%(asctime)s:%(levelname)s : %(name)s : %(lineno)d : %(message)s')
 
