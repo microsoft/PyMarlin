@@ -6,7 +6,7 @@ import sys
 
 logging.root.handlers = []
 logging.basicConfig(level="WARN",
-                    format='SystemLog: %(asctime)s:%(levelname)s : %(name)s : %(lineno)d : %(message)s',
+                    format='%(asctime)s:%(levelname)s : %(name)s : %(lineno)d : %(message)s',
                     stream=sys.stdout)
 
 def getlogger(name, log_level='INFO'):
