@@ -4,7 +4,7 @@ Logging util module
 import logging
 import sys
 
-formatter = logging.Formatter('SystemLog: %(asctime)s:%(levelname)s : %(name)s : %(lineno)d : %(message)s')
+formatter = logging.Formatter('%(asctime)s:%(levelname)s : %(name)s : %(lineno)d : %(message)s')
 
 def getlogger(name, log_level='INFO'):
     """
