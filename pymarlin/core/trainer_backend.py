@@ -30,7 +30,7 @@ from pymarlin.utils.distributed import (
     DistributedTrainingArguments,
     SequentialDistributedSampler,
 )
-
+from pymarlin.utils.differential_privacy import DifferentialPrivacyArguments, NoDPWrap
 
 try:
     from apex import amp
@@ -48,11 +48,13 @@ def build_trainer_backend(trainer_backend_name, *args, **kwargs):
     """
     factory_dict = {
         "sp": SingleProcess,
+        "sp-dp": SingleProcessDpSgd,
         "sp-amp": SingleProcessAmp,
         "sp-amp-apex": SingleProcessApexAmp,
         "ddp": DDPTrainerBackendFactory(SingleProcess),
         "ddp-amp": DDPTrainerBackendFactory(SingleProcessAmp),
         "ddp-amp-apex": DDPTrainerBackendFactory(SingleProcessApexAmp),
+        "ddp-dp": DPDDPTrainerBackendFactory(SingleProcessDpSgd)
     }
     return factory_dict[trainer_backend_name](*args, **kwargs)
 
@@ -64,6 +66,7 @@ class TrainerBackendArguments:
     """
     model: module_interface.ModuleInterface
     device: Union[torch.device, str, int]
+    train_batch_size: int
     max_train_steps_per_epoch: Optional[int]
     max_val_steps_per_epoch: Optional[int]
     distributed_training_args: DistributedTrainingArguments
@@ -77,7 +80,7 @@ class TrainerBackendArguments:
     amp_backend_native: bool = False
     amp_backend_apex: bool = False
     amp_level_apex: str = 'O1'
-
+    differential_privacy_args: Optional[DifferentialPrivacyArguments] = None
 
 class TrainerBackend(ABC):
     """
@@ -353,6 +356,100 @@ class SingleProcess(TrainerBackend):
             self.global_step_completed = state["global_step_completed"]
             self.batches_completed = state["batches_completed"]
 
+
+class SingleProcessDpSgd(SingleProcess):
+    '''
+    Backend which supports Differential Privacy. We are using Opacus library.
+    https://opacus.ai/api/privacy_engine.html
+    '''
+
+    def init(self, args : TrainerBackendArguments):
+        super().init(args)
+
+        # No global clipping needed to be performed in DP training
+        if self.args.clip_grads:
+            raise ValueError("No global clipping needed to be performed in DP training!")
+
+        self.model.train()
+
+        # wrap model
+        from opacus import GradSampleModule
+        self.model = GradSampleModule(self.model)
+
+        # initialize privacy accountant
+        from opacus.accountants import RDPAccountant
+        self.accountant = RDPAccountant()
+
+        for index, optimizer in enumerate(self.args.optimizers):
+            # wrap the DP-optimizer
+            if not isinstance(optimizer, NoDPWrap):
+                world_size = self.args.distributed_training_args.world_size
+                if world_size > 1:
+                    from opacus.optimizers import DistributedDPOptimizer
+                    pergpu_global_batch_size = self.args.train_batch_size//world_size
+                    optimizer = DistributedDPOptimizer(
+                        optimizer=optimizer,
+                        noise_multiplier=self.args.differential_privacy_args.noise_multiplier, # same as make_private arguments
+                        max_grad_norm=self.args.differential_privacy_args.per_sample_max_grad_norm, # same as make_private arguments
+                        expected_batch_size=pergpu_global_batch_size # if you're averaging your gradients, you need to know the denominator
+                    )
+                else:
+                    from opacus.optimizers import DPOptimizer
+                    optimizer = DPOptimizer(
+                        optimizer=optimizer,
+                        noise_multiplier=self.args.differential_privacy_args.noise_multiplier, # same as make_private arguments
+                        max_grad_norm=self.args.differential_privacy_args.per_sample_max_grad_norm, # same as make_private arguments
+                        expected_batch_size=self.args.train_batch_size # if you're averaging your gradients, you need to know the denominator
+                    )
+
+                # attach accountant to track privacy for an optimizer
+                optimizer.attach_step_hook(
+                    self.accountant.get_optimizer_hook_fn(
+                    # this is an important parameter for privacy accounting. Should be equal to batch_size / len(dataset)
+                    sample_rate=self.args.differential_privacy_args.sample_rate
+                    )
+                )
+                self.args.optimizers[index] = optimizer
+            else:
+                # unwrap any No-DP-optimizer
+                self.args.optimizers[index] = optimizer.optimizer
+
+    def _forward_backward(self, callback, batch):
+        # forward
+        outputs = self.model.forward(
+            stage=module_interface.Stage.TRAIN,
+            batch=batch,
+            device=self.args.device,
+            global_step=self.global_step_completed + 1,
+        )
+        # assume iterable if first return type is not a list
+        outputs = [outputs] if isinstance(outputs, torch.Tensor) else outputs
+        loss = outputs[0]
+        # backward. This will keep on accumulating gradients
+        loss.backward()
+        callback.on_end_backward(self.global_step_completed, loss)
+
+        # clipping is needed during gradient accumulation for DP
+        if (self.batches_completed + 1) % self.args.gradient_accumulation != 0:
+            for optimizer in self.args.optimizers:
+                if hasattr(optimizer, 'signal_skip_step'):
+                    optimizer.signal_skip_step(do_skip=True)
+                    optimizer.step()
+                    optimizer.zero_grad()
+        else:
+            for optimizer in self.args.optimizers:
+                if hasattr(optimizer, 'signal_skip_step'):
+                    optimizer.signal_skip_step(do_skip=False)
+        return outputs
+
+    def optimize(self, optimizers, schedulers):
+        for optimizer in optimizers:
+            optimizer.step()
+            optimizer.zero_grad()
+
+        if schedulers:
+            for scheduler in schedulers:
+                scheduler.step()
 
 # TODO: Merge SingleProcess and SingleProcessAmp after convergence test
 # jsleep: was this convergence test run and should this be merged?
@@ -713,9 +810,46 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
     def val_sampler(self):
         return SequentialDistributedSampler
 
+class DPDDPTrainerBackend(DDPTrainerBackend):
+    """Distributed Data Parallel TrainerBackend with Differential Privacy.
+
+    Wraps ModuleInterface model with DifferentiallyPrivateDistributedDataParallel which handles
+    gradient averaging across processes, along with virtual stepping.
+
+    .. note: Assumes initiailized model parameters are consistent across
+        processes - e.g. by using same random seed in each process at
+        point of model initialization.
+    """
+    # pylint: disable=super-init-not-called
+    def __init__(self, trainer_backend, gather_frequency: Optional[int] = None):
+        self.trainer_backend = trainer_backend
+        self.gather_frequency = gather_frequency
+        self.trainer_backend.distributed = True
+
+    def init(self, args: TrainerBackendArguments):
+        # unpack trainer_backend arguments
+        self.args = args
+        self.distributed_training_args = args.distributed_training_args
+
+        # Need to initiate the distributed env and set default devices before initializing APEX AMP, otherwise may hit CUDA memory error
+        self.setup_distributed_env()
+
+        # need to wrap model with DPDDP before initializing Privacy Engine
+        from opacus.distributed import DifferentiallyPrivateDistributedDataParallel as DPDDP
+        self.args.model = DPDDP(self.args.model)
+
+        self.trainer_backend.init(args)
+
 def DDPTrainerBackendFactory(trainer_backend_cls): # pylint: disable=invalid-name
     def create(*args, gather_frequency: Optional[int] = None, **kwargs):
         # pull out args to DDPTrainerBackend if needed here.
         return DDPTrainerBackend(trainer_backend_cls(*args, **kwargs), gather_frequency=gather_frequency)
+
+    return create
+
+def DPDDPTrainerBackendFactory(trainer_backend_cls): # pylint: disable=invalid-name
+    def create(*args, gather_frequency: Optional[int] = None, **kwargs):
+        # pull out args to DDPTrainerBackend if needed here.
+        return DPDDPTrainerBackend(trainer_backend_cls(*args, **kwargs), gather_frequency=gather_frequency)
 
     return create

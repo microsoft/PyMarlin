@@ -23,20 +23,20 @@ class TestSingleProcess(unittest.TestCase):
 
         self.mock_optimizer = mock.MagicMock(spec = torch.optim.Optimizer)
         self.trainer_backendArgs = trainer_backend.TrainerBackendArguments(
-            model = self.mock_module,
-            device = 'cpu',
-            max_train_steps_per_epoch= 1,
-            max_val_steps_per_epoch = 1,
-            distributed_training_args = DistributedTrainingArguments(),
-            optimizers = [self.mock_optimizer],
-            schedulers = [self.mock_scheduler],
+            model=self.mock_module,
+            device='cpu',
+            train_batch_size=1,
+            max_train_steps_per_epoch=1,
+            max_val_steps_per_epoch=1,
+            distributed_training_args=DistributedTrainingArguments(),
+            optimizers=[self.mock_optimizer],
+            schedulers=[self.mock_scheduler],
             gradient_accumulation=1,
             clip_grads=False,
         )
         
         self.trainer_backend.init(self.trainer_backendArgs)
 
-        
         self.mock_callback = mock.MagicMock()
         self.mock_dataloader = [mock.MagicMock()]*10
 
