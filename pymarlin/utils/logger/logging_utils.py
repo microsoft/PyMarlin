@@ -4,10 +4,7 @@ Logging util module
 import logging
 import sys
 
-logging.root.handlers = []
-logging.basicConfig(level="WARN",
-                    format='%(asctime)s:%(levelname)s : %(name)s : %(lineno)d : %(message)s',
-                    stream=sys.stdout)
+formatter = logging.Formatter('%(asctime)s:%(levelname)s : %(name)s : %(lineno)d : %(message)s')
 
 def getlogger(name, log_level='INFO'):
     """
@@ -25,6 +22,7 @@ def getlogger(name, log_level='INFO'):
     """
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
+    logger.setFormatter(formatter)
     return logger
 
 if __name__ == '__main__':
