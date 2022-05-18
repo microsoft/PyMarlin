@@ -1,6 +1,6 @@
 """A lightweight library for Deep Learning model training"""
 
-__version__ = '0.2.6'
+__version__ = '0.2.7'
 from pymarlin.core.trainer import (
     TrainerArguments,
     Trainer,
