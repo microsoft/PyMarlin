@@ -26,6 +26,7 @@ from pymarlin.core import module_interface
 from pymarlin.utils import fabrics
 from pymarlin.utils import distributed
 from pymarlin.utils.distributed import DistributedTrainingArguments, rank_zero_only
+from pymarlin.utils.differential_privacy import DifferentialPrivacyArguments
 
 from pymarlin.utils.checkpointer.checkpoint_utils import AbstractCheckpointer
 from pymarlin.utils.checkpointer.checkpoint_utils import DefaultCheckpointer
@@ -73,6 +74,8 @@ class TrainerArguments:
     amp_backend_apex: bool = False
     amp_level_apex: str = 'O1'
 
+    # differential privacy arguments
+    differential_privacy_args: DifferentialPrivacyArguments = None
 
 class AbstractTrainer(ABC):
     """
@@ -448,6 +451,7 @@ class Trainer(AbstractTrainer):
             schedulers=self.schedulers,
             gradient_accumulation=self.gradient_accumulation,
             device=self.device,
+            train_batch_size=self.args.train_batch_size,
             max_train_steps_per_epoch=self.args.max_train_steps_per_epoch,
             max_val_steps_per_epoch=self.args.max_val_steps_per_epoch,
             clip_grads=self.args.clip_grads,
@@ -457,5 +461,5 @@ class Trainer(AbstractTrainer):
             amp_backend_native=self.args.amp_backend_native,
             amp_backend_apex=self.args.amp_backend_apex,
             amp_level_apex=self.args.amp_level_apex,
-
+            differential_privacy_args = self.args.differential_privacy_args,
         )

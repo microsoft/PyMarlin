@@ -1,4 +1,7 @@
 # Version Notes:
+## 0.3.2
+* PyMarlin supports DP training via Opacus v1.0
+
 ## 0.3.1
 * Version parity for Pypi.
 
