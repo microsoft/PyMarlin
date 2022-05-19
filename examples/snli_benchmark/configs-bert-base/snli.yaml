@@ -1,0 +1,41 @@
+glue_task : 'snli'
+
+mi:
+    encoder : "bert-base-cased"
+    tokenizer: "bert-base-cased"
+    num_labels : 3
+    lr : 0.0005
+    s1_key : 'premise'
+    s2_key : 'hypothesis'
+    max_length : 128
+    warmup : 0.06
+tr:
+    clip_grads: False
+    max_train_steps_per_epoch : null # Maximum train steps per epoch.
+    max_val_steps_per_epoch : null # Maximum validation steps per epoch.
+    train_batch_size: 32 # Training global batch size.
+    val_batch_size: 64 # Validation global batch size.
+    epochs: 3 # Total epochs to run.
+    gpu_batch_size_limit : 4 # Max limit for GPU batch size during training.
+    disable_tqdm : True
+    writers: ['stdout', 'aml', 'tensorboard']
+    backend: 'ddp-dp'
+
+dp:
+    per_sample_max_grad_norm: 1.0
+    noise_multiplier: 0.4
+    sample_rate: 0.00005818 #snli: 32/550000
+    target_delta: 0.000001818 #snli: 1/550000
+
+wrt:
+    tb_log_dir : 'logs_bert_base/snli/from_pretrained'
+
+stat:
+    log_steps : 20
+
+dist:
+    local_rank : 1
+
+ckp:
+    checkpoint : False
+    period: 5
