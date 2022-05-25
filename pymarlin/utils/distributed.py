@@ -92,24 +92,13 @@ def set_environment_variables_for_nccl_backend():
     os.environ["NCCL_SOCKET_IFNAME"] = "^docker0,lo"
     os.environ["NCCL_IB_DISABLE"] = "0"  # for IB
 
-    single_node = int(os.environ["OMPI_COMM_WORLD_LOCAL_SIZE"]) == int(
-        os.environ["OMPI_COMM_WORLD_SIZE"]
-    )
-
-    if single_node:
-        master_node = os.environ["AZ_BATCHAI_MPI_MASTER_NODE"]
-        master_port = "54965"
-    else:
-        master_node_params = os.environ["AZ_BATCH_MASTER_NODE"].split(":")
-
-        master_node = master_node_params[0]
-        master_port = (
-            os.environ["MASTER_PORT"] if "MASTER_PORT" in os.environ else "6105"
-        )
+    master_node = os.environ["AZ_BATCHAI_MPI_MASTER_NODE"]
+    master_port = "54965"
 
     # set env variables
     os.environ["MASTER_ADDR"] = master_node
     os.environ["MASTER_PORT"] = master_port
+
 
 def rank_zero_only(fn):
     """Decorates functions to only execute on global rank 0, else wait via torch.distributed"""
