@@ -43,6 +43,27 @@ from pymarlin.utils.writer.base import WriterInitArguments
 class TrainerArguments:
     """
     Trainer Arguments class.
+    Args:
+        epochs(int): Defaults to 1
+        use_gpu(bool): Defaults to True
+        train_batch_size(int): Global batch size for training. This value need not be changed for distributed training. 
+        This is number of samples the model has seen before weight update.
+        Defaults to 1
+        gpu_batch_size_limit(int): Maximum training batch size that each GPU can handle. Used for calculating gradient accumulation. Defaults to 512
+        val_batch_size(int): Maximum training batch size that each GPU can handle. Defaults to 1
+        max_train_steps_per_epoch(Optional[int]): maximum train global steps per epoch. Mostly used for sanity check. Defaults to None which trains the entire data loader
+        max_val_steps_per_epoch(Optional[int]): maximum validation global steps per epoch. Defaults to None which runs validation for entire dataloader
+        clip_grads(bool): Enables or disables gradient clipping. uses `torch.nn.utils.clip_grad_norm_`. Defaults to True
+        max_grad_norm(float): Maximum norm for gradient clipping. Defaults to 1.0
+        reset_optimizers_schedulers(bool): Weather reseat optimizer and scheduler after loading checkpoint. Generally useful if scheduler is almost exhausted. Defaults to False
+        checkpointer_args(DefaultCheckpointerArguments): Defaults to DefaultCheckpointerArguments()
+        distributed_training_args(DistributedTrainingArguments): Instance of DistributedTrainingArguments. Defaults to None
+
+        writers(List): List of writers. Can be a combination of `pymarlin.utils.writer.base.Writer` instances and strings. Only `stdout, aml and tensorboard` are supported in strings. Defaults to ["stdout", "aml", "tensorboard"]
+        stats_args(stats.StatInitArguments): Defaults to stats.StatInitArguments()
+        writer_args(WriterInitArguments): Defaults to WriterInitArguments()
+        disable_tqdm(bool): Disable tqdm style output. Generally disabled if output is piped to a file like in AzureML. Defaults to False
+        log_level(str): Defaults to "INFO"
     """
     epochs: int = 1
     use_gpu: bool = True
@@ -92,19 +113,10 @@ class AbstractTrainer(ABC):
 
 
 class Trainer(AbstractTrainer):
-    """Orchestrates model training.
-
-    Args:
-        module (ModuleInterface): Contains model definition, train and validation
-            definition, optimizer and scheduler, and optional callbacks.
-        args (TrainerArguments): Training hyperparameters.
-
-        Optional keyword arguments:
-        trainer_backend (TrainerBackend): How the training will be carried out.
-            For example, the training is distributed and/or using AMP (automatic mixed precision).
-            This can also be specified in args using the backend keyword.
-            Defaults to singleprocess. Options are: sp (singleprocess), sp-amp, ddp, ddp-amp.
-        checkpointer (AbstractCheckpointer): Used to handle model checkpointing.
+    """The bridge between TrainerBackend and ModuleInterface: this module takes care of device management, 
+    rank fetching, checkpointing, reloading. Also handles all the complicated calculations for mini batch size, 
+    gradient accumulation, number of remaining epochs, initializing stats writers like tensor board, 
+    restarting training from previous state etc.
     """
 
     def __init__(
@@ -114,8 +126,19 @@ class Trainer(AbstractTrainer):
             trainer_backend: Optional[trn.TrainerBackend] = None,
             checkpointer: Optional[AbstractCheckpointer] = None
     ):
+        
         """
-        Initializes stats, writers, trainer_backend and other helper functions
+        Args:
+            module (pymarlin.ModuleInterface): Contains model definition, train and validation
+                definition, optimizer and scheduler, and optional callbacks.
+            args (pymarlin.core.trainer.TrainerArguments): Training hyperparameters.
+
+            Optional keyword arguments:
+            trainer_backend (pymarlin.core.trainer.TrainerBackend): How the training will be carried out.
+                For example, the training is distributed and/or using AMP (automatic mixed precision).
+                This can also be specified in args using the backend keyword.
+                Defaults to singleprocess. Options are: sp (singleprocess), sp-amp, ddp, ddp-amp.
+            checkpointer (pymarlin.utils.checkpointer.checkpoint_utils.AbstractCheckpointer): Used to handle model checkpointing.
         """
         self.module = module
         self.args = args

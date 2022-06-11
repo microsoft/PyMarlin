@@ -1,6 +1,8 @@
 """
 Trainer Backend module:
 
+Responsible for training/validating the ModuleInterface for one entire epoch. PyMarlin offers various useful backend implementations, such as SingleProcess, SingleProcessAmp, and DDPTrainerBackend.
+
 Currently we support:
     1. SingleProcess
     2. SingleProcess Amp
@@ -62,8 +64,21 @@ def build_trainer_backend(trainer_backend_name, *args, **kwargs):
 @dataclasses.dataclass
 class TrainerBackendArguments:
     """
-    Trainer Backend Arguments dataclass.
+    Trainer Backend Arguments dataclass. attributes can also be passed as arguments
+    Args:
+        model (module_interface.ModuleInterface): PyMarlin module
+        device (Union[torch.device, str, int]): device
+        max_train_steps_per_epoch (Optional[int]): maximum train global steps per epoch. Mostly used for sanity check
+        max_val_steps_per_epoch (Optional[int]): maximum validation global steps per epoch.
+        distributed_training_args (DistributedTrainingArguments): DistributedTrainingArguments instance
+        optimizers (Iterable[torch.optim.Optimizer]): one or more optimizers. All optimizers are stepped at once at the end of  each global step
+        schedulers (Optional[Iterable[torch.optim.lr_scheduler._LRScheduler]] = None # pylint (disable=protected-access): One or more schedulers. All schedulers are stepped at once at the end of  each global step
+        gradient_accumulation (int = 1): gradient accumulation value
+        clip_grads (bool = True): Wnables or disables gradient clipping. uses `torch.nn.utils.clip_grad_norm_`
+        max_grad_norm (float = 1.0): Maximum norm for gradient clipping
+        disable_tqdm (bool = False): Disable tqdm style output. Generally disabled if output is piped to a file like in AzureML
     """
+
     model: module_interface.ModuleInterface
     device: Union[torch.device, str, int]
     train_batch_size: int
@@ -84,21 +99,34 @@ class TrainerBackendArguments:
 
 class TrainerBackend(ABC):
     """
-    Trainer Backend abstract class.
+    Trainer Backend abstract class. This is responsible for running training and validation on an entire dataloader.
     """
     def __init__(self):
         pass
 
     @abstractmethod
     def init(self, args: TrainerBackendArguments):
+        '''
+        called before the start of training and validation.
+        TrainerBackend implementations should handle all initializaitons like module wrapping, optimizer modifications, distributed env initialization in this method.
+
+        Args:
+            args (TrainerBackendArguments): instance of TrainerBackendArguments
+        '''
         pass
 
     @abstractmethod
-    def train_dl(self, *args, **kwargs):
+    def train_dl(self, dataloader, callback: module_interface.CallbackInterface):
+        '''
+        Train an entire dataloader
+        '''
         pass
 
     @abstractmethod
-    def validate_dl(self, *args, **kwargs):
+    def validate_dl(self, dataloader):
+        '''
+        Train an entire dataloader
+        '''
         pass
 
     @abstractmethod
@@ -121,10 +149,16 @@ class TrainerBackend(ABC):
 
     @abstractmethod
     def get_state(self):
+        '''
+        Returns trainer backend state which is saved along with model checkpoint
+        '''
         pass
 
     @abstractmethod
     def update_state(self, state):
+        '''
+        Reload state saved in get_state()
+        '''
         pass
 
 
@@ -191,9 +225,6 @@ class SingleProcess(TrainerBackend):
 
     # pylint: disable=super-init-not-called
     def __init__(self):
-        """
-        Single process trainer_backend
-        """
         self.global_step_completed = 0
         self.batches_completed = 0
         self.distributed = False
@@ -203,6 +234,10 @@ class SingleProcess(TrainerBackend):
         return stats.global_stats
 
     def init(self, args: TrainerBackendArguments):
+        '''
+        Args:
+            args (TrainerBackendArguments): init arguments
+        '''
         self.args = args
         self.model = self.args.model
         if not self.distributed:
@@ -216,6 +251,14 @@ class SingleProcess(TrainerBackend):
         return self.global_step_completed
 
     def train_dl(self, dataloader, callback: module_interface.CallbackInterface):
+        '''
+        Iterates though the dataloader and trains the ModuleInterface passed in init()
+        Handles forward operation,  backward operation , gradient accumulation, optimizer step, scheduler step, collecting outputs of train_step 
+        
+        Args:
+            dataloader : can be a iterator which returns a batch of samples ar every iterations 
+            callback (module_interface.CallbackInterface) : callback instance
+        '''
 
         epoch_collector = OutputCollector()
         global_step_collector = OutputCollector()
@@ -297,6 +340,13 @@ class SingleProcess(TrainerBackend):
             )
 
     def validate_dl(self, dataloader):
+        '''
+        Iterates though the dataloader and runs evaluations on the ModuleInterface passed in init()
+        Handles forward operation and  output collection  
+        
+        Args:
+            dataloader: can be a iterator which returns a batch of samples ar every iterations 
+        '''
         collector = OutputCollector()
         for i, batch in enumerate(tqdm(dataloader, desc=f"Validation {self.args.distributed_training_args.global_rank}", disable=self.args.disable_tqdm)):
             if (
@@ -350,7 +400,7 @@ class SingleProcess(TrainerBackend):
         Update the trainer_backend from a checkpointed state.
 
         Args:
-            state (dict) : Output of get_state() during checkpointing
+            state (dict): Output of get_state() during checkpointing
         """
         if state:
             self.global_step_completed = state["global_step_completed"]
@@ -668,6 +718,11 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
     """
     # pylint: disable=super-init-not-called
     def __init__(self, trainer_backend, gather_frequency: Optional[int] = None):
+        '''
+        Args:
+            gather_frequency (Optional[int]) : Unused. maximum samples for one all_gather operation. 
+            There was issue with mismatched number of chunks across nodes which halted all_gather.
+        '''
         self.trainer_backend = trainer_backend
         self.gather_frequency = gather_frequency
         self.trainer_backend.distributed = True
@@ -769,10 +824,11 @@ class DDPTrainerBackend(AbstractTrainerBackendDecorator):
             Gathered tensor on the cpu.
         """
         n_samples = len(x)
-        self._set_gather_frequency(n_samples)
+        gather_frequency = n_samples
 
         gathered = []
-        n_chunks = n_samples // self.gather_frequency + 1
+        n_chunks = 1 # hardcoded to one as there was issue with mismatched number of chunks across nodes 
+        #for NER type scenarios where token labels are flattened and filtered
         for i in range(n_chunks):
             # get chunk on cpu
             chunk_cpu = x[i * self.gather_frequency: (i + 1) * self.gather_frequency]
